@@ -4,6 +4,8 @@ param([string] $TunnelId = "")
 
 $ErrorActionPreference = "Stop"
 $root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+# Keep host content root and relative paths inside this independent project.
+Set-Location -LiteralPath $root
 $exe = Join-Path $root ".tools\tunnel-client-v0.0.18\tunnel-client.exe"
 $dll = Join-Path $root "src\ChatGptMcpTunnel\bin\Release\net8.0\ChatGptMcpTunnel.dll"
 $profiles = Join-Path $root ".tools\tunnel-profiles"
