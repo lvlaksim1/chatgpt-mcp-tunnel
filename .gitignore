@@ -1,0 +1,20 @@
+# Build outputs and local runtime data
+**/bin/
+**/obj/
+.vs/
+.idea/
+__pycache__/
+*.user
+*.suo
+.tools/
+*.dpapi
+*.log
+runtime-key*
+*.zip
+*.exe
+*.dll
+*.pdb
+*.msi
+*.7z
+*.rar
+.DS_Store
