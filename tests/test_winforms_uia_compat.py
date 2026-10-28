@@ -41,6 +41,7 @@ def call(tool_name, **params):
 fixture = r"""
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
+$global:stateFile=$args[0]
 $form = New-Object System.Windows.Forms.Form
 $form.Text='ChatGPT MCP UIA TEST WINDOW'
 $form.StartPosition='Manual'
@@ -57,7 +58,7 @@ $button.Name='McpTestAction'
 $button.Text='Apply MCP'
 $button.Location=New-Object System.Drawing.Point(25,110)
 $button.Size=New-Object System.Drawing.Size(140,35)
-$button.Add_Click({[IO.File]::WriteAllText($args[0],'CLICKED')})
+$button.Add_Click({[IO.File]::WriteAllText($global:stateFile,'CLICKED')})
 $form.Controls.Add($button)
 $check=New-Object System.Windows.Forms.CheckBox
 $check.Name='McpTestOption'
@@ -99,6 +100,26 @@ try:
             search=call("desktop.uia.find",hwnd=hwnd,name="Apply MCP",view=view)
             assert search["count"]>0,search
             print("WINFORMS_FIND",view,search["count"],flush=True)
+            edit=call("desktop.uia.find",hwnd=hwnd,control_type="Edit",view=view)
+            button=call("desktop.uia.find",hwnd=hwnd,control_type="Button",view=view)
+            checkbox=call("desktop.uia.find",hwnd=hwnd,control_type="CheckBox",view=view)
+            assert edit["count"]>=1 and button["count"]>=1 and checkbox["count"]>=1,(edit,button,checkbox)
+            if view=="control":
+                changed=call("desktop.uia.action",hwnd=hwnd,path=edit["matches"][0]["path"],action="set_value",value="Тест WindowsForms",view=view)
+                after_edit=call("desktop.uia.get",hwnd=hwnd,path=edit["matches"][0]["path"],view=view)
+                assert after_edit["msaa"]["value"]=="Тест WindowsForms",after_edit
+                print("WINFORMS_SET_VALUE_OK",changed["backend"],flush=True)
+                invoked=call("desktop.uia.action",hwnd=hwnd,path=button["matches"][0]["path"],action="invoke",view=view)
+                for _ in range(20):
+                    if marker.exists():break
+                    time.sleep(.1)
+                assert marker.exists() and marker.read_text()=="CLICKED",invoked
+                print("WINFORMS_INVOKE_OK",invoked["backend"],flush=True)
+                check_before=call("desktop.uia.get",hwnd=hwnd,path=checkbox["matches"][0]["path"],view=view)
+                toggled=call("desktop.uia.action",hwnd=hwnd,path=checkbox["matches"][0]["path"],action="toggle",view=view)
+                check_after=call("desktop.uia.get",hwnd=hwnd,path=checkbox["matches"][0]["path"],view=view)
+                assert (check_before["msaa"]["state"] & 16)!=(check_after["msaa"]["state"] & 16),(check_before,check_after)
+                print("WINFORMS_TOGGLE_OK",toggled["backend"],flush=True)
         call("desktop.window.close",hwnd=hwnd)
         gui.wait(timeout=6)
         print("WINFORMS_COMPAT_DIAGNOSTIC_PASS",flush=True)
