@@ -67,6 +67,7 @@ try:
     github_tools = {"github.auth", "github.api", "github.graphql", "github.repositories", "github.files", "github.branches", "github.commits", "github.batch_commit", "github.issues", "github.pulls", "github.actions", "github.jobs", "github.releases", "github.release_assets", "github.artifacts", "github.search", "github.git"}
     expected |= github_tools
     expected.add('computers.list')
+    expected.update({"file.transfer.start", "file.transfer.status", "file.transfer.cancel"})
     assert len(github_tools) == 17
     assert {t["name"] for t in tools} == expected, tools
     print("TOOL_DISCOVERY_OK", sorted(expected), flush=True)
