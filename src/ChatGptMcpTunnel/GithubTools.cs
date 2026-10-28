@@ -372,7 +372,13 @@ public static class GithubTools
                     throw new ArgumentException("Invalid path selections");
                 var stage=await GithubRuntime.RunGit(local_path, (new[]{"add","--"}).Concat(paths).ToArray());
                 if (JsonNode.Parse(stage)?["exit_code"]?.GetValue<int>()!=0) return stage;
-                var commit=await GithubRuntime.RunGit(local_path,"commit","-m",message);
+                // Use the authenticated account's GitHub noreply address for new commits.
+                // This avoids GH007 without modifying global or repository Git config.
+                var profile=await GithubRuntime.Api("GET","/user");
+                string login=profile?["login"]?.ToString() ?? throw new InvalidOperationException("GitHub account login unavailable");
+                string userId=profile?["id"]?.ToString() ?? throw new InvalidOperationException("GitHub account ID unavailable");
+                string noreply=userId+"+"+login+"@users.noreply.github.com";
+                var commit=await GithubRuntime.RunGit(local_path,"-c","user.email="+noreply,"commit","-m",message);
                 if (JsonNode.Parse(commit)?["exit_code"]?.GetValue<int>()!=0) return commit;
                 return await GithubRuntime.RunGit(local_path,"push");
             }
