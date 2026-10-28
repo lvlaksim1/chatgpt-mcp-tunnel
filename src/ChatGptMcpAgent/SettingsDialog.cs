@@ -1,4 +1,6 @@
 using System.Drawing;
+using System.Net.Security;
+using System.Security.Cryptography;
 
 namespace ChatGptMcpAgent;
 
@@ -11,13 +13,14 @@ internal sealed class SettingsDialog : Form
     {
         Text = "Автоматически запускать при входе в Windows", AutoSize = true
     };
-    private readonly string _scheme;
+    private readonly CheckBox _secure = new() { Text = "Прямое защищённое подключение через Интернет (WSS)", AutoSize = true };
+    private readonly TextBox _fingerprint = new();
     private string? _pendingKey;
 
     internal SettingsDialog(AgentSettings existing)
     {
         Text = "ChatGPT MCP Tunnel — Клиент";
-        ClientSize = new Size(500, 370);
+        ClientSize = new Size(500, 475);
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
@@ -32,32 +35,50 @@ internal sealed class SettingsDialog : Form
             Font = new Font(Font, FontStyle.Bold)
         });
         AddField("Имя этого компьютера", _computer, 58, existing.Computer);
-        _scheme = "ws";
         var host = "";
         if (Uri.TryCreate(existing.RouterUrl, UriKind.Absolute, out var savedUri))
         {
             host = savedUri.Host;
-            _scheme = savedUri.Scheme;
+            _secure.Checked = savedUri.Scheme == "wss";
         }
         AddField("IP-адрес или имя сервера", _serverAddress, 121, host);
+        _secure.SetBounds(20, 180, 465, 29);
+        Controls.Add(_secure);
+        var portHint = new Label
+        {
+            Text = "", Left = 20, Top = 209, Width = 460, Height = 25,
+            ForeColor = SystemColors.GrayText
+        };
+        void UpdateMode()
+        {
+            _fingerprint.Enabled = _secure.Checked;
+            portHint.Text = _secure.Checked
+                ? "Защищённый порт 55202, доступ из другой локальной сети."
+                : "Локальный порт 55201.";
+        }
+        _secure.CheckedChanged += (_, _) => UpdateMode();
+        Controls.Add(portHint);
         Controls.Add(new Label
         {
-            Text = "Порт 55201 применяется автоматически.",
-            Left = 20, Top = 184, Width = 460, Height = 27,
-            ForeColor = SystemColors.GrayText
+            Text = "SHA-256 отпечаток сертификата сервера (для WSS)",
+            Left = 20, Top = 243, Width = 460, Height = 23
         });
+        _fingerprint.SetBounds(20, 269, 460, 28);
+        _fingerprint.Text = existing.TlsFingerprint;
+        Controls.Add(_fingerprint);
+        UpdateMode();
         Controls.Add(new Label
         {
             Text = "Ключ подключения к серверу",
-            Left = 20, Top = 219, Width = 450, Height = 25
+            Left = 20, Top = 308, Width = 450, Height = 25
         });
-        _keyState.SetBounds(20, 250, 278, 26);
+        _keyState.SetBounds(20, 339, 278, 26);
         _keyState.Text = AgentStorage.HasCredential() ? "Ключ сохранён" : "Ключ не указан";
         Controls.Add(_keyState);
         var keyButton = new Button
         {
             Text = "Указать ключ",
-            Left = 330, Top = 242, Width = 150, Height = 32
+            Left = 330, Top = 331, Width = 150, Height = 32
         };
         keyButton.Click += (_, _) =>
         {
@@ -71,13 +92,13 @@ internal sealed class SettingsDialog : Form
         // The client MUST NOT have any "show", "reveal", "copy" or
         // exported key action. The stored DPAPI secret is not read here.
 
-        _autostart.SetBounds(20, 291, 470, 26);
+        _autostart.SetBounds(20, 381, 470, 26);
         _autostart.Checked = existing.AutoStart;
         Controls.Add(_autostart);
 
         var check = new Button
         {
-            Text = "Проверить", Left = 20, Top = 325, Width = 120, Height = 33
+            Text = "Проверить", Left = 20, Top = 415, Width = 120, Height = 33
         };
         check.Click += async (_, _) =>
         {
@@ -88,14 +109,27 @@ internal sealed class SettingsDialog : Form
                 if (host.Length == 0 || host.Contains('/') || host.Contains(':') ||
                     host.Contains(' ') || host.Contains('@'))
                     throw new ArgumentException("Укажите IP-адрес или имя сервера.");
-                var url = new UriBuilder(_scheme, host, 55201, "agent").Uri.AbsoluteUri;
+                var url = new UriBuilder(_secure.Checked ? "wss" : "ws", host, _secure.Checked ? 55202 : 55201, "agent").Uri.AbsoluteUri;
                 if (!AgentStorage.ValidateRouter(url, out var reason))
                     throw new ArgumentException(reason);
                 using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(4));
                 using var tcp = new System.Net.Sockets.TcpClient();
-                await tcp.ConnectAsync(host, 55201, timeout.Token);
+                await tcp.ConnectAsync(host, _secure.Checked ? 55202 : 55201, timeout.Token);
+                if (_secure.Checked)
+                {
+                    var pin = Convert.FromHexString(DirectTls.NormalizeFingerprint(_fingerprint.Text));
+                    using var tls = new SslStream(tcp.GetStream(), false, (_, certificate, _, _) =>
+                        certificate is not null &&
+                        CryptographicOperations.FixedTimeEquals(pin, SHA256.HashData(certificate.GetRawCertData())));
+                    await tls.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
+                    {
+                        TargetHost = host
+                    }, timeout.Token);
+                }
                 MessageBox.Show(this,
-                    "Сервер доступен по сети. Проверка ключа выполняется при подключении.",
+                    _secure.Checked
+                        ? "TLS-соединение установлено. Отпечаток сертификата совпадает. Ключ проверяется при подключении."
+                        : "Сервер доступен по сети. Проверка ключа выполняется при подключении.",
                     "Проверка сервера", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
@@ -109,9 +143,9 @@ internal sealed class SettingsDialog : Form
         var save = new Button
         {
             Text = "Сохранить и подключиться",
-            Left = 190, Top = 325, Width = 190, Height = 33
+            Left = 190, Top = 415, Width = 190, Height = 33
         };
-        var close = new Button { Text = "Отмена", Left = 389, Top = 325, Width = 91, Height = 33 };
+        var close = new Button { Text = "Отмена", Left = 389, Top = 415, Width = 91, Height = 33 };
         save.Click += (_, _) => Save();
         close.Click += (_, _) => { DialogResult = DialogResult.Cancel; Close(); };
         Controls.Add(save);
@@ -142,14 +176,15 @@ internal sealed class SettingsDialog : Form
                 host.Contains(':') || host.Contains(' ') || host.Contains('@'))
                 throw new ArgumentException("Укажите IP-адрес или имя компьютера сервера.");
 
-            var url = new UriBuilder(_scheme, host, 55201, "agent").Uri.AbsoluteUri;
+            var url = new UriBuilder(_secure.Checked ? "wss" : "ws", host, _secure.Checked ? 55202 : 55201, "agent").Uri.AbsoluteUri;
             if (!AgentStorage.ValidateRouter(url, out var reason))
                 throw new ArgumentException(reason);
             if (_pendingKey is null && !AgentStorage.HasCredential())
                 throw new ArgumentException("Необходимо указать ключ подключения.");
             AgentStorage.Save(new AgentSettings
             {
-                Computer = name, RouterUrl = url, AutoStart = _autostart.Checked
+                Computer = name, RouterUrl = url, AutoStart = _autostart.Checked,
+                TlsFingerprint = _secure.Checked ? DirectTls.NormalizeFingerprint(_fingerprint.Text) : ""
             }, _pendingKey);
             _pendingKey = null;
             DialogResult = DialogResult.OK;

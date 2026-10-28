@@ -13,6 +13,9 @@ internal sealed class AgentSettings
     public string Role { get; set; } = "client";
     public string TunnelId { get; set; } = "";
     public string ListenAddress { get; set; } = "127.0.0.1";
+    public bool DirectWanEnabled { get; set; }
+    public string PublicHost { get; set; } = "";
+    public string TlsFingerprint { get; set; } = "";
 }
 
 internal static class AgentStorage
@@ -74,6 +77,8 @@ internal static class AgentStorage
     internal static bool HasServerApiKey() => File.Exists(ServerApiKeyPath);
     internal static string LoadServerApiKey() => LoadProtected(ServerApiKeyPath);
     internal static string LoadServerAgentKey() => LoadProtected(ServerKeyPath);
+    internal static string LoadTlsPassword() => LoadProtected(Path.Combine(DataFolder, "direct-wan-password.dpapi"));
+    internal static void SaveTlsPassword(string password) => SaveProtected(Path.Combine(DataFolder, "direct-wan-password.dpapi"), password);
 
     private static string LoadProtected(string path)
     {
@@ -104,7 +109,13 @@ internal static class AgentStorage
             throw new ArgumentException("Ключ агентов должен содержать не менее 16 символов.");
         if (openAiKey is { Length: < 12 })
             throw new ArgumentException("Ключ OpenAI слишком короткий.");
+        if (settings.DirectWanEnabled &&
+            (agentKey ?? LoadServerAgentKey()).Length < 32)
+            throw new ArgumentException(
+                "Для доступа из Интернета нужен ключ клиентов длиной от 32 символов. Рекомендуется кнопка «Создать новый».");
         Directory.CreateDirectory(DataFolder);
+        if (settings.DirectWanEnabled)
+            DirectTls.EnsureCertificate(settings.PublicHost);
         if (agentKey is not null) SaveProtected(ServerKeyPath, agentKey);
         if (openAiKey is not null) SaveProtected(ServerApiKeyPath, openAiKey);
         WriteSettings(settings);
@@ -147,6 +158,10 @@ internal static class AgentStorage
             finally { CryptographicOperations.ZeroMemory(plain); }
         }
         settings.Role = "client";
+        if (settings.RouterUrl.StartsWith("wss://", StringComparison.OrdinalIgnoreCase))
+            settings.TlsFingerprint = DirectTls.NormalizeFingerprint(settings.TlsFingerprint);
+        else
+            settings.TlsFingerprint = "";
         WriteSettings(settings);
     }
 
@@ -235,7 +250,8 @@ internal static class AgentStorage
                     !ValidateRouter("ws://100.103.25.9:55201/agent", out _) ||
                     !ValidateRouter("wss://router.example/agent", out _) ||
                     ValidateRouter("ws://8.8.8.8:55201/agent", out _) ||
-                    ValidateRouter("https://router.example/agent", out _))
+                    ValidateRouter("https://router.example/agent", out _) ||
+                    !DirectTls.SelfTest())
                     return 4;
                 return 0;
             }

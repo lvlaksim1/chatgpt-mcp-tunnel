@@ -1,6 +1,10 @@
 using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Net.WebSockets;
+using System.Net;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
@@ -129,7 +133,30 @@ public static class RouterLite
         var builder = WebApplication.CreateBuilder(Array.Empty<string>());
         builder.Logging.ClearProviders();
         builder.Logging.AddConsole(options => options.LogToStandardErrorThreshold = LogLevel.Trace);
-        builder.WebHost.UseUrls(address);
+        var tlsPfx = Environment.GetEnvironmentVariable("CHATGPT_MCP_ROUTER_TLS_PFX");
+        if (string.IsNullOrWhiteSpace(tlsPfx))
+            builder.WebHost.UseUrls(address);
+        else
+        {
+            var tlsPassword = Environment.GetEnvironmentVariable("CHATGPT_MCP_ROUTER_TLS_PASSWORD")
+                ?? throw new InvalidOperationException("TLS certificate password is required.");
+            var uri = new Uri(address);
+            if (uri.Scheme != "http" || !IPAddress.TryParse(uri.Host, out var ip))
+                throw new InvalidOperationException("Router listen address must be a local IPv4 when TLS is enabled.");
+            var securePortText = Environment.GetEnvironmentVariable("CHATGPT_MCP_ROUTER_TLS_PORT") ?? "55202";
+            if (!int.TryParse(securePortText, out var securePort) ||
+                securePort is < 1024 or > 65535 || securePort == uri.Port)
+                throw new InvalidOperationException("Invalid secure router port.");
+            builder.WebHost.ConfigureKestrel(server =>
+            {
+                server.Listen(ip, uri.Port, endpoint => endpoint.Protocols = HttpProtocols.Http1);
+                server.Listen(ip, securePort, endpoint =>
+                {
+                    endpoint.Protocols = HttpProtocols.Http1;
+                    endpoint.UseHttps(tlsPfx, tlsPassword);
+                });
+            });
+        }
         var app = builder.Build();
         app.UseWebSockets();
         app.Map("/agent", async context =>
@@ -185,7 +212,8 @@ public static class RouterLite
                 session.WriteGate.Dispose();
             }
         });
-        Console.Error.WriteLine($"Router Lite listening at {address}/agent (MCP remains on stdio).");
+        Console.Error.WriteLine($"Router Lite listening at {address}/agent (MCP remains on stdio)." +
+            (string.IsNullOrWhiteSpace(tlsPfx) ? "" : " WSS listener enabled on TCP 55202."));
         await app.RunAsync(stoppingToken);
     }
 
@@ -198,6 +226,15 @@ public static class RouterLite
             throw new InvalidOperationException("Agent requires CHATGPT_MCP_AGENT_TOKEN and CHATGPT_MCP_ROUTER_URL.");
         var uri = new Uri(endpoint);
         if (uri.Scheme is not ("ws" or "wss")) throw new ArgumentException("Router URL must use ws:// or wss://.");
+        var expectedPin = Environment.GetEnvironmentVariable("CHATGPT_MCP_ROUTER_TLS_SHA256");
+        byte[]? pinnedHash = null;
+        if (uri.Scheme == "wss")
+        {
+            if (expectedPin is null || expectedPin.Length != 64 ||
+                !expectedPin.All(Uri.IsHexDigit))
+                throw new InvalidOperationException("WSS requires a 64-digit SHA256 certificate fingerprint.");
+            pinnedHash = Convert.FromHexString(expectedPin);
+        }
         // Warm up reflection mapping before accepting remote commands.
         _ = WindowsMethods.Value;
         using var desktopGate = new SemaphoreSlim(1, 1);
@@ -206,6 +243,15 @@ public static class RouterLite
             try
             {
                 using var socket = new ClientWebSocket();
+                if (pinnedHash is not null)
+                {
+                    socket.Options.RemoteCertificateValidationCallback = (_, certificate, _, _) =>
+                    {
+                        if (certificate is null) return false;
+                        var presented = SHA256.HashData(certificate.GetRawCertData());
+                        return CryptographicOperations.FixedTimeEquals(pinnedHash, presented);
+                    };
+                }
                 socket.Options.SetRequestHeader("X-Computer-Id", id);
                 socket.Options.SetRequestHeader("X-Agent-Token", token);
                 await socket.ConnectAsync(uri, cancellationToken);

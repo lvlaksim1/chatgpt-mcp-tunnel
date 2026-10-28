@@ -7,6 +7,8 @@ internal sealed class ServerSettingsDialog : Form
 {
     private readonly AgentSettings _original;
     private readonly TextBox _address = new();
+    private readonly CheckBox _wan = new() { Text = "Прямое защищённое подключение через Интернет (WSS)", AutoSize = true };
+    private readonly TextBox _publicHost = new();
     private readonly TextBox? _tunnelEntry;
     private readonly Label _tokenState = new() { AutoSize = true };
     private readonly Label _clientKeyState = new() { AutoSize = true };
@@ -89,6 +91,46 @@ internal sealed class ServerSettingsDialog : Form
             Text = "Порт: 55201", Left = 375, Top = y + 29, Width = 135, Height = 24
         });
         y += 69;
+
+        _wan.SetBounds(20, y, 490, 28);
+        _wan.Checked = settings.DirectWanEnabled;
+        Controls.Add(_wan);
+        y += 31;
+        Controls.Add(new Label
+        {
+            Text = "Статический публичный IP маршрутизатора или доменное имя",
+            Left = 20, Top = y, Width = 490, Height = 23
+        });
+        _publicHost.SetBounds(20, y + 25, 330, 28);
+        _publicHost.Text = settings.PublicHost;
+        _publicHost.Enabled = _wan.Checked;
+        _wan.CheckedChanged += (_, _) => _publicHost.Enabled = _wan.Checked;
+        Controls.Add(_publicHost);
+        Controls.Add(new Label
+        {
+            Text = "WSS: 55202", Left = 375, Top = y + 28, Width = 130, Height = 25
+        });
+        y += 61;
+        var fingerprint = MakeButton(20, y, 290, "Копировать отпечаток TLS-сертификата");
+        fingerprint.Click += (_, _) =>
+        {
+            try
+            {
+                var digest = DirectTls.Fingerprint();
+                if (string.IsNullOrEmpty(digest))
+                    throw new InvalidOperationException("Сначала включите WSS и сохраните настройки.");
+                Clipboard.SetText(digest);
+                MessageBox.Show(this,
+                    "Отпечаток SHA-256 скопирован. Передайте его клиенту отдельно и сверяйте с сервером.",
+                    "Сертификат сервера", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, ex.Message, "Сертификат сервера",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        };
+        y += 42;
 
         Controls.Add(new Label
         {
@@ -189,6 +231,29 @@ internal sealed class ServerSettingsDialog : Form
             finally { allowLan.Enabled = true; }
         };
         y += 44;
+        var allowWan = MakeButton(20, y, 345, "Разрешить защищённый доступ из Интернета");
+        allowWan.Enabled = settings.DirectWanEnabled;
+        allowWan.Click += async (_, _) =>
+        {
+            allowWan.Enabled = false;
+            try
+            {
+                await LanFirewall.RequestWanSetupAsync(this, _address.Text.Trim());
+            }
+            catch (System.ComponentModel.Win32Exception error)
+            {
+                MessageBox.Show(this, error.NativeErrorCode == 1223
+                    ? "Подтверждение администратора отменено." : error.Message,
+                    "Брандмауэр Windows", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(this, error.Message, "Брандмауэр Windows",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            finally { allowWan.Enabled = true; }
+        };
+        y += 44;
 
         var check = MakeButton(20, y, 120, "Проверить");
         check.Click += async (_, _) =>
@@ -246,12 +311,21 @@ internal sealed class ServerSettingsDialog : Form
                 throw new ArgumentException("Нужно указать токен OpenAI.");
             if (_pendingClientKey is null && !AgentStorage.HasCredential())
                 throw new ArgumentException("Нужно указать ключ подключения клиентов.");
+            var publicHost = _wan.Checked ? DirectTls.ValidatePublicHost(_publicHost.Text) : _original.PublicHost;
+            if (_wan.Checked && _original.DirectWanEnabled &&
+                !string.Equals(publicHost, _original.PublicHost, StringComparison.OrdinalIgnoreCase) &&
+                MessageBox.Show(this,
+                    "Публичный адрес изменён. Будет создан новый TLS-сертификат, клиентам потребуется новый отпечаток. Продолжить?",
+                    "Изменение защищённого адреса", MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning) != DialogResult.Yes) return;
             AgentStorage.SaveServer(new AgentSettings
             {
                 Computer = Environment.MachineName,
                 Role = "server",
                 TunnelId = id,
                 ListenAddress = ip,
+                DirectWanEnabled = _wan.Checked,
+                PublicHost = publicHost,
                 AutoStart = _autostart.Checked
             }, _pendingClientKey, _pendingOpenAiKey);
             _pendingClientKey = null;

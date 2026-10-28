@@ -101,6 +101,72 @@ internal static class LanFirewall
         catch { return 33; }
     }
 
+    // Explicit opt-in for direct WAN TLS. Router forwarding must be configured separately;
+    // never change the router or enable plaintext public ingress automatically.
+    internal static async Task<bool> RequestWanSetupAsync(Form owner, string localAddress)
+    {
+        if (!AgentStorage.Load().DirectWanEnabled || DirectTls.Fingerprint().Length != 64)
+            throw new InvalidOperationException("Сначала сохраните настройки WSS и сертификат.");
+        VerifyLocalAddress(localAddress);
+        if (MessageBox.Show(owner,
+            "Открыть входящий TCP-порт 55202 для зашифрованного WSS на " +
+            localAddress + "?\\n\\n" +
+            "Порт будет доступен из Интернета после ручной настройки переадресации на роутере. " +
+            "Удостоверьтесь, что клиент получил правильный отпечаток сертификата и ключ.",
+            "Доступ через Интернет", MessageBoxButtons.YesNo,
+            MessageBoxIcon.Warning) != DialogResult.Yes) return false;
+        using var process = Process.Start(new ProcessStartInfo(Application.ExecutablePath)
+        {
+            UseShellExecute = true, Verb = "runas",
+            Arguments = "--configure-wan-firewall " + localAddress,
+            WorkingDirectory = AppContext.BaseDirectory
+        }) ?? throw new InvalidOperationException("Не удалось запросить права администратора.");
+        await process.WaitForExitAsync();
+        if (process.ExitCode != 0)
+            throw new InvalidOperationException("Не удалось изменить брандмауэр. Код: " + process.ExitCode);
+        MessageBox.Show(owner,
+            "Входящий TCP 55202 разрешён для TLS. Настройте на роутере ручную переадресацию " +
+            "внешнего TCP 55202 на " + localAddress + ":55202. Обычный порт 55201 не перенаправляйте.",
+            "Доступ настроен", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        return true;
+    }
+
+    private static void VerifyLocalAddress(string address)
+    {
+        if (!IPAddress.TryParse(address, out var ip) ||
+            ip.AddressFamily != AddressFamily.InterNetwork ||
+            !NetworkInterface.GetAllNetworkInterfaces()
+                .Where(n => n.OperationalStatus == OperationalStatus.Up)
+                .SelectMany(n => n.GetIPProperties().UnicastAddresses)
+                .Any(a => a.Address.Equals(ip)))
+            throw new ArgumentException("Адрес WSS должен быть назначен сетевому интерфейсу этого ПК.");
+    }
+
+    internal static int ConfigureElevatedWan(string localAddress)
+    {
+        try
+        {
+            using var identity = WindowsIdentity.GetCurrent();
+            if (!new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator))
+                return 50;
+            VerifyLocalAddress(localAddress);
+            if (!AgentStorage.Load().DirectWanEnabled || DirectTls.Fingerprint().Length != 64)
+                return 51;
+            var executable = Path.Combine(AppContext.BaseDirectory, "Runtime", "ChatGptMcpTunnel.exe");
+            if (!File.Exists(executable)) return 52;
+            const string wanRule = "ChatGPTMCPRouterLiteWSS";
+            _ = Netsh(["advfirewall", "firewall", "delete", "rule", "name=" + wanRule]);
+            return Netsh([
+                "advfirewall", "firewall", "add", "rule",
+                "name=" + wanRule, "dir=in", "action=allow",
+                "enable=yes", "profile=any", "protocol=TCP",
+                "localport=55202", "localip=" + localAddress,
+                "remoteip=any", "program=" + executable
+            ]) == 0 ? 0 : 53;
+        }
+        catch { return 54; }
+    }
+
     private static int Netsh(string[] arguments)
     {
         var info = new ProcessStartInfo("netsh.exe")

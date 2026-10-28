@@ -6,7 +6,7 @@ on:
       version:
         description: 'Stable numeric release version (X.Y.Z)'
         required: true
-        default: '0.2.7'
+        default: '0.2.8'
         type: string
 
 permissions:
@@ -120,6 +120,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python tests/test_router_reconnect.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tests/test_direct_wan.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Install Inno Setup
         shell: pwsh
@@ -218,7 +220,7 @@ jobs:
           $update = "dist\ChatGPT_MCP_Tunnel_Update_v$env:VERSION.exe"
           $legacyUpdate = "dist\ChatGPT_MCP_Agent_Update_v$env:VERSION.exe"
           Copy-Item $update $legacyUpdate
-          gh release create $env:TAG $setup $update $legacyUpdate --target "${{ github.sha }}" --title "ChatGPT MCP Tunnel v$env:VERSION" --notes "Единый установщик: выбор роли Сервер/Клиент и автозапуска. Обновление сохраняет роль и настройки. Windows x64. Маршрутизация проверена локально; проверка между двумя физическими компьютерами ожидается."
+          gh release create $env:TAG $setup $update $legacyUpdate --target "${{ github.sha }}" --title "ChatGPT MCP Tunnel v$env:VERSION" --notes "v0.2.8: прямое защищённое WSS-соединение через статический публичный IP маршрутизатора DOMKAT, TCP 55202; сохранён локальный TCP 55201. Сертификат SHA-256 закрепляется на клиенте, ключи хранятся с защитой Windows DPAPI. Сетевые настройки/проброс портов автоматически не изменяются. Проверены локальные TLS/отпечаток, маршрутизация и Windows-установщики; реальное соединение между двумя физическими компьютерами ещё не проверено. Инструкция docs/direct-wan.md."
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Prune older agent binary releases

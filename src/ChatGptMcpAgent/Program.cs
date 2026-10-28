@@ -12,6 +12,11 @@ internal static class Program
     [STAThread]
     private static void Main(string[] args)
     {
+        if (args.Length == 2 && args[0] == "--configure-wan-firewall")
+        {
+            Environment.ExitCode = LanFirewall.ConfigureElevatedWan(args[1]);
+            return;
+        }
         if (args.Length == 3 && args[0] == "--configure-tailnet-firewall")
         {
             Environment.ExitCode = LanFirewall.ConfigureElevatedTailnet(args[1], args[2]);
@@ -384,6 +389,14 @@ internal sealed class TrayContext : ApplicationContext
                 info.Environment["CHATGPT_MCP_ROUTER_ENABLED"] = "1";
                 info.Environment["CHATGPT_MCP_ROUTER_LISTEN"] =
                     "http://" + settings.ListenAddress + ":55201";
+                if (settings.DirectWanEnabled)
+                {
+                    var fingerprint = DirectTls.Fingerprint();
+                    if (fingerprint.Length != 64)
+                        throw new InvalidOperationException("Сертификат защищённого подключения не найден.");
+                    info.Environment["CHATGPT_MCP_ROUTER_TLS_PFX"] = DirectTls.PfxPath;
+                    info.Environment["CHATGPT_MCP_ROUTER_TLS_PASSWORD"] = AgentStorage.LoadTlsPassword();
+                }
             }
             else
             {
@@ -407,6 +420,9 @@ internal sealed class TrayContext : ApplicationContext
                 info.Environment["CHATGPT_MCP_COMPUTER_ID"] = settings.Computer;
                 info.Environment["CHATGPT_MCP_AGENT_TOKEN"] = token;
                 info.Environment["CHATGPT_MCP_ROUTER_URL"] = settings.RouterUrl;
+                if (settings.RouterUrl.StartsWith("wss://", StringComparison.OrdinalIgnoreCase))
+                    info.Environment["CHATGPT_MCP_ROUTER_TLS_SHA256"] =
+                        DirectTls.NormalizeFingerprint(settings.TlsFingerprint);
             }
             _child = new Process { StartInfo = info, EnableRaisingEvents = true };
             _child.ErrorDataReceived += (_, e) =>
