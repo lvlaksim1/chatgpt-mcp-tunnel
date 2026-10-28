@@ -6,6 +6,7 @@ branch in an existing repository. No changes to main, issues, or releases.
 import json
 import os
 import subprocess
+import tempfile
 import time
 import uuid
 from pathlib import Path
@@ -114,6 +115,23 @@ try:
             sha2=api_data(updated)["content"]["sha"]
             assert sha2!=sha
             print("GITHUB_FILE_UPDATE_OK",flush=True)
+            with tempfile.TemporaryDirectory(prefix="mcp-github-local-") as temporary:
+                checkout = str(Path(temporary) / "checkout")
+                cloned = tool("github.git",action="clone",repository=repo,local_path=checkout)
+                assert cloned["exit_code"]==0,cloned
+                switched = tool("github.git",action="checkout",local_path=checkout,branch=branch)
+                assert switched["exit_code"]==0,switched
+                local_file=Path(checkout)/".mcp-github-e2e"/"local-git.txt"
+                local_file.parent.mkdir(parents=True,exist_ok=True)
+                local_file.write_text("GitHub own connector local git push",encoding="utf-8")
+                pushed=tool("github.git",action="commit_push",local_path=checkout,
+                            message="test: local git publish via own MCP",
+                            paths_json=json.dumps([".mcp-github-e2e/local-git.txt"]))
+                assert pushed["exit_code"]==0,pushed
+                confirmed=tool("github.files",action="get",repository=repo,
+                               path=".mcp-github-e2e/local-git.txt",branch=branch)
+                assert confirmed["text"]=="GitHub own connector local git push"
+                print("GITHUB_LOCAL_GIT_CLONE_COMMIT_PUSH_OK",flush=True)
             batch=tool("github.batch_commit",repository=repo,branch=branch,
                        message="test: atomic two-file GitHub commit",
                        changes_json=json.dumps([{"path":".mcp-github-e2e/first.txt","content":"first"},
