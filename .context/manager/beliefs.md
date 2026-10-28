@@ -41,3 +41,8 @@ source: isolated Release build; test_mcp_stdio.py, test_router_lite.py, test_rou
 - statement: Owner explicitly rejected creating new OpenAI tunnels; clean DOMKAT migration retains existing logical Tunnel ID and ChatGPT plugin while removing old local runtime, profiles and credentials.
 - source: Owner correction 28.10.2026 and official tunnel-client CLI help.
 - authority: owner-directive, verified-runtime.
+
+## B10 — Recovered live DOMKAT same tunnel
+- statement: The new DOMKAT Server installation preserved the original OpenAI Tunnel ID and encrypted credentials, but native stderr merging in Windows PowerShell 5.1 caused repeating early termination. Direct native invocation restored the same OpenAI MCP tunnel and Router Lite. 42 local tools tested, original bridge ping, GitHub and Windows tools work, both health endpoints return 200.
+- source: direct Remote Desktop Commander investigation and actual recovered MCP calls 28.10.2026.
+- authority: verified-runtime.

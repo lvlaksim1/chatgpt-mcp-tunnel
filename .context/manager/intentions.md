@@ -54,3 +54,12 @@ verified partial progress: stages 1-3 passed local E2E, all 23 Windows tools rem
 - outcome: preserve the logical Tunnel ID, erase old local auth, install new server and enter new token in the UI; do not create another OpenAI tunnel.
 - verified partial progress: removed new-cloud-tunnel code, local x64 .NET selftest passes, autonomous staging and cutover scripts written and PowerShell syntax validated.
 - remaining: release CI v0.2.1, prepare verified installer staging, actual clean cutover and remote client acceptance.
+
+## Permanent fix for server launcher
+- commitment_id: recover-domkat-native-stderr-2026-10-28
+- status: accepted/active
+- owner: project-manager
+- source: Owner requested independently checking/fixing DOMKAT using restored Desktop Commander.
+- authority: owner-directive
+- verified partial progress: production hotfix restored same tunnel; tests of bridge_ping, Windows/GitHub tools and Router Lite passed; source fixed.
+- remaining: build and publish fixed installer v0.2.2, then connect MKATUSHONOK remotely.

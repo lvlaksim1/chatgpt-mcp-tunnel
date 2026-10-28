@@ -47,3 +47,9 @@ Physical PC onboarding and cross-host tests; do not claim production-ready multi
 - Replace only local DOMKAT runner, stored auth and profiles; Owner enters new token in new server UI.
 - PowerShell 5.1 launcher fixed, x64 GUI selftest passed, staging/cutover scripts authored; live old tunnel unchanged.
 - Next: CI release v0.2.1, stage verified installer, then autonomous cutover.
+
+## DOMKAT tunnel is online again (28.10.2026)
+- Clean server v0.2.1 installed successfully earlier, with same OpenAI Tunnel ID and new DPAPI token.
+- Original failure: 2>&1 on tunnel-client run under PowerShell 5.1 Stop preference promoted normal MCP stderr INFO to terminating NativeCommandError, caused seven-second restarts.
+- Direct native tunnel-client call in installed ServerStart.ps1 fixed problem; original ChatGPT bridge_ping and system/GitHub/window tools work, 55198/55201 listen, health/ready 200, 42 MCP tools registered.
+- Source fix for v0.2.2 prepared. Next CI release and physical MKATUSHONOK.

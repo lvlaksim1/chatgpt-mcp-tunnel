@@ -53,3 +53,10 @@
 - First stage is read-only preflight plus verified download and independent CMD; destructive transition starts only after local runner can finish without the old MCP channel.
 - source: official CLI help and local PowerShell tests, 28.10.2026.
 - authority: owner-directive, verified-runtime.
+
+## Windows PowerShell 5.1 native stderr incident (28.10.2026)
+- Native MCP stdout/stderr must NOT be merged with 2>&1 while ErrorActionPreference is Stop; informative StdioServerTransport log to stderr becomes NativeCommandError, terminating parent and child.
+- Run the tunnel-client command directly with ErrorActionPreference temporarily Continue, restore previous preference in finally, inspect native LASTEXITCODE.
+- Diagnose safely via original bridge_ping, system.info, GitHub auth, listening ports 55198 and 55201, healthz/readyz HTTP 200. Never log decrypted DPAPI keys.
+- source: reproduced and repaired actual DOMKAT 28.10.2026.
+- authority: verified-runtime.

@@ -49,3 +49,13 @@
 - Old tunnel currently remains live; no destructive cutover occurred.
 - source: Owner correction, source, local build and PowerShell AST checks 28.10.2026.
 - authority: owner-directive, verified-runtime.
+
+## New server successfully recovered (28.10.2026 MSK)
+- Installed v0.2.1 server at D:\ChatGPTMCPAgent, previous logical OpenAI Tunnel ID remains unchanged and new DPAPI credentials are present.
+- Cause of repeated process restarts: PowerShell 5.1 treated stderr INFO messages from MCP StdioServerTransport via 2>&1 under ErrorActionPreference Stop as a fatal NativeCommandError.
+- Corrected installed ServerStart.ps1: direct native tunnel-client run under temporary ErrorActionPreference Continue and preserve exit checking.
+- Original MCP tunnel works again: bridge_ping, system_info DOMKAT, GitHub auth, desktop.window.list verified; 42 tools available in direct MCP tool-list test.
+- Router Lite binds 192.168.0.3:55201; tunnel health 127.0.0.1:55198; healthz and readyz are HTTP 200; only one actual tunnel-client instance.
+- Permanent source fix prepared for v0.2.2. No second cloud tunnel or token changes.
+- source: recovered live DOMKAT runtime 28.10.2026.
+- authority: verified-runtime.

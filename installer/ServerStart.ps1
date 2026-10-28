@@ -29,5 +29,15 @@ if ($LASTEXITCODE -ne 0) { throw "Tunnel doctor failed: $LASTEXITCODE" }
 & $cli admin tunnels get $env:CHATGPT_MCP_TUNNEL_ID 1>$null 2>&1
 if ($LASTEXITCODE -ne 0) { throw 'The configured OpenAI key cannot access this tunnel.' }
 [Console]::Error.WriteLine('Router Lite launching at ' + $env:CHATGPT_MCP_ROUTER_LISTEN)
-& $cli run --profile $profileName --profile-dir $profileDir --health.url-file $health --log.file $log 2>&1 | ForEach-Object { [Console]::Error.WriteLine($_) }
-if ($LASTEXITCODE -ne 0) { throw "Official tunnel-client exited: $LASTEXITCODE" }
+# Do not merge native stderr into the PowerShell error stream here.
+# MCP writes informational startup messages to stderr; Windows PowerShell 5.1
+# with ErrorActionPreference=Stop treats those as terminating NativeCommandError.
+$previousPreference = $ErrorActionPreference
+try {
+    $ErrorActionPreference = 'Continue'
+    & $cli run --profile $profileName --profile-dir $profileDir --health.url-file $health --log.file $log
+    $runCode = $LASTEXITCODE
+} finally {
+    $ErrorActionPreference = $previousPreference
+}
+if ($runCode -ne 0) { throw "Official tunnel-client exited: $runCode" }

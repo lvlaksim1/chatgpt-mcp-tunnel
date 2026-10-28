@@ -39,3 +39,11 @@ Source: accepted Owner scope, inspected repository code and verified eight test 
 6. Verify 42 tools and MKATUSHONOK on same plugin. [pending]
 - source: Owner instructions and observed local tests 28.10.2026.
 - authority: owner-directive, verified-runtime.
+
+## Live DOMKAT repaired
+1. Reproduce seven-second restart and identify PowerShell native stderr error handling. [complete]
+2. Hotfix installed server launcher with direct native call and verify actual original plugin, 42 tools, local health ports. [complete]
+3. Update source installer launcher to permanently prevent the error, build stable v0.2.2. [source complete, release next]
+4. Connect MKATUSHONOK through the original DOMKAT Router Lite. [next]
+- source: DOMKAT observed 28.10.2026.
+- authority: verified-runtime, owner-directive.

@@ -34,3 +34,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File D:\ChatGPT-MCP-Tunnel\script
 - Не меняем ID существующего туннеля и не регистрируем новый плагин в ChatGPT.
 - До подтверждённой сборки и автономной подготовки старое подключение не трогаем.
 - Права на управление брандмауэром Windows для порта 55201 могут потребовать дополнительной настройки в доверенной локальной сети.
+
+## Recovery of installed v0.2.1 (28.10.2026 MSK)
+After the clean DOMKAT installation, the OpenAI Tunnel ID and new runtime credentials were correct. However, the server launcher invoked the native tunnel-client with 2>&1 under PowerShell 5.1 ErrorActionPreference=Stop. MCP informational startup messages in stderr were interpreted as terminating NativeCommandError and the launcher plus tunnel-client quit about every seven seconds.
+
+Via restored Remote Desktop Commander this was reproduced independently, then the installed D:\ChatGPTMCPAgent\ServerStart.ps1 was corrected to run tunnel-client directly under temporary ErrorActionPreference=Continue, with exit-code checking. No cloud tunnel creation, token replacement, or reinstall was needed.
+
+Post-fix verification: original ChatGPT plugin bridge_ping=CHATGPT_MCP_TUNNEL_PING_OK, system.info=DOMKAT, GitHub authenticated, Excel windows listed, 42 tools in local MCP list, Router Lite listening on 192.168.0.3:55201, healthz and readyz at port 55198 HTTP 200. Source corrected for upcoming v0.2.2.

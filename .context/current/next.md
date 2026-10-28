@@ -24,3 +24,8 @@ Stages 1–3 were completed and locally verified on DOMKAT; do not repeat that w
 - Stage verified installer with Prepare-Clean-Reinstall-DOMKAT.ps1, preserving only existing Tunnel ID.
 - Run independent Start-Clean-Install.cmd to remove old local files and install server; Owner enters token in new program.
 - Verify connectivity of same ChatGPT plugin and MKATUSHONOK remote tools.
+
+## Next after live repair
+- Commit and build numerical v0.2.2 with safe native stderr handling via Windows installer CI, verify release assets.
+- Preserve existing DOMKAT setup, token and Tunnel ID; do not clean-reinstall again.
+- Connect MKATUSHONOK to 192.168.0.3:55201/agent in the protected local network using its own agent key and verify cross-host tooling.

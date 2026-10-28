@@ -15,3 +15,8 @@ The local routing, controls and reconnection tests passed; these risks do not in
 - Current MCP channel is the old DOMKAT tunnel. Cutover will temporarily disconnect ChatGPT; independent local script and verified installer must be staged first.
 - Owner's replacement runtime key is not available and must be entered directly into new server GUI.
 - Keep the Git source repository even when removing installed old executable/profile and scheduled task.
+
+## Post-recovery follow-up
+- No current DOMKAT outage: original ChatGPT Tunnel connection and Router Lite are working.
+- Published v0.2.1 installer still has the native stderr redirection bug. v0.2.2 release is needed before next update.
+- Client MKATUSHONOK has not yet been verified through the new live Router Lite; tool metadata refresh may be needed for newly added computers.list tool in ChatGPT.

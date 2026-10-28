@@ -100,6 +100,9 @@ internal sealed class TrayContext : ApplicationContext
             }
             if (!_stopping && !_updating && _child is { HasExited: true })
             {
+                // Record only the numeric exit code; never log CLI stderr verbatim
+                // because it may contain sensitive diagnostic fields.
+                AgentStorage.Log("Managed process exited; code=" + _child.ExitCode);
                 _child.Dispose();
                 _child = null;
                 _connection = "Переподключение…";
