@@ -210,6 +210,11 @@ try:
             probe = ctypes.create_unicode_buffer(256)
             user32.GetWindowTextW(input_child, probe, len(probe))
             print("DIRECT_KEYBD_EVENT_CONTROL", repr(probe.value), flush=True)
+            user32.PostMessageW(input_child, 0x0102, ord('Z'), 0)
+            time.sleep(0.2)
+            post_probe = ctypes.create_unicode_buffer(256)
+            user32.GetWindowTextW(input_child, post_probe, len(post_probe))
+            print("POST_MESSAGE_CHAR_CONTROL", repr(post_probe.value), flush=True)
             seen = []
             for child in child_windows:
                 text = ctypes.create_unicode_buffer(256)
