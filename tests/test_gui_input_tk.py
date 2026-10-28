@@ -92,17 +92,25 @@ try:
             obj("desktop.mouse.click",x=data["x"],y=data["y"])
             print("MOUSE_CLICK_OK",flush=True)
             time.sleep(.25)
-            obj("desktop.keyboard.hotkey",keys="CTRL+A")
+            obj("desktop.mouse.scroll",notches=-1,x=data["x"],y=data["y"])
+            print("MOUSE_SCROLL_OK",flush=True)
+            obj("desktop.keyboard.hotkey",keys="BACKSPACE")
             time.sleep(.25)
+            after_backspace=json.loads(state.read_text(encoding="utf-8"))
+            assert after_backspace["text"]=="ORIGINA", after_backspace
+            print("KEYBOARD_HOTKEY_VERIFIED",flush=True)
             obj("desktop.keyboard.type",text="MCP WIN INPUT")
             time.sleep(.45)
             output=json.loads(state.read_text(encoding="utf-8"))
             print("TEXTBOX_RESULT",repr(output["text"]),flush=True)
-            assert output["text"]=="MCP WIN INPUT", output
-            print("KEYBOARD_INPUT_VERIFIED",flush=True)
+            assert output["text"]=="ORIGINAMCP WIN INPUT", output
+            print("KEYBOARD_TYPE_VERIFIED",flush=True)
         finally:
             obj("desktop.mouse.move",x=saved["x"],y=saved["y"])
-        capture=tool("desktop.screen.capture",x=120,y=120,width=560,height=280,max_width=560)
+        moved=obj("desktop.window.move",hwnd=hwnd,x=150,y=150,width=560,height=280)
+        assert abs(moved["bounds"]["x"]-150)<=10, moved
+        print("WINDOW_MOVE_OK",flush=True)
+        capture=tool("desktop.screen.capture",x=150,y=150,width=560,height=280,max_width=560)
         img=next(c for c in capture if c["type"]=="image")
         raw=base64.b64decode(img["data"])
         assert raw[:8]==b"\x89PNG\r\n\x1a\n",len(raw)
