@@ -46,11 +46,13 @@ try:
                  "desktop.mouse.scroll", "desktop.keyboard.type",
                  "desktop.keyboard.hotkey"}
     expected |= gui_tools
+    uia_tools = {"desktop.uia.tree", "desktop.uia.find", "desktop.uia.get", "desktop.uia.action"}
+    expected |= uia_tools
     assert set(tools) == expected, tools
     # Logical category alias: keep existing tool IDs, add Russian user-facing titles
     # and descriptions so "используй мультимедиа" selects this family of 11 tools.
     for tool in result["tools"]:
-        if tool["name"] in gui_tools:
+        if tool["name"] in gui_tools or tool["name"] in uia_tools:
             assert tool.get("title", "").startswith("Мультимедиа · "), tool
             assert "Категория «Мультимедиа»" in tool.get("description", ""), tool
         else:
