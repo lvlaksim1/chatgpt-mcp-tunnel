@@ -47,6 +47,15 @@ try:
                  "desktop.keyboard.hotkey"}
     expected |= gui_tools
     assert set(tools) == expected, tools
+    # Logical category alias: keep existing tool IDs, add Russian user-facing titles
+    # and descriptions so "используй мультимедиа" selects this family of 11 tools.
+    for tool in result["tools"]:
+        if tool["name"] in gui_tools:
+            assert tool.get("title", "").startswith("Мультимедиа · "), tool
+            assert "Категория «Мультимедиа»" in tool.get("description", ""), tool
+        else:
+            assert not tool.get("title", "").startswith("Мультимедиа · "), tool
+    print("MULTIMEDIA_CATEGORY_OK", len(gui_tools))
     print("TOOLS", tools)
     result = request({"jsonrpc": "2.0", "id": 3, "method": "tools/call",
                       "params": {"name": "bridge_ping", "arguments": {}}})
