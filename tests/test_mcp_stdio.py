@@ -57,7 +57,7 @@ try:
             assert "Категория «Мультимедиа»" in tool.get("description", ""), tool
         else:
             assert not tool.get("title", "").startswith("Мультимедиа · "), tool
-    print("MULTIMEDIA_CATEGORY_OK", len(gui_tools))
+    print("MULTIMEDIA_CATEGORY_OK", len(gui_tools | uia_tools))
     print("TOOLS", tools)
     result = request({"jsonrpc": "2.0", "id": 3, "method": "tools/call",
                       "params": {"name": "bridge_ping", "arguments": {}}})
