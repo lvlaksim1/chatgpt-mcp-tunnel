@@ -52,9 +52,10 @@ public static class DesktopTools
     {
         RequireWindows();
         if (!GetCursorPos(out var cursor)) throw NativeError("GetCursorPos");
+        var bounds = ScreenBounds();
         return AsJson(new
         {
-            virtual_screen = ScreenBounds(),
+            virtual_screen = new { bounds.x, bounds.y, bounds.width, bounds.height },
             primary_screen = new { width = GetSystemMetrics(0), height = GetSystemMetrics(1) },
             cursor = new { x = cursor.X, y = cursor.Y },
             foreground_hwnd = HandleToString(GetForegroundWindow()),
