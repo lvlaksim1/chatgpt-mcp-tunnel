@@ -121,3 +121,12 @@
 - Source v0.2.6 adds an explicit LAN-restricted Windows Firewall UAC button on server and descriptive client WebSocket error indicators; all local tests pass.
 - User controls update; do not remotely install or change live firewall without their separate approval through UI.
 - authority: verified-runtime, owner-incident.
+
+## GitHub v0.2.6 release success (28.10.2026)
+- Source commit 37702f749cd6b391a4eda4fa7766ed9c3a59a847; Windows Actions run 40736310056 completed success including installer update preservation, independent firewall/client diagnostics tests, full installation and uninstall.
+- Stable https://github.com/lvlaksim1/chatgpt-mcp-tunnel/releases/tag/v0.2.6
+- Full Setup ChatGPT_MCP_Tunnel_Setup_v0.2.6.exe SHA256 66a12e056afa3bf3822e878ded51f8d3bd32f96f13ba12faa94575bf8f17484d.
+- Update ChatGPT_MCP_Tunnel_Update_v0.2.6.exe SHA256 2053ccadc645acfb0a79d5f7a3f4aef91453da8401db34f13bd97411805ede9b; compatibility ChatGPT_MCP_Agent_Update_v0.2.6.exe same digest.
+- Installed DOMKAT was NOT upgraded or reconfigured by manager. Only after owner manual update and explicit Windows UAC can LAN firewall exception become active. MKATUSHONOK connectivity not independently verified.
+- source: GitHub release/CI, owner request 28.10.2026.
+- authority: verified-repository, owner-directive.

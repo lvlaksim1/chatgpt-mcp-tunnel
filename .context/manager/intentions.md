@@ -115,3 +115,9 @@ verified partial progress: stages 1-3 passed local E2E, all 23 Windows tools rem
 - authority: owner-incident, verified-runtime
 - completed: scoped file writer, verify complete length, protect existing install on failure; new Windows regression test, local tests.
 - remaining: stable GitHub full/update binary v0.2.6 with Windows CI; leave DOMKAT installed software untouched.
+
+## Repair-built-in-updater-ioexception-2026-10-28
+- status: completed (source/build/release), pending owner manual deployment and physical client acceptance.
+- verified: v0.2.6 stable Setup/Update plus alias and Actions run 40736310056 success.
+- source: verified GitHub Release v0.2.6.
+- authority: verified-repository, owner-directive.

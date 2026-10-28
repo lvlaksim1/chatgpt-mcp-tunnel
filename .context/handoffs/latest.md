@@ -93,3 +93,10 @@ Physical PC onboarding and cross-host tests; do not claim production-ready multi
 - Server key file updated 20:17:08, so client must use latest copied key; Router Lite returns HTTP 401 wrong key, 409 duplicate machine name.
 - v0.2.6 adds server LAN-only firewall permission button with Windows UAC, scope specific runtime, IP, TCP 55201, local subnet. Client shows appropriate WebSocket failures. This and updater file-lock fix tested locally.
 - Owner must self-update; remote installed DOMKAT app and firewall remain unchanged.
+
+## Stable v0.2.6 released; client acceptance pending
+- Successful GitHub Windows CI 40736310056, source 37702f749cd6b391a4eda4fa7766ed9c3a59a847.
+- Full Setup SHA256 66a12e056afa3bf3822e878ded51f8d3bd32f96f13ba12faa94575bf8f17484d, Update and alias SHA256 2053ccadc645acfb0a79d5f7a3f4aef91453da8401db34f13bd97411805ede9b.
+- v0.2.6 fixes Windows staging writer file lock, adds server UI LAN firewall UAC scoped to runtime, LAN address, TCP 55201 and local subnet, and visible 401/409/network errors on client.
+- DOMKAT up at 192.168.0.3:55201 readyz 200 before release; firewall Public BlockInbound with no allow rule. Client shared secret modified 20:17:08. Physical MKATUSHONOK-side connectivity not checked. Do not claim resolved until actual test.
+- User must manually install v0.2.6 Update; never remote-upgrade. Afterwards click server LAN rule button and enter current copied key on client.

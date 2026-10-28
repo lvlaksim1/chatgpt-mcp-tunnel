@@ -66,3 +66,9 @@ Stages 1–3 were completed and locally verified on DOMKAT; do not repeat that w
 - Publish both full/update installers with Windows tests for staging, firewall subnet calculation and client WebSocket error states.
 - User self-installs v0.2.6, uses Server Settings «Разрешить доступ клиентам в локальной сети» then Windows UAC confirmation; client's IP/hostname and shared key are entered separately, save/connect.
 - Confirm connectivity from physical client. If still failing, gather its on-machine agent.log/error (network vs 401 vs 409), do not speculate.
+
+## Post-release manual owner tasks
+- Owner self-installs v0.2.6 Update on DOMKAT.
+- In server Settings use LAN-only firewall permission button, accept UAC, copy current server client key.
+- On MKATUSHONOK use server address 192.168.0.3, enter copied key and save/connect. Observe client status; on failure distinguish network, 401 key, 409 name and gather client logs.
+- No remote DOMKAT upgrade by project manager; do not change cloud Tunnel ID, DPAPI secrets, IP.

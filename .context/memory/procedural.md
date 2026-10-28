@@ -114,3 +114,9 @@
 - Permit firewall only by explicit server Settings button and Windows UAC approval; bound to Router Lite runtime exe, local address, TCP 55201 and current LAN subnet. Never open port to entire Internet nor change global firewall profile.
 - source: DOMKAT read-only network/Windows Firewall diagnostics and source tests, 28.10.2026.
 - authority: verified-runtime, owner-incident.
+
+## v0.2.6 LAN client support after stable release (28.10.2026)
+- Full/update installers published, CI 40736310056 success. Owner updates DOMKAT themselves; never remotely install.
+- When user tests MKATUSHONOK: server should allow LAN-only firewall rule via explicit UAC, copy most recent server-side DPAPI key, client enters it and saves. For failures classify network, 401 key, 409 duplicate name. No independent physical-client test has been done yet; maintain distinction between plausible firewall diagnosis and proven end-to-end connection.
+- source: Windows CI/release and DOMKAT read-only logs 28.10.2026.
+- authority: verified-repository, verified-runtime, owner-directive.

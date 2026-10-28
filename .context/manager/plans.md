@@ -105,3 +105,10 @@ Source: accepted Owner scope, inspected repository code and verified eight test 
 4. Publish v0.2.6 with updater staging fix and these diagnostics [pending Windows CI].
 5. User manually installs v0.2.6, opens server Settings, clicks LAN access button/accepts UAC, copies latest server client key and saves it in client Settings, verifies connection from MKATUSHONOK [user-controlled; not yet verified].
 - authority: owner-incident, verified-runtime.
+
+## v0.2.6 release completed — owner follows up
+- GitHub stable release https://github.com/lvlaksim1/chatgpt-mcp-tunnel/releases/tag/v0.2.6 built/tested successfully on Windows CI run 40736310056.
+- Owner downloads Update v0.2.6 to repair existing v0.2.5 updater and installs locally. Do not remotely update.
+- Owner then uses server LAN firewall setup button (UAC), shares current server client key, enters/saves key on MKATUSHONOK, tests actual connection. Physical intercomputer link remains unverified.
+- source: owner directive, GitHub CI and verified release.
+- authority: verified-repository, owner-directive.

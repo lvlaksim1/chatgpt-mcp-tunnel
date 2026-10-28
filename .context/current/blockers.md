@@ -45,3 +45,7 @@ The local routing, controls and reconnection tests passed; these risks do not in
 ## v0.2.6 release and migration
 - Source fix tested; Windows installer CI and release pending.
 - v0.2.5 built-in updater is itself defective; user must manually launch v0.2.6 update installer once, no remote install.
+
+## Owner acceptance pending after v0.2.6
+- Release itself successful. User must manually install v0.2.6 Update because existing v0.2.5 built-in updater has file-lock error.
+- Windows Firewall exception must be explicitly approved by owner (server Settings/UAC) before external LAN testing. Actual MKATUSHONOK success not yet proven, no separate remote device access.
