@@ -19,7 +19,6 @@ public static class DesktopTools
     private const uint WmClose = 0x0010;
     private const uint InputMouse = 0;
     private const uint InputKeyboard = 1;
-    private const uint MouseMove = 0x0001;
     private const uint MouseLeftDown = 0x0002;
     private const uint MouseLeftUp = 0x0004;
     private const uint MouseRightDown = 0x0008;
