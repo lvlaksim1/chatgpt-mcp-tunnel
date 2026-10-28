@@ -39,6 +39,13 @@ try:
     tools = [t["name"] for t in result["tools"]]
     expected = {"bridge_ping", "system.info", "fs.list", "fs.read", "fs.write",
                 "fs.search", "shell.exec", "process.list", "process.kill"}
+    gui_tools = {"desktop.screen.info", "desktop.screen.capture",
+                 "desktop.window.list", "desktop.window.activate",
+                 "desktop.window.move", "desktop.window.close",
+                 "desktop.mouse.move", "desktop.mouse.click",
+                 "desktop.mouse.scroll", "desktop.keyboard.type",
+                 "desktop.keyboard.hotkey"}
+    expected |= gui_tools
     assert set(tools) == expected, tools
     print("TOOLS", tools)
     result = request({"jsonrpc": "2.0", "id": 3, "method": "tools/call",
