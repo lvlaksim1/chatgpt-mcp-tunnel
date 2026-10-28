@@ -127,7 +127,7 @@ try {
             [void]$result.Add($child)
             $child = $walker.GetNextSibling($child)
         }
-        return ,($result.ToArray())
+        return $result.ToArray()
     }
 
     switch ([string]$req.operation) {
