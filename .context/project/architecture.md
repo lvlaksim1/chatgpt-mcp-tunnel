@@ -19,3 +19,9 @@ Verified deployment (28 October 2026):
 - The owner explicitly chose not to add a separate owner-authentication or approval framework at this stage. Do not silently reintroduce one.
 
 - 2026-10-28 shell.exec stdio correction: child PowerShell/CMD standard input is explicitly redirected and closed at startup, preventing external programs (notably Git for Windows) from inheriting the persistent MCP transport stdin; stdout/stderr and timeout behavior remain unchanged. tests/test_windows_tools.py covers stdin EOF and real `git --version` in PowerShell and CMD.
+
+
+## Router Lite, stage 1 (28.10.2026)
+Accepted by Owner: one OpenAI tunnel, one ChatGPT plugin, several Windows computers. `RouterLite.cs` adds an optional background WebSocket listener on DOMKAT when explicitly enabled, a `--agent` run mode in the same .NET 8 executable, computer discovery and request/response correlation. Original 41 tools remain available; `computers.list` raises count to 42. Only `system.info` currently has a `computer` argument and remote execution. GitHub remains main-host global functionality.
+
+A Release build isolated from the live runtime and local two-process tests of 42 tool discovery, agent connection, remote system info, unknown name rejection and disconnect succeeded. This is not proof of physical multi-computer operation. Next: remote routing for remaining 22 Windows tools and MCP screenshot image blocks, physical-PC connectivity, secure setup. Details: `docs/router-lite.md`.

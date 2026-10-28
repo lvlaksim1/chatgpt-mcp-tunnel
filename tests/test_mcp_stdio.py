@@ -1,10 +1,11 @@
 """Standalone MCP stdio smoke test. Uses only Python's standard library."""
 import json
+import os
 import subprocess
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
-dll = root / "src" / "ChatGptMcpTunnel" / "bin" / "Release" / "net8.0" / "ChatGptMcpTunnel.dll"
+dll = Path(os.environ.get("CHATGPT_MCP_TEST_DLL", str(root / "src" / "ChatGptMcpTunnel" / "bin" / "Release" / "net8.0" / "ChatGptMcpTunnel.dll")))
 if not dll.is_file():
     raise SystemExit(f"Build first: {dll}")
 
@@ -50,6 +51,7 @@ try:
     expected |= uia_tools
     github_tools = {"github.auth", "github.api", "github.graphql", "github.repositories", "github.files", "github.branches", "github.commits", "github.batch_commit", "github.issues", "github.pulls", "github.actions", "github.jobs", "github.releases", "github.release_assets", "github.artifacts", "github.search", "github.git"}
     expected |= github_tools
+    expected.add("computers.list")
     assert len(github_tools) == 17
     assert set(tools) == expected, tools
     # Logical category alias: keep existing tool IDs, add Russian user-facing titles

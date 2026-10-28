@@ -15,8 +15,17 @@ public static class ComputerTools
 
     [McpServerTool(Name = "system.info")]
     [Description("Get Windows computer information: OS, CPU, RAM, disks, uptime and optional list of installed programs.")]
-    public static string SystemInfo(
-        [Description("Also list installed programs from Windows uninstall registry entries.")] bool include_installed_programs = false)
+    public static async Task<string> SystemInfo(
+        [Description("Also list installed programs from Windows uninstall registry entries.")] bool include_installed_programs = false,
+        [Description("Computer name from computers.list; defaults to the local computer.")] string? computer = null)
+    {
+        if (!string.IsNullOrWhiteSpace(computer) &&
+            !computer.Equals(RouterLite.LocalComputer, StringComparison.OrdinalIgnoreCase))
+            return await RouterLite.RemoteSystemInfoAsync(computer, include_installed_programs);
+        return SystemInfoLocal(include_installed_programs);
+    }
+
+    internal static string SystemInfoLocal(bool include_installed_programs)
     {
         var memory = new MemoryStatus { Length = (uint)Marshal.SizeOf<MemoryStatus>() };
         var memoryOk = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && GlobalMemoryStatusEx(ref memory);

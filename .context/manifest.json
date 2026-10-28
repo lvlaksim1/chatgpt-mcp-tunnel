@@ -45,7 +45,9 @@
   "rules": [
     ".context/rules/project-rules.md"
   ],
-  "decisions": [],
+  "decisions": [
+    ".context/decisions/router-lite-2026-10-28.md"
+  ],
   "dialogues": [],
   "history": [],
   "runtime": {
