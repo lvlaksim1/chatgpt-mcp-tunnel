@@ -40,3 +40,9 @@ Stages 1–3 were completed and locally verified on DOMKAT; do not repeat that w
 - Update DOMKAT in-place using verified installer while retaining one original OpenAI Tunnel ID and protected keys.
 - Verify tray icon and green connected marker, correct «Сервер подключён» tooltip and Settings window via menu and --settings.
 - After UI acceptance return to physical MKATUSHONOK client tests.
+
+## v0.2.4 native visible settings
+- Run Windows GitHub Actions installer build and update acceptance for v0.2.4, publish stable binaries.
+- Verify SHA256 and update DOMKAT in place, preserving existing Tunnel ID/DPAPI keys.
+- Run installed --settings and confirm desktop.window.list finds visible foreground Server Settings window without any external ShowWindow command; test reopen and successful server state.
+- Then continue remote MKATUSHONOK acceptance.

@@ -202,3 +202,6 @@ No new OpenAI cloud tunnel or ChatGPT plugin will be created. The old local Wind
 A custom multi-resolution native icon is now embedded into the Windows executable, both full and update installers, settings dialogs and the tray. Tray adds green/amber/red connection markers.
 
 The Server status uses an asynchronous bounded local readyz check and Router Lite TCP probe, not client-only stderr messages, fixing a false offline status. The previously hidden modal Settings Form no longer blocks opening from the tray: Settings is modeless, reusable and brought forward upon repeated selection. The read-only --probe-server and --test-icons CLI options support verification. The --settings option signals the existing tray process to open its settings without launching a second OpenAI tunnel.
+
+## Native Win32 visibility fix for Settings (v0.2.4)
+Live DOMKAT verification showed the Server Settings Form was created in the tray process and the menu callback logged opening it, but its HWND lacked WS_VISIBLE. Calling ShowWindow(hwnd, SW_SHOW) made the correct settings window appear in the foreground. The application now verifies native window visibility after WinForms Form.Show() and explicitly applies SW_SHOW for hidden HWNDs. Reopening Settings uses the same method; no second OpenAI tunnel is created.

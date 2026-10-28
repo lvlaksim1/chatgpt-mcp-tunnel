@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.IO.Pipes;
+using System.Runtime.InteropServices;
 
 namespace ChatGptMcpAgent;
 
@@ -125,6 +126,32 @@ internal sealed class TrayContext : ApplicationContext
     private bool _stopping;
     private bool _updating;
     private Form? _settingsWindow;
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool IsWindowVisible(IntPtr hwnd);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool ShowWindow(IntPtr hwnd, int command);
+
+    private static void EnsureSettingsWindowVisible(Form form)
+    {
+        // On some Windows 10 sessions, Form.Show() under a tray-only
+        // ApplicationContext creates a native top-level HWND without the
+        // WS_VISIBLE bit. The managed Visible flag can be misleading.
+        if (!form.Visible)
+            form.Show();
+        if (form.WindowState == FormWindowState.Minimized)
+            form.WindowState = FormWindowState.Normal;
+        var handle = form.Handle;
+        if (!IsWindowVisible(handle))
+            ShowWindow(handle, 5); // SW_SHOW (verified on live DOMKAT HWND)
+        form.BringToFront();
+        form.Activate();
+        if (!IsWindowVisible(handle))
+            AgentStorage.Log("Settings window native visibility check failed.");
+    }
+
     private bool _checkedUpdates;
     private bool _serverProbePending;
     private DateTime _nextServerProbe = DateTime.MinValue;
@@ -205,11 +232,7 @@ internal sealed class TrayContext : ApplicationContext
         // _openingSettings=true with a hidden form and a dead menu command.
         if (_settingsWindow is { IsDisposed: false } existing)
         {
-            if (!existing.Visible) existing.Show();
-            if (existing.WindowState == FormWindowState.Minimized)
-                existing.WindowState = FormWindowState.Normal;
-            existing.BringToFront();
-            existing.Activate();
+            EnsureSettingsWindowVisible(existing);
             return;
         }
         Form form = AgentStorage.SelectedRole == "server"
@@ -225,10 +248,9 @@ internal sealed class TrayContext : ApplicationContext
             if (saved && !_stopping && !_updating)
                 RestartAgent();
         };
-        form.Show();
-        form.BringToFront();
-        form.Activate();
-        AgentStorage.Log("Settings window opened.");
+        EnsureSettingsWindowVisible(form);
+        AgentStorage.Log("Settings window opened, native visible=" +
+            IsWindowVisible(form.Handle));
     }
 
     private void StartAgent()

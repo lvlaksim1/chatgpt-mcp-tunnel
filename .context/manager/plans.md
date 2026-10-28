@@ -63,3 +63,11 @@ Source: accepted Owner scope, inspected repository code and verified eight test 
 5. Run Windows Inno CI, publish v0.2.3 and update DOMKAT; verify actual visible settings window and status. [next]
 - source: Owner requests, observed live DOMKAT, local tests on 28.10.2026.
 - authority: owner-directive, verified-runtime.
+
+## Native Settings window acceptance v0.2.4
+1. Confirm modeless v0.2.3 Settings form is created but native HWND lacks WS_VISIBLE on DOMKAT. [complete]
+2. Manually apply user32 ShowWindow SW_SHOW to exact Settings HWND; confirm foreground window visible via desktop.window.list. [complete]
+3. In program, ensure native IsWindowVisible and apply ShowWindow(SW_SHOW) after Form.Show and when reopening; keep no-new-tunnel policy. [source complete]
+4. Publish v0.2.4 after Windows installer CI, update DOMKAT in place, verify actual Settings window via --settings and app tray menu. [next]
+- source: verified native Windows runtime 28.10.2026, Owner directives.
+- authority: verified-runtime, owner-directive.

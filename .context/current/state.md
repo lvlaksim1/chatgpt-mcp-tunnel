@@ -78,3 +78,10 @@
 - Self-contained win-x64 publish succeeded; --selftest, --test-icons, --probe-server against live DOMKAT all exit 0. Actual GUI upgrade, Inno CI and publication pending.
 - source: owner reports, live DOMKAT inspection and local build.
 - authority: owner-directive, verified-runtime.
+
+## Native Settings window follow-up v0.2.4 (28.10.2026 MSK)
+- v0.2.3 CI run 40723121794 succeeded, binary full/update release published and in-place update on DOMKAT completed with same Tunnel ID and DPAPI keys; bridge_ping and --probe-server exit 0, one tunnel-client, one Router Lite listener.
+- Additional DOMKAT acceptance: v0.2.3 Settings callback logged success but desktop.window.list saw no window. Win32 EnumWindows found hidden Server Settings HWND. Explicit user32 ShowWindow(SW_SHOW) made the window visible and foreground; desktop.window.list confirmed HWND and bounds.
+- v0.2.4 source adds native IsWindowVisible + ShowWindow(SW_SHOW) after Form.Show, and when reopening existing window. App compilation, --selftest, --test-icons and --probe-server all return 0; no live replacement yet.
+- source: actual DOMKAT installed runtime and local .NET v0.2.4 tests.
+- authority: verified-runtime.

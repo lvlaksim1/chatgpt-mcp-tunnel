@@ -76,3 +76,10 @@
 - Embed Windows ICO through csproj ApplicationIcon and Inno Setup SetupIconFile, verify WinExe --test-icons and extracted native icon; use explicit green/amber/red tray-dot variants.
 - source: DOMKAT invisible Settings HWND, original project source, Owner screenshot and win-x64 tests.
 - authority: verified-runtime, owner-directive.
+
+## WinForms native top-level window visibility (28.10.2026)
+- A Form can exist and have a tray-menu callback complete while Windows HWND lacks WS_VISIBLE; managed Form.Show() alone was insufficient in the observed DOMKAT tray-only ApplicationContext.
+- Inspect native HWND using EnumWindows / IsWindowVisible; a real ShowWindow(hwnd, SW_SHOW) made the hidden Server Settings window visible on DOMKAT. In production, check IsWindowVisible after Form.Show and apply ShowWindow(SW_SHOW) as needed.
+- Validate by desktop.window.list after invoking the existing tray process --settings and verify no additional cloud OpenAI tunnel was created.
+- source: actual DOMKAT Win32 experiment and v0.2.4 local tests 28.10.2026.
+- authority: verified-runtime.

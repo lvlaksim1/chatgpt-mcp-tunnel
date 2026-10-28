@@ -65,3 +65,8 @@ Physical PC onboarding and cross-host tests; do not claim production-ready multi
 - Owner sees generic tray icon, false «Нет соединения» and an inert Settings menu.
 - Confirmed hidden Server Settings HWND. Corrected modal ShowDialog/guard to modeless reused Form, exposed named-event --settings, added async server readyz+Router TCP and custom native ICO with colored state dot.
 - Local source build and win-x64 --selftest, --test-icons, --probe-server pass. Windows Inno CI and actual installed UI verification pending. Existing DOMKAT tunnel retained.
+
+## v0.2.4 follow-up for actual native Settings visibility
+- v0.2.3 Settings menu callback did execute, but its HWND was hidden. Win32 ShowWindow SW_SHOW on live DOMKAT made the Settings window appear; desktop.window.list confirmed correct foreground bounds.
+- v0.2.4 patches reusable Form show logic to enforce IsWindowVisible/ShowWindow after Form.Show and when reopened.
+- Local self-contained build, selftest, icon test, live read-only server probe all pass. Next Windows CI/release and real DOMKAT --settings acceptance.
