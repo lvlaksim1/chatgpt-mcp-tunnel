@@ -10,8 +10,20 @@ try {
     }
     Add-Type -Path (Join-Path $framework 'UIAutomationTypes.dll') -ErrorAction Stop
     Add-Type -Path (Join-Path $framework 'UIAutomationClient.dll') -ErrorAction Stop
+    # Default UIA client-side proxies are installed with Windows. Explicit registration
+    # may throw on some Windows 10 installations; do not make basic UIA dependent on it.
+    $proxyAssembly = Join-Path $framework 'UIAutomationClientsideProviders.dll'
+    $providers = @{
+        assembly_present = (Test-Path -LiteralPath $proxyAssembly)
+        registration = 'Windows default registration'
+        legacy_pattern_api = 'Not exposed by .NET Framework UIAutomationClient; MSAA inspected separately'
+    }
+    Add-Type -AssemblyName Accessibility -ErrorAction Stop
+    Add-Type -TypeDefinition ([IO.File]::ReadAllText((Join-Path $PSScriptRoot 'MsaaBridge.cs.txt'))) -ReferencedAssemblies Accessibility -ErrorAction Stop
     $req = [Console]::In.ReadToEnd() | ConvertFrom-Json
-    $walker = [System.Windows.Automation.TreeWalker]::ControlViewWalker
+    $view = if ($null -eq $req.view -or [string]$req.view -eq '') { 'control' } else { [string]$req.view }
+    if ($view -notin @('control','raw')) { throw 'view must be control or raw' }
+    $walker = if ($view -eq 'raw') { [System.Windows.Automation.TreeWalker]::RawViewWalker } else { [System.Windows.Automation.TreeWalker]::ControlViewWalker }
     $root = [System.Windows.Automation.AutomationElement]::FromHandle([IntPtr]([Convert]::ToInt64(([string]$req.hwnd).Replace('0x',''),16)))
     if ($null -eq $root) { throw 'Window handle is invalid or inaccessible.' }
 
@@ -28,6 +40,7 @@ try {
                 'offscreen' { return [bool]$current.IsOffscreen }
                 'focusable' { return [bool]$current.IsKeyboardFocusable }
                 'focused' { return [bool]$current.HasKeyboardFocus }
+                'native_hwnd' { return [int]$current.NativeWindowHandle }
                 'bounds' {
                     $b = $current.BoundingRectangle
                     if ($b.IsEmpty) { return $null }
@@ -56,6 +69,11 @@ try {
         }
         if ($full) {
             $d.framework_id = Read-Property $node 'framework_id'
+            $d.view = $view
+            $hwnd = Read-Property $node 'native_hwnd'
+            $d.native_hwnd = $hwnd
+            $d.legacy_iaccessible = @{managed_pattern_supported=$false;note='LegacyIAccessiblePattern not exposed by managed UIA; inspect msaa below'}
+            $d.msaa = [MsaaBridge]::Inspect([long]$hwnd)
             $d.focused = Read-Property $node 'focused'
             $d.focusable = Read-Property $node 'focusable'
             $patterns = New-Object System.Collections.Generic.List[string]
@@ -93,6 +111,33 @@ try {
             $scrollItem = Get-Pattern $node ([System.Windows.Automation.ScrollItemPattern]::Pattern)
             if ($null -ne $scrollItem) { $patterns.Add('scroll_into_view') }
             $d.patterns = @($patterns.ToArray())
+            $availableActions = New-Object System.Collections.ArrayList
+            foreach ($name in $patterns) {
+                switch ($name) {
+                    'invoke' { [void]$availableActions.Add(@{action='invoke';backend='uia'}) }
+                    'value' { if (-not $d.value_readonly) { [void]$availableActions.Add(@{action='set_value';backend='uia'}) } }
+                    'select' { [void]$availableActions.Add(@{action='select';backend='uia'}) }
+                    'toggle' { [void]$availableActions.Add(@{action='toggle';backend='uia'}) }
+                    'expand_collapse' {
+                        [void]$availableActions.Add(@{action='expand';backend='uia'})
+                        [void]$availableActions.Add(@{action='collapse';backend='uia'})
+                    }
+                    'scroll_into_view' { [void]$availableActions.Add(@{action='scroll_into_view';backend='uia'}) }
+                }
+            }
+            if ($d.focusable) { [void]$availableActions.Add(@{action='focus';backend='uia'}) }
+            if ($d.msaa.available) {
+                if ($d.msaa.default_action) {
+                    if (-not ($patterns -contains 'invoke')) { [void]$availableActions.Add(@{action='invoke';backend='msaa'}) }
+                    if ($d.msaa.role -eq 44 -and -not ($patterns -contains 'toggle')) {
+                        [void]$availableActions.Add(@{action='toggle';backend='msaa'})
+                    }
+                }
+                if ($null -ne $d.msaa.value -and -not ($patterns -contains 'value')) {
+                    [void]$availableActions.Add(@{action='set_value';backend='msaa'})
+                }
+            }
+            $d.available_actions = @($availableActions.ToArray())
         }
         return $d
     }
@@ -149,7 +194,7 @@ try {
                     $pending.Push(@{element=$children[$i];path=$path;depth=($item.depth+1)})
                 }
             }
-            $output = @{ hwnd=$req.hwnd;count=$nodes.Count;truncated=($pending.Count -gt 0);elements=@($nodes.ToArray());max_depth=$maxDepth }
+            $output = @{ hwnd=$req.hwnd;view=$view;count=$nodes.Count;truncated=($pending.Count -gt 0);elements=@($nodes.ToArray());max_depth=$maxDepth }
         }
         'find' {
             $limit = [math]::Min([math]::Max([int]$req.max_results,1),100)
@@ -179,7 +224,7 @@ try {
                     $pending.Push(@{element=$children[$i];path=$path;depth=($item.depth+1)})
                 }
             }
-            $output = @{hwnd=$req.hwnd;matches=@($nodes.ToArray());count=$nodes.Count;scanned=$visited;truncated=($pending.Count -gt 0)}
+            $output = @{hwnd=$req.hwnd;view=$view;matches=@($nodes.ToArray());count=$nodes.Count;scanned=$visited;truncated=($pending.Count -gt 0)}
         }
         'get' {
             $node = Resolve-Path $root ([string]$req.path)
