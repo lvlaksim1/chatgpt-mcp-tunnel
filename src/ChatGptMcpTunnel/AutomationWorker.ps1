@@ -1,6 +1,8 @@
 # Windows UI Automation worker. Reads one JSON command from stdin and writes one JSON object to stdout.
 # Run under Windows PowerShell 5.1 -STA for compatibility with .NET Framework UIAutomationClient.
 $ErrorActionPreference = 'Stop'
+[Console]::InputEncoding = New-Object System.Text.UTF8Encoding($false)
+[Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
 try {
     $framework = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\WPF'
     if (-not (Test-Path (Join-Path $framework 'UIAutomationClient.dll'))) {
