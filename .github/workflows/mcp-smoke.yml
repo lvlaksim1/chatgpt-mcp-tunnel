@@ -21,3 +21,15 @@ jobs:
         run: dotnet build src/ChatGptMcpTunnel/ChatGptMcpTunnel.csproj -c Release --nologo
       - name: Verify MCP initialize, tools/list and tools/call
         run: python3 tests/test_mcp_stdio.py
+
+  windows-tools:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Build Windows MCP server
+        run: dotnet build src/ChatGptMcpTunnel/ChatGptMcpTunnel.csproj -c Release --nologo
+      - name: Verify all eight Windows tools through MCP
+        run: python tests/test_windows_tools.py
