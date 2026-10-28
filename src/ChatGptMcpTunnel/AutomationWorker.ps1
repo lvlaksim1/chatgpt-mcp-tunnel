@@ -142,6 +142,20 @@ try {
         return $d
     }
 
+    function Invoke-MsaaFallback($node, [string]$action, [string]$value) {
+        $native = Read-Property $node 'native_hwnd'
+        if ([long]$native -le 0) { throw "No native HWND for MSAA fallback ($action)." }
+        $inspection = [MsaaBridge]::Inspect([long]$native)
+        if (-not $inspection.available) { throw ("MSAA fallback not available: "+$inspection.reason) }
+        if ($action -eq 'toggle' -and $inspection.role -ne 44) {
+            throw 'MSAA toggle fallback requires a checkbox role.'
+        }
+        if ($action -in @('invoke','toggle') -and -not $inspection.default_action) {
+            throw 'MSAA provider does not advertise a default action.'
+        }
+        return [MsaaBridge]::Act([long]$native, $action, $value)
+    }
+
     function Resolve-Path($origin, [string]$path) {
         $current = $origin
         if ([string]::IsNullOrWhiteSpace($path)) { return $current }
@@ -233,26 +247,27 @@ try {
         'action' {
             $node = Resolve-Path $root ([string]$req.path)
             $action = [string]$req.action
+            $backend = 'uia'
             switch ($action) {
                 'invoke' {
                     $pattern = Get-Pattern $node ([System.Windows.Automation.InvokePattern]::Pattern)
-                    if ($null -eq $pattern) { throw 'This element does not support InvokePattern.' }
-                    $pattern.Invoke()
+                    if ($null -eq $pattern) { $backend = Invoke-MsaaFallback $node 'invoke' '' }
+                    else { $pattern.Invoke() }
                 }
                 'set_value' {
                     $pattern = Get-Pattern $node ([System.Windows.Automation.ValuePattern]::Pattern)
-                    if ($null -eq $pattern) { throw 'This element does not support ValuePattern.' }
-                    $pattern.SetValue([string]$req.value)
+                    if ($null -eq $pattern) { $backend = Invoke-MsaaFallback $node 'set_value' ([string]$req.value) }
+                    else { $pattern.SetValue([string]$req.value) }
                 }
                 'select' {
                     $pattern = Get-Pattern $node ([System.Windows.Automation.SelectionItemPattern]::Pattern)
-                    if ($null -eq $pattern) { throw 'This element does not support SelectionItemPattern.' }
-                    $pattern.Select()
+                    if ($null -eq $pattern) { $backend = Invoke-MsaaFallback $node 'select' '' }
+                    else { $pattern.Select() }
                 }
                 'toggle' {
                     $pattern = Get-Pattern $node ([System.Windows.Automation.TogglePattern]::Pattern)
-                    if ($null -eq $pattern) { throw 'This element does not support TogglePattern.' }
-                    $pattern.Toggle()
+                    if ($null -eq $pattern) { $backend = Invoke-MsaaFallback $node 'toggle' '' }
+                    else { $pattern.Toggle() }
                 }
                 'expand' {
                     $pattern = Get-Pattern $node ([System.Windows.Automation.ExpandCollapsePattern]::Pattern)
@@ -272,7 +287,7 @@ try {
                 'focus' { $node.SetFocus() }
                 default { throw ('Unsupported UIA action: '+$action) }
             }
-            $output = @{hwnd=$req.hwnd;path=$req.path;action=$action;success=$true}
+            $output = @{hwnd=$req.hwnd;path=$req.path;view=$view;action=$action;backend=$backend;success=$true}
         }
         default { throw ('Unknown UIA operation: '+$req.operation) }
     }
