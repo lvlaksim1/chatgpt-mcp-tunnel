@@ -76,3 +76,9 @@ Physical PC onboarding and cross-host tests; do not claim production-ready multi
 - Tests --selftest, --test-icons, --probe-server, --test-secret-forms passed with self-contained executable.
 - User explicitly instructed: prepare full and update installer; do NOT update DOMKAT yourself. Owner will update via built-in UI.
 - Next: release Windows GitHub Actions, verify both installer assets and report.
+
+## Release v0.2.5 delivered; user updates DOMKAT
+- Stable GitHub Release v0.2.5 and CI run 40732281198 success.
+- Full Setup SHA256 57b811467bf4a79a56ae8d8f99965ca36840745b853d357ece29a5a6e105f13a; Update SHA256 278140cb9ee4ed7a1bfcaa500a3b38d27937520185645cc30b6dc75c40ff112b. Release includes third legacy-named update alias to support existing update mechanism.
+- Contains accepted server/client secret-free Settings UX; inline buttons open temporary secret popup. Client key has no reveal/copy. IP still 192.168.0.3, port 55201 automatic.
+- Crucial: owner requested no remote update; DOMKAT existing installation was left unchanged. Wait for owner self-update acceptance.

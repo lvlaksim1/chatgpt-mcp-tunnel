@@ -91,3 +91,9 @@
 - User requested only two installer binaries and retains right to run app's built-in updater themselves; do not remotely update their installed DOMKAT server. Keep IP 192.168.0.3.
 - source: owner decision and v0.2.5 source/tests 28.10.2026.
 - authority: owner-directive, verified-runtime.
+
+## Owner-control of installed updates
+- When user requests publication of full and update installers but explicitly says they will update with built-in program controls, only compile/publish/verify release assets; do not execute shutdown, Inno installer or any mutation of the installed DOMKAT software.
+- v0.2.5 Windows Actions 40732281198 verified both installer assets, update preservation, full installation and uninstall. Legacy alias ChatGPT_MCP_Agent_Update_v0.2.5.exe is retained for existing auto-updater.
+- source: owner directive and successful GitHub release on 28.10.2026.
+- authority: owner-directive, verified-repository.

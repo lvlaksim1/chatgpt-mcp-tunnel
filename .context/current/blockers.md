@@ -37,3 +37,7 @@ The local routing, controls and reconnection tests passed; these risks do not in
 ## v0.2.5 release acceptance
 - Source and local build complete, Windows CI and binary release/asset digests pending.
 - Owner will self-update DOMKAT; no automated in-place install authorized. 192.168.0.3 stays unchanged, DHCP reservation postponed.
+
+## v0.2.5 owner acceptance
+- No release/build blocker; v0.2.5 binaries published and CI success.
+- User will self-update DOMKAT via built-in updater. Actual post-install UI/connection acceptance remains unverified and should only be performed after owner reports update; do not remote-upgrade.

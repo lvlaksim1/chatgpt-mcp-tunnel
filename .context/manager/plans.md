@@ -80,3 +80,12 @@ Source: accepted Owner scope, inspected repository code and verified eight test 
 5. Report release links and SHA256; owner performs self-update using existing application UI. DO NOT install on DOMKAT. [owner-controlled]
 - source: owner approval and delivery instruction 28.10.2026.
 - authority: owner-directive.
+
+## Approved Settings installers — release closed
+1. Secret-free settings forms and temporary key entry compiled and tested. [complete]
+2. Windows installer CI: full, update, preservation and uninstall. [success: 40732281198]
+3. GitHub stable release v0.2.5 binary assets and SHA256. [published]
+4. Do NOT upgrade DOMKAT through remote tools; owner will update via application UI. [owner-controlled]
+5. Await owner installation results for visual acceptance; retain 192.168.0.3. [future]
+- source: verified GitHub release and owner directive 28.10.2026.
+- authority: verified-repository, owner-directive.

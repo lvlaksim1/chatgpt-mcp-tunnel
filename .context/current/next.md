@@ -51,3 +51,8 @@ Stages 1–3 were completed and locally verified on DOMKAT; do not repeat that w
 - Commit v0.2.5 source and approved manager capsule, dispatch Windows Actions release, confirm run success.
 - Verify GitHub release includes full ChatGPT_MCP_Tunnel_Setup_v0.2.5.exe and update ChatGPT_MCP_Tunnel_Update_v0.2.5.exe with SHA256 digests; built-in updater compatibility should be preserved.
 - Provide links only, do not install/upgrade the active DOMKAT server. Wait for owner self-update and further acceptance feedback.
+
+## After release
+- Provide links for full Setup and Update v0.2.5 and report successful CI.
+- Do not install on DOMKAT. Owner updates existing app themselves using built-in updater.
+- Upon owner confirmation, inspect updated app and follow up only with requested UI fixes; keep existing OpenAI Tunnel ID, DPAPI secrets, IP 192.168.0.3.

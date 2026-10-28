@@ -94,3 +94,14 @@
 - Owner explicitly requests full and update installer artifacts, to update DOMKAT personally via built-in app UI. Installed DOMKAT remains v0.2.3; do not run updater/remotely install.
 - source: owner approval, local source build/tests 28.10.2026.
 - authority: owner-directive, verified-runtime.
+
+## v0.2.5 full+update installer release completed
+- Main source commit 533d4ecb088957d3074bdb6da6810ffebf66e10a; GitHub Actions run 40732281198 completed success.
+- Stable release https://github.com/lvlaksim1/chatgpt-mcp-tunnel/releases/tag/v0.2.5
+- Full Setup: ChatGPT_MCP_Tunnel_Setup_v0.2.5.exe, SHA256 57b811467bf4a79a56ae8d8f99965ca36840745b853d357ece29a5a6e105f13a, 104967318 bytes.
+- Update: ChatGPT_MCP_Tunnel_Update_v0.2.5.exe, SHA256 278140cb9ee4ed7a1bfcaa500a3b38d27937520185645cc30b6dc75c40ff112b, 104966353 bytes.
+- Legacy alias ChatGPT_MCP_Agent_Update_v0.2.5.exe has identical binary/digest for existing built-in auto-updater.
+- CI passed Windows PowerShell launcher checks, self-contained application/runtime builds, tests of secret-free forms and native app icon, first installation/update preservation/uninstall.
+- DOMKAT installed program NOT updated at owner's explicit request. Current IP 192.168.0.3 preserved. Owner will install via built-in update controls.
+- source: GitHub CI and release verified 28.10.2026, owner instruction.
+- authority: verified-repository, owner-directive.

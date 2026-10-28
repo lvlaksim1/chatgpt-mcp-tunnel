@@ -99,3 +99,11 @@ verified partial progress: stages 1-3 passed local E2E, all 23 Windows tools rem
 - authority: owner-directive
 - verified partial progress: source implements approved server/client secret-free main forms and temporary entry, automated --test-secret-forms plus selftest/icon/probe pass in local publish.
 - remaining: validate capsule, commit, GitHub Windows installer CI, publish/verify binary Release. No DOMKAT update or change of 192.168.0.3.
+
+## Installer artifact delivery completed
+- commitment_id: approved-settings-both-installers-2026-10-28
+- status: completed
+- owner: project-manager
+- source: GitHub Release v0.2.5 and successful Windows Actions 40732281198.
+- authority: verified-repository
+- verified outcome: full and update EXEs published with SHA256, release not draft or prerelease, install/update/uninstall checks passed. DOMKAT update deliberately not executed; owner will use built-in program updater.
