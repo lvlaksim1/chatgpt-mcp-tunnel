@@ -1,0 +1,89 @@
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using Accessibility;
+
+// Read-only Microsoft Active Accessibility bridge for HWND-based controls.
+// This does not pretend that an unavailable UIA LegacyIAccessiblePattern exists.
+public static class MsaaBridge
+{
+    private const uint ObjidClient = 0xFFFFFFFC;
+    private static readonly Guid IidAccessible = new Guid("618736e0-3c3d-11cf-810c-00aa00389b71");
+
+    [DllImport("oleacc.dll", PreserveSig = true)]
+    private static extern int AccessibleObjectFromWindow(
+        IntPtr hwnd, uint objectId, ref Guid iid, out IntPtr accessible);
+
+    private static Accessibility.IAccessible Open(long hwnd, out IntPtr comPtr)
+    {
+        var iid = IidAccessible;
+        int result = AccessibleObjectFromWindow(new IntPtr(hwnd), ObjidClient, ref iid, out comPtr);
+        if (result != 0 || comPtr == IntPtr.Zero)
+            throw new COMException("AccessibleObjectFromWindow failed", result);
+        return (Accessibility.IAccessible)Marshal.GetTypedObjectForIUnknown(
+            comPtr, typeof(Accessibility.IAccessible));
+    }
+
+    public static Dictionary<string, object> Inspect(long hwnd)
+    {
+        var result = new Dictionary<string, object>();
+        if (hwnd == 0)
+        {
+            result["available"] = false;
+            result["reason"] = "This UIA element does not have a native HWND";
+            return result;
+        }
+        IntPtr ptr = IntPtr.Zero;
+        try
+        {
+            var acc = Open(hwnd, out ptr);
+            object child = 0;
+            result["available"] = true;
+            result["source"] = "oleacc.dll AccessibleObjectFromWindow OBJID_CLIENT";
+            try { result["name"] = acc.get_accName(child) ?? ""; } catch { }
+            try { result["value"] = acc.get_accValue(child) ?? ""; } catch { }
+            try { result["role"] = Convert.ToInt32(acc.get_accRole(child)); } catch { }
+            try { result["state"] = Convert.ToInt32(acc.get_accState(child)); } catch { }
+            try { result["default_action"] = acc.get_accDefaultAction(child) ?? ""; } catch { }
+            try { result["description"] = acc.get_accDescription(child) ?? ""; } catch { }
+        }
+        catch (Exception e)
+        {
+            result["available"] = false;
+            result["reason"] = e.Message;
+        }
+        finally { if (ptr != IntPtr.Zero) Marshal.Release(ptr); }
+        return result;
+    }
+
+    public static string Act(long hwnd, string action, string value)
+    {
+        IntPtr ptr = IntPtr.Zero;
+        try
+        {
+            var acc = Open(hwnd, out ptr);
+            object child = 0;
+            switch (action)
+            {
+                case "invoke":
+                case "toggle":
+                    string defaultAction = acc.get_accDefaultAction(child);
+                    if (string.IsNullOrEmpty(defaultAction))
+                        throw new InvalidOperationException("No MSAA default action is advertised.");
+                    acc.accDoDefaultAction(child);
+                    return "msaa_default_action";
+
+                case "set_value":
+                    acc.set_accValue(child, value ?? "");
+                    return "msaa_set_value";
+
+                case "select":
+                    acc.accSelect(0x2, child); // SELFLAG_TAKESELECTION
+                    return "msaa_select";
+
+                default: throw new NotSupportedException("MSAA fallback does not support action " + action);
+            }
+        }
+        finally { if (ptr != IntPtr.Zero) Marshal.Release(ptr); }
+    }
+}
