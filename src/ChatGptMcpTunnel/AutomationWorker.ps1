@@ -55,13 +55,42 @@ try {
         try { return $node.GetCurrentPattern($patternIdentifier) } catch { return $null }
     }
 
+    function Effective-Type($node) {
+        $reported = Read-Property $node 'type'
+        $classification = @{type=$reported;uia_type=$reported;type_source='uia'}
+        if ($reported -ne 'Pane') { return $classification }
+        $className = Read-Property $node 'class_name'
+        if (-not $className.StartsWith('WindowsForms10.')) { return $classification }
+        $native = Read-Property $node 'native_hwnd'
+        if (-not $native) { return $classification }
+        $info = [MsaaBridge]::Inspect([long]$native)
+        if (-not $info.available -or -not $info.ContainsKey('role')) { return $classification }
+        $mapped = switch ([int]$info.role) {
+            42 { 'Edit' }
+            43 { 'Button' }
+            44 { 'CheckBox' }
+            45 { 'RadioButton' }
+            46 { 'ComboBox' }
+            34 { 'List' }
+            default { $null }
+        }
+        if ($mapped) {
+            $classification.type = $mapped
+            $classification.type_source = 'msaa'
+        }
+        return $classification
+    }
+
     function Describe-Node($node, [string]$path, [int]$depth, [bool]$full) {
+        $classification = Effective-Type $node
         $d = @{
             path=$path
             depth=$depth
             name=(Read-Property $node 'name')
             automation_id=(Read-Property $node 'automation_id')
-            type=(Read-Property $node 'type')
+            type=$classification.type
+            uia_type=$classification.uia_type
+            type_source=$classification.type_source
             class_name=(Read-Property $node 'class_name')
             bounds=(Read-Property $node 'bounds')
             enabled=(Read-Property $node 'enabled')
@@ -133,7 +162,8 @@ try {
                         [void]$availableActions.Add(@{action='toggle';backend='msaa'})
                     }
                 }
-                if ($null -ne $d.msaa.value -and -not ($patterns -contains 'value')) {
+                if ($d.msaa.role -eq 42 -and -not ($patterns -contains 'value') -and
+                    (($d.msaa.state -band 64) -eq 0)) {
                     [void]$availableActions.Add(@{action='set_value';backend='msaa'})
                 }
             }
@@ -223,7 +253,7 @@ try {
                 $visited++
                 $name = Read-Property $item.element 'name'
                 $automationId = Read-Property $item.element 'automation_id'
-                $type = Read-Property $item.element 'type'
+                $type = (Effective-Type $item.element).type
                 $className = Read-Property $item.element 'class_name'
                 $match = $true
                 if ($req.name -and ($null -eq $name -or $name.IndexOf([string]$req.name,[StringComparison]::OrdinalIgnoreCase) -lt 0)) { $match = $false }
