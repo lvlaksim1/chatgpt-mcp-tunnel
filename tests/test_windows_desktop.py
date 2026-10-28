@@ -149,6 +149,28 @@ try:
         target_y = (child_rect.top + child_rect.bottom) // 2
         print("TEXTBOX_BOUNDS", (child_rect.left, child_rect.top, child_rect.right, child_rect.bottom), flush=True)
 
+        class GUIThreadInfo(ctypes.Structure):
+            _fields_ = [("cbSize", ctypes.c_uint), ("flags", ctypes.c_uint),
+                        ("hwndActive", ctypes.c_void_p), ("hwndFocus", ctypes.c_void_p),
+                        ("hwndCapture", ctypes.c_void_p), ("hwndMenuOwner", ctypes.c_void_p),
+                        ("hwndMoveSize", ctypes.c_void_p), ("hwndCaret", ctypes.c_void_p),
+                        ("rectCaret", Rect)]
+        class LastInputInfo(ctypes.Structure):
+            _fields_ = [("cbSize", ctypes.c_uint), ("dwTime", ctypes.c_uint)]
+        def focus_info(label):
+            thread = user32.GetWindowThreadProcessId(int(hwnd, 16), None)
+            state = GUIThreadInfo()
+            state.cbSize = ctypes.sizeof(GUIThreadInfo)
+            ok = user32.GetGUIThreadInfo(thread, ctypes.byref(state))
+            last = LastInputInfo()
+            last.cbSize = ctypes.sizeof(LastInputInfo)
+            user32.GetLastInputInfo(ctypes.byref(last))
+            print("INPUT_DEBUG", label, "FG", hex(user32.GetForegroundWindow()),
+                  "THREAD", thread, "GUI", ok,
+                  "ACTIVE", hex(state.hwndActive or 0), "FOCUS", hex(state.hwndFocus or 0),
+                  "TEXTBOX", hex(input_child), "LAST_INPUT_TICK", last.dwTime, flush=True)
+        focus_info("before")
+
         original = screen["cursor"]
         try:
             moved_pointer = value("desktop.mouse.move", x=target_x, y=target_y)
@@ -157,6 +179,7 @@ try:
             click = value("desktop.mouse.click", x=target_x, y=target_y, button="left")
             assert click["clicks"] == 1, click
             print("MOUSE_CLICK_OK", flush=True)
+            focus_info("after-click")
             scroll = value("desktop.mouse.scroll", notches=-1, x=target_x, y=target_y)
             assert scroll["scrolled"], scroll
             print("MOUSE_SCROLL_OK", flush=True)
@@ -166,6 +189,7 @@ try:
             typed = value("desktop.keyboard.type", text="Привет MCP 2026")
             assert typed["typed"] and typed["characters"] == len("Привет MCP 2026"), typed
             print("KEYBOARD_TYPE_SENT_OK", flush=True)
+            focus_info("after-typing")
         finally:
             value("desktop.mouse.move", x=original["x"], y=original["y"])
 
