@@ -47,3 +47,10 @@ Source: accepted Owner scope, inspected repository code and verified eight test 
 4. Connect MKATUSHONOK through the original DOMKAT Router Lite. [next]
 - source: DOMKAT observed 28.10.2026.
 - authority: verified-runtime, owner-directive.
+
+## v0.2.2 rollout closed
+- Permanent source fix committed; CI run 40712500651 completed success, binary release v0.2.2 published and downloaded with verified SHA256.
+- On DOMKAT updated installed server v0.2.1 -> v0.2.2 in-place, role/ID/DPAPI unchanged; restored original plugin connectivity (ping, system.info, healthz/readyz), verified single tunnel-client and Router Lite port 55201.
+- Next: physical MKATUSHONOK client onboarding and permissions check only.
+- source: verified GitHub release and live DOMKAT inspection 28.10.2026.
+- authority: verified-runtime.

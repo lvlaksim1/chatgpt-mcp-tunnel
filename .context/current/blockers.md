@@ -20,3 +20,8 @@ The local routing, controls and reconnection tests passed; these risks do not in
 - No current DOMKAT outage: original ChatGPT Tunnel connection and Router Lite are working.
 - Published v0.2.1 installer still has the native stderr redirection bug. v0.2.2 release is needed before next update.
 - Client MKATUSHONOK has not yet been verified through the new live Router Lite; tool metadata refresh may be needed for newly added computers.list tool in ChatGPT.
+
+## Status after v0.2.2
+- Old native stderr failure resolved in published binary and installed DOMKAT. No remaining local outage.
+- Client MKATUSHONOK has not yet been validated against 192.168.0.3:55201 across the physical network.
+- ChatGPT connector may still cache 41 tool surface even though local MCP server advertises 42 (computers.list addition); plugin metadata refresh could be required.

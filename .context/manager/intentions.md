@@ -63,3 +63,12 @@ verified partial progress: stages 1-3 passed local E2E, all 23 Windows tools rem
 - authority: owner-directive
 - verified partial progress: production hotfix restored same tunnel; tests of bridge_ping, Windows/GitHub tools and Router Lite passed; source fixed.
 - remaining: build and publish fixed installer v0.2.2, then connect MKATUSHONOK remotely.
+
+## v0.2.2 recovery complete
+- commitment_id: domkat-native-stderr-fix-2026-10-28
+- status: completed
+- owner: project-manager
+- source: GitHub Actions v0.2.2 and verified live DOMKAT update 28.10.2026.
+- authority: verified-runtime
+- verified outcome: signed-off installer CI, live update preserved existing Tunnel ID, one tunnel-client, Router Lite, DPAPI and local autostart; original connector ping, system tools and readyz successful.
+- remaining work outside this commitment: physical client MKATUSHONOK connection tests.

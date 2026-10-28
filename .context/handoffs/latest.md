@@ -53,3 +53,10 @@ Physical PC onboarding and cross-host tests; do not claim production-ready multi
 - Original failure: 2>&1 on tunnel-client run under PowerShell 5.1 Stop preference promoted normal MCP stderr INFO to terminating NativeCommandError, caused seven-second restarts.
 - Direct native tunnel-client call in installed ServerStart.ps1 fixed problem; original ChatGPT bridge_ping and system/GitHub/window tools work, 55198/55201 listen, health/ready 200, 42 MCP tools registered.
 - Source fix for v0.2.2 prepared. Next CI release and physical MKATUSHONOK.
+
+## Live stable v0.2.2 confirmed 28.10.2026
+- Fixed PowerShell 5.1 native stderr error was released in v0.2.2 (CI 40712500651 success).
+- SHA256-verified update installed on DOMKAT without new cloud tunnel, same Tunnel ID, token in DPAPI, server role and autostart intact.
+- Inno setup returned exit 0, app version 0.2.2, one tunnel-client and MCP Runtime, Router Lite 192.168.0.3:55201, health/ready 200.
+- Original connector successfully calls bridge_ping and system.info; installed runtime local MCP test advertises 42 tools.
+- Next MKATUSHONOK real client test; no need to reinstall DOMKAT.

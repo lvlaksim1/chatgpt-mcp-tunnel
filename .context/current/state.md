@@ -59,3 +59,12 @@
 - Permanent source fix prepared for v0.2.2. No second cloud tunnel or token changes.
 - source: recovered live DOMKAT runtime 28.10.2026.
 - authority: verified-runtime.
+
+## Stable universal server installed: v0.2.2
+- GitHub Actions 40712500651 succeeded; published Setup and Update v0.2.2 assets, verified release SHA256.
+- DOMKAT installed in-place using verified Update v0.2.2, existing role server, Tunnel ID and both DPAPI credentials retained. Installer exit 0 and post-update health passed.
+- Actual process version 0.2.2; one tunnel-client, one MCP Runtime; Router Lite bound 192.168.0.3:55201 and port 55198 returns healthz/readyz HTTP 200.
+- Original ChatGPT plugin bridge_ping and system.info succeeded; local installed runtime MCP list 42 tools and 17 GitHub/15 multimedia checks passed.
+- Old installation and metadata duplication not needed. Next separate step: physical second computer MKATUSHONOK not yet connected/tested.
+- source: GitHub Release v0.2.2, Actions 40712500651, verified installed runtime 28.10.2026.
+- authority: verified-runtime, verified-repository.

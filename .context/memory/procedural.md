@@ -60,3 +60,11 @@
 - Diagnose safely via original bridge_ping, system.info, GitHub auth, listening ports 55198 and 55201, healthz/readyz HTTP 200. Never log decrypted DPAPI keys.
 - source: reproduced and repaired actual DOMKAT 28.10.2026.
 - authority: verified-runtime.
+
+## Safe actual in-place update proof (28.10.2026)
+- Download official v0.2.2 update to local staging, confirm GitHub SHA256 against da46afd35df787f71ca0939722545796f95ad164b172c73d2a3a8418e87f038b.
+- Backup working ServerStart.ps1 (no secrets), keep existing DPAPI and settings untouched.
+- Update only this product by running --shutdown then Inno Update /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS, wait for installer process, verify installation and existing Tunnel ID/role.
+- Confirm fixed native stderr launcher, healthz/readyz HTTP 200, 55201 listener, one tunnel-client, original plugin bridge_ping, system.info and 42 MCP registrations.
+- source: actual successful DOMKAT v0.2.2 in-place update 28.10.2026, run 40712500651.
+- authority: verified-runtime.
