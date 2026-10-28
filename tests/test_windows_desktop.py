@@ -124,15 +124,40 @@ try:
 
         focus = value("desktop.window.activate", hwnd=hwnd)
         assert focus["foreground"] is True, "Window lost focus before simulated input"
+        user32 = ctypes.windll.user32
+        enum = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_void_p, ctypes.c_void_p)
+        class Rect(ctypes.Structure):
+            _fields_ = [("left", ctypes.c_long), ("top", ctypes.c_long),
+                        ("right", ctypes.c_long), ("bottom", ctypes.c_long)]
+        child_windows = []
+        @enum
+        def collect(child, _):
+            child_windows.append(child)
+            return True
+        user32.EnumChildWindows(int(hwnd, 16), collect, None)
+        input_child = None
+        for child in child_windows:
+            text = ctypes.create_unicode_buffer(256)
+            user32.GetWindowTextW(child, text, len(text))
+            if text.value == "ORIGINAL":
+                input_child = child
+                break
+        assert input_child, "Test form's text box not found"
+        child_rect = Rect()
+        assert user32.GetWindowRect(input_child, ctypes.byref(child_rect)), "Cannot locate input textbox"
+        target_x = (child_rect.left + child_rect.right) // 2
+        target_y = (child_rect.top + child_rect.bottom) // 2
+        print("TEXTBOX_BOUNDS", (child_rect.left, child_rect.top, child_rect.right, child_rect.bottom), flush=True)
+
         original = screen["cursor"]
         try:
-            moved_pointer = value("desktop.mouse.move", x=166, y=190)
+            moved_pointer = value("desktop.mouse.move", x=target_x, y=target_y)
             assert moved_pointer["moved"], moved_pointer
             print("MOUSE_MOVE_OK", flush=True)
-            click = value("desktop.mouse.click", x=166, y=190, button="left")
+            click = value("desktop.mouse.click", x=target_x, y=target_y, button="left")
             assert click["clicks"] == 1, click
             print("MOUSE_CLICK_OK", flush=True)
-            scroll = value("desktop.mouse.scroll", notches=-1, x=166, y=190)
+            scroll = value("desktop.mouse.scroll", notches=-1, x=target_x, y=target_y)
             assert scroll["scrolled"], scroll
             print("MOUSE_SCROLL_OK", flush=True)
             hotkey = value("desktop.keyboard.hotkey", keys="CTRL+A")
@@ -144,14 +169,6 @@ try:
         finally:
             value("desktop.mouse.move", x=original["x"], y=original["y"])
 
-        user32 = ctypes.windll.user32
-        enum = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_void_p, ctypes.c_void_p)
-        child_windows = []
-        @enum
-        def collect(child, _):
-            child_windows.append(child)
-            return True
-        user32.EnumChildWindows(int(hwnd, 16), collect, None)
         found = []
         for child in child_windows:
             text = ctypes.create_unicode_buffer(256)
