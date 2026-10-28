@@ -5,11 +5,13 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Text.Json;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
 
+[SupportedOSPlatform("windows")]
 [McpServerToolType]
 public static class DesktopTools
 {
@@ -135,7 +137,7 @@ public static class DesktopTools
             if (!string.IsNullOrWhiteSpace(title_filter) &&
                 !title.Contains(title_filter, StringComparison.OrdinalIgnoreCase)) return true;
             if (!GetWindowRect(hwnd, out var rectangle)) return true;
-            _ = GetWindowThreadProcessId(hwnd, out var pid);
+            GetWindowThreadProcessId(hwnd, out var pid);
             string? processName = null;
             try { using var p = Process.GetProcessById((int)pid); processName = p.ProcessName; } catch { }
             windows.Add(new
@@ -376,7 +378,7 @@ public static class DesktopTools
             Mouse = new MouseInputData { Flags = flags, MouseData = data }
         } };
 
-    private static Input KeyInputWith(ushort vk, char scan, uint flags) =>
+    private static Input KeyInputWith(ushort vk, ushort scan, uint flags) =>
         new() { Type = InputKeyboard, Value = new InputUnion
         {
             Keyboard = new KeyboardInputData { VirtualKey = vk, Scan = scan, Flags = flags }
