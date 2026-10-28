@@ -185,7 +185,10 @@ public static class DesktopTools
             if (attachedTarget) AttachThreadInput(currentThread, targetThread, false);
             if (attachedForeground) AttachThreadInput(currentThread, foregroundThread, false);
         }
-        Thread.Sleep(160);
+        // Wait for the compositor to present the new Z-order before pointer hit-testing.
+        // Without this, SendInput may report success while the click reaches no window.
+        _ = DwmFlush();
+        Thread.Sleep(50);
         // Windows sometimes rejects foreground activation even after thread attachment.
         // Report the actual result instead of pretending that focus changed.
         return AsJson(new
@@ -261,6 +264,8 @@ public static class DesktopTools
             _ => throw new ArgumentException("button must be left, right or middle")
         };
         if (!SetCursorPos(x, y)) throw NativeError("SetCursorPos");
+        _ = DwmFlush();
+        Thread.Sleep(50);
         var inputs = new List<Input>();
         for (var i = 0; i < clicks; i++)
         {
@@ -453,6 +458,7 @@ public static class DesktopTools
     [DllImport("user32.dll")] private static extern int GetSystemMetrics(int index);
     [DllImport("user32.dll", SetLastError = true)] private static extern bool GetCursorPos(out Point point);
     [DllImport("user32.dll", SetLastError = true)] private static extern bool SetCursorPos(int x, int y);
+    [DllImport("dwmapi.dll")] private static extern int DwmFlush();
     [DllImport("kernel32.dll")] private static extern uint GetCurrentThreadId();
     [DllImport("user32.dll", SetLastError = true)] private static extern bool AttachThreadInput(
         uint idAttach, uint idAttachTo, bool attach);
