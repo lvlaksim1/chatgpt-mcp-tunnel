@@ -5,101 +5,217 @@ namespace ChatGptMcpAgent;
 
 internal sealed class ServerSettingsDialog : Form
 {
-    private readonly TextBox tunnel = new();
-    private readonly TextBox address = new();
-    private readonly TextBox api = new() { UseSystemPasswordChar = true };
-    private readonly TextBox agents = new() { UseSystemPasswordChar = true };
-    private readonly CheckBox autostart = new()
+    private readonly AgentSettings _original;
+    private readonly TextBox _address = new();
+    private readonly TextBox? _tunnelEntry;
+    private readonly Label _tokenState = new() { AutoSize = true };
+    private readonly Label _clientKeyState = new() { AutoSize = true };
+    private readonly CheckBox _autostart = new()
     {
         Text = "Запускать автоматически при входе в Windows", AutoSize = true
     };
+    private string? _pendingOpenAiKey;
+    private string? _pendingClientKey;
+
     internal ServerSettingsDialog(AgentSettings settings)
     {
+        _original = settings;
         Text = "ChatGPT MCP Tunnel — Сервер";
         Icon = TrayIcons.AppIcon();
-        ClientSize = new Size(520, 420);
+        ClientSize = new Size(530, 430);
         FormBorderStyle = FormBorderStyle.FixedDialog;
         StartPosition = FormStartPosition.CenterScreen;
         MaximizeBox = false;
         MinimizeBox = false;
         Font = new Font("Segoe UI", 10);
-        Controls.Add(new Label {
-            Text = "Основной компьютер: один туннель OpenAI и маршрутизатор клиентов",
-            Left = 20, Top = 14, Width = 490, Height = 30
-        });
-        Field("ID существующего туннеля OpenAI (не изменяется)", tunnel, 50, settings.TunnelId);
-        Field("IP-адрес интерфейса маршрутизатора", address, 111, settings.ListenAddress);
-        Field("Ключ OpenAI API (доступ к туннелю)", api, 172, "");
-        Field("Общий ключ подключения клиентов", agents, 233, "");
-        api.PlaceholderText = AgentStorage.HasServerApiKey()
-            ? "Сохранён — оставьте пустым для сохранения"
-            : "Введите токен доступа к существующему туннелю";
-        agents.PlaceholderText = AgentStorage.HasCredential()
-            ? "Сохранён — пустое поле не изменяет ключ"
-            : "Введите общий ключ для клиентов";
-        if (!AgentStorage.HasCredential())
-            agents.Text = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
-        var reveal = new CheckBox
+
+        int y = 16;
+        Controls.Add(new Label
         {
-            Text = "Показать ключ клиентов", Left = 20, Top = 299, AutoSize = true
+            Text = "Основной компьютер · существующий туннель OpenAI",
+            Left = 20, Top = y, Width = 490, Height = 26,
+            Font = new Font(Font, FontStyle.Bold)
+        });
+        y += 37;
+
+        if (AgentStorage.IsValidTunnelId(settings.TunnelId))
+        {
+            Controls.Add(new Label
+            {
+                Text = "Туннель OpenAI: настроен",
+                Left = 20, Top = y, Width = 485, Height = 27,
+                ForeColor = Color.FromArgb(24, 113, 76)
+            });
+            y += 34;
+        }
+        else
+        {
+            Controls.Add(new Label
+            {
+                Text = "ID существующего туннеля (только первоначальная настройка)",
+                Left = 20, Top = y, Width = 490, Height = 25
+            });
+            _tunnelEntry = new TextBox { Left = 20, Top = y + 25, Width = 490, Text = settings.TunnelId };
+            Controls.Add(_tunnelEntry);
+            y += 65;
+        }
+
+        Controls.Add(new Label { Text = "Токен OpenAI", Left = 20, Top = y, Width = 205, Height = 25 });
+        _tokenState.SetBounds(20, y + 28, 280, 27);
+        _tokenState.Text = AgentStorage.HasServerApiKey() ? "Сохранён" : "Не указан";
+        Controls.Add(_tokenState);
+        var tokenButton = MakeButton(335, y + 20, 175,
+            AgentStorage.HasServerApiKey() ? "Сменить токен" : "Указать токен");
+        tokenButton.Click += (_, _) =>
+        {
+            using var dialog = new SecretInputDialog("Введите новый токен OpenAI для существующего туннеля.");
+            if (dialog.ShowDialog(this) != DialogResult.OK) return;
+            _pendingOpenAiKey = dialog.EnteredValue;
+            _tokenState.Text = "Новое значение ожидает сохранения";
+            tokenButton.Text = "Сменить токен";
         };
-        reveal.CheckedChanged += (_, _) => agents.UseSystemPasswordChar = !reveal.Checked;
-        var copy = new Button { Text = "Копировать ключ", Left = 333, Top = 295,
-            Width = 172, Height = 31 };
+        y += 68;
+
+        Controls.Add(new Label
+        {
+            Text = "Адрес маршрутизатора Router Lite",
+            Left = 20, Top = y, Width = 490, Height = 24
+        });
+        _address.SetBounds(20, y + 25, 330, 28);
+        _address.Text = settings.ListenAddress;
+        Controls.Add(_address);
+        Controls.Add(new Label
+        {
+            Text = "Порт: 55201", Left = 375, Top = y + 29, Width = 135, Height = 24
+        });
+        y += 69;
+
+        Controls.Add(new Label
+        {
+            Text = "Общий ключ подключения клиентов",
+            Left = 20, Top = y, Width = 490, Height = 25
+        });
+        if (!AgentStorage.HasCredential())
+            _pendingClientKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+        _clientKeyState.SetBounds(20, y + 26, 490, 24);
+        _clientKeyState.Text = _pendingClientKey is not null
+            ? "Создан автоматически — сохранится с настройками" : "Сохранён";
+        Controls.Add(_clientKeyState);
+        y += 54;
+
+        var specify = MakeButton(20, y, 144, "Указать ключ");
+        specify.Click += (_, _) =>
+        {
+            using var dialog = new SecretInputDialog("Введите новый общий ключ подключения клиентов.");
+            if (dialog.ShowDialog(this) != DialogResult.OK) return;
+            _pendingClientKey = dialog.EnteredValue;
+            _clientKeyState.Text = "Новый ключ ожидает сохранения";
+        };
+        var generate = MakeButton(173, y, 160, "Создать новый");
+        generate.Click += (_, _) =>
+        {
+            if (AgentStorage.HasCredential() &&
+                MessageBox.Show(this,
+                    "Новый ключ отключит клиентов со старым ключом. Продолжить?",
+                    "Замена ключа клиентов", MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning) != DialogResult.Yes)
+                return;
+            _pendingClientKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+            _clientKeyState.Text = "Новый ключ ожидает сохранения";
+        };
+        var copy = MakeButton(342, y, 168, "Копировать ключ");
         copy.Click += (_, _) =>
         {
-            if (!string.IsNullOrEmpty(agents.Text)) Clipboard.SetText(agents.Text);
+            try
+            {
+                var value = _pendingClientKey ?? AgentStorage.LoadServerAgentKey();
+                if (string.IsNullOrEmpty(value))
+                {
+                    MessageBox.Show(this, "Ключ ещё не создан.", "Ключ клиентов");
+                    return;
+                }
+                Clipboard.SetText(value);
+                AgentStorage.Log("Server client key copied to clipboard (value not logged).");
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(this, "Не удалось скопировать ключ: " + error.GetType().Name,
+                    "Ключ клиентов", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         };
-        Controls.Add(reveal);
-        Controls.Add(copy);
-        autostart.Left = 20;
-        autostart.Top = 339;
-        autostart.Checked = settings.AutoStart;
-        Controls.Add(autostart);
-        var save = new Button { Text = "Сохранить", Left = 315, Top = 378, Width = 105, Height = 32 };
-        var cancel = new Button { Text = "Отмена", Left = 430, Top = 378, Width = 78, Height = 32 };
+        y += 53;
+
+        _autostart.SetBounds(20, y, 490, 25);
+        _autostart.Checked = settings.AutoStart;
+        Controls.Add(_autostart);
+        y += 43;
+
+        var check = MakeButton(20, y, 120, "Проверить");
+        check.Click += async (_, _) =>
+        {
+            check.Enabled = false;
+            try
+            {
+                var ip = _address.Text.Trim();
+                using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(4));
+                var state = await ServerStatusProbe.CheckAsync(ip, timeout.Token);
+                MessageBox.Show(this, state == ServerConnectivity.Ready
+                        ? "Туннель и маршрутизатор готовы. Порт 55201 доступен."
+                        : ServerStatusProbe.Describe(state),
+                    "Проверка сервера", MessageBoxButtons.OK,
+                    state == ServerConnectivity.Ready
+                        ? MessageBoxIcon.Information : MessageBoxIcon.Warning);
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(this, "Проверка завершилась с ошибкой: " +
+                    error.GetType().Name, "Проверка сервера",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            finally { check.Enabled = true; }
+        };
+        var save = MakeButton(288, y, 117, "Сохранить");
+        var cancel = MakeButton(414, y, 96, "Отмена");
         save.Click += (_, _) => Save();
         cancel.Click += (_, _) => { DialogResult = DialogResult.Cancel; Close(); };
-        Controls.Add(save);
-        Controls.Add(cancel);
         AcceptButton = save;
         CancelButton = cancel;
+        ClientSize = new Size(530, y + 50);
     }
 
-    private void Field(string name, TextBox input, int top, string current)
+    private Button MakeButton(int x, int y, int width, string title)
     {
-        Controls.Add(new Label { Text = name, Left = 20, Top = top, Width = 480, Height = 23 });
-        input.SetBounds(20, top + 23, 485, 28);
-        input.Text = current;
-        Controls.Add(input);
+        var button = new Button { Text = title, Left = x, Top = y, Width = width, Height = 31 };
+        Controls.Add(button);
+        return button;
     }
 
     private void Save()
     {
         try
         {
-            var ip = address.Text.Trim();
+            var ip = _address.Text.Trim();
             if (!System.Net.IPAddress.TryParse(ip, out var parsed) ||
                 parsed.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork ||
-                System.Net.IPAddress.IsLoopback(parsed) == false &&
-                !IsLocalIpv4(parsed))
+                (!System.Net.IPAddress.IsLoopback(parsed) && !IsLocalIpv4(parsed)))
                 throw new ArgumentException("Нужно указать локальный IPv4-адрес этого компьютера.");
-            var agentKey = agents.Text.Length == 0 ? null : agents.Text;
-            var apiKey = api.Text.Length == 0 ? null : api.Text;
-            if (agentKey is null && !AgentStorage.HasCredential())
-                throw new ArgumentException("Необходимо создать ключ подключения клиентов.");
-            if (apiKey is null && !AgentStorage.HasServerApiKey())
-                throw new ArgumentException("Необходимо указать ключ доступа OpenAI.");
-            if (!AgentStorage.IsValidTunnelId(tunnel.Text.Trim()))
-                throw new ArgumentException("Укажите ID уже существующего туннеля OpenAI.");
+            var id = _tunnelEntry?.Text.Trim() ?? _original.TunnelId;
+            if (!AgentStorage.IsValidTunnelId(id))
+                throw new ArgumentException("Укажите ID действующего туннеля OpenAI.");
+            if (_pendingOpenAiKey is null && !AgentStorage.HasServerApiKey())
+                throw new ArgumentException("Нужно указать токен OpenAI.");
+            if (_pendingClientKey is null && !AgentStorage.HasCredential())
+                throw new ArgumentException("Нужно указать ключ подключения клиентов.");
             AgentStorage.SaveServer(new AgentSettings
             {
                 Computer = Environment.MachineName,
                 Role = "server",
-                TunnelId = tunnel.Text.Trim(),
+                TunnelId = id,
                 ListenAddress = ip,
-                AutoStart = autostart.Checked
-            }, agentKey, apiKey);
+                AutoStart = _autostart.Checked
+            }, _pendingClientKey, _pendingOpenAiKey);
+            _pendingClientKey = null;
+            _pendingOpenAiKey = null;
             DialogResult = DialogResult.OK;
             Close();
         }

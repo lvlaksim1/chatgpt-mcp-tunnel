@@ -70,3 +70,9 @@ Physical PC onboarding and cross-host tests; do not claim production-ready multi
 - v0.2.3 Settings menu callback did execute, but its HWND was hidden. Win32 ShowWindow SW_SHOW on live DOMKAT made the Settings window appear; desktop.window.list confirmed correct foreground bounds.
 - v0.2.4 patches reusable Form show logic to enforce IsWindowVisible/ShowWindow after Form.Show and when reopened.
 - Local self-contained build, selftest, icon test, live read-only server probe all pass. Next Windows CI/release and real DOMKAT --settings acceptance.
+
+## v0.2.5 Windows installer release — user self-updates
+- User approved secret-free main Settings mockup for Server/Client. Current v0.2.5 source implements on-demand temporary secret popup, separate token replacement on Server, Server key generate/copy, input-only key on Client, automatic port 55201, keep configured address 192.168.0.3 and existing OpenAI Tunnel ID.
+- Tests --selftest, --test-icons, --probe-server, --test-secret-forms passed with self-contained executable.
+- User explicitly instructed: prepare full and update installer; do NOT update DOMKAT yourself. Owner will update via built-in UI.
+- Next: release Windows GitHub Actions, verify both installer assets and report.

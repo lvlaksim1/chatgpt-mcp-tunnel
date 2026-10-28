@@ -17,6 +17,36 @@ internal static class Program
             Environment.ExitCode = AgentStorage.RunSelfTest();
             return;
         }
+        if (args.Length == 1 && args[0] == "--test-secret-forms")
+        {
+            try
+            {
+                var dummy = new AgentSettings
+                {
+                    Role = "server",
+                    TunnelId = "tunnel_" + new string('a', 32),
+                    ListenAddress = "127.0.0.1",
+                    RouterUrl = "ws://192.168.0.3:55201/agent"
+                };
+                using var server = new ServerSettingsDialog(dummy);
+                using var client = new SettingsDialog(dummy);
+                using var entry = new SecretInputDialog("Тест ввода");
+                var serverControls = server.Controls.Cast<Control>().ToArray();
+                var clientControls = client.Controls.Cast<Control>().ToArray();
+                var secretControls = entry.Controls.Cast<Control>().ToArray();
+                if (serverControls.OfType<TextBox>().Any(tb => tb.UseSystemPasswordChar) ||
+                    clientControls.OfType<TextBox>().Any(tb => tb.UseSystemPasswordChar) ||
+                    !secretControls.OfType<TextBox>().Any(tb => tb.UseSystemPasswordChar) ||
+                    clientControls.OfType<Button>().Any(b =>
+                        b.Text.Contains("копир", StringComparison.OrdinalIgnoreCase) ||
+                        b.Text.Contains("показ", StringComparison.OrdinalIgnoreCase)) ||
+                    serverControls.OfType<Button>().Count(b => b.Text.Contains("ключ")) < 2)
+                    Environment.ExitCode = 14;
+            }
+            catch { Environment.ExitCode = 15; }
+            return;
+        }
+
         if (args.Length == 1 && args[0] == "--test-icons")
         {
             try

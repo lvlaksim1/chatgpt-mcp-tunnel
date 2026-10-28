@@ -33,3 +33,7 @@ The local routing, controls and reconnection tests passed; these risks do not in
 ## Last GUI acceptance gate
 - Running v0.2.3 needs explicit Win32 SW_SHOW to display Server Settings on this Windows session; temporary native activation worked. Permanent v0.2.4 source fix compiled and tested, pending Inno release and in-place update.
 - Existing OpenAI tunnel, DPAPI credentials and Router Lite remain healthy and unchanged.
+
+## v0.2.5 release acceptance
+- Source and local build complete, Windows CI and binary release/asset digests pending.
+- Owner will self-update DOMKAT; no automated in-place install authorized. 192.168.0.3 stays unchanged, DHCP reservation postponed.

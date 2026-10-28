@@ -83,3 +83,11 @@
 - Validate by desktop.window.list after invoking the existing tray process --settings and verify no additional cloud OpenAI tunnel was created.
 - source: actual DOMKAT Win32 experiment and v0.2.4 local tests 28.10.2026.
 - authority: verified-runtime.
+
+## Secret entry UX and owner-controlled update (28.10.2026)
+- Keep stored API/client key values in DPAPI; primary Settings windows must never contain secret TextBoxes, only status and buttons opening a temporary SecretInputDialog.
+- Client can submit a new secret but has no show, reveal or copy action; Server may copy stored client secret with explicit server-side button. Keep OpenAI Tunnel ID fixed once valid on server.
+- Password entry dialog input supports typing and paste but does not expose copy/cut/reveal. If changes are staged, only persist keys after user saves primary settings.
+- User requested only two installer binaries and retains right to run app's built-in updater themselves; do not remotely update their installed DOMKAT server. Keep IP 192.168.0.3.
+- source: owner decision and v0.2.5 source/tests 28.10.2026.
+- authority: owner-directive, verified-runtime.

@@ -71,3 +71,12 @@ Source: accepted Owner scope, inspected repository code and verified eight test 
 4. Publish v0.2.4 after Windows installer CI, update DOMKAT in place, verify actual Settings window via --settings and app tray menu. [next]
 - source: verified native Windows runtime 28.10.2026, Owner directives.
 - authority: verified-runtime, owner-directive.
+
+## Approved Settings forms — two installers
+1. Replace permanently visible secret inputs by on-demand SecretInputDialog and status labels, server only copy/generate, client input-only. [source complete]
+2. Preserve immutable configured OpenAI Tunnel ID, local address 192.168.0.3, automatic port 55201, DPAPI keys and native Win32 settings visibility. [source complete]
+3. Verify self-contained binary, icon/health/forms tests. [local complete]
+4. Run Windows Inno CI first/update/preservation/uninstall and publish full+update v0.2.5. [next]
+5. Report release links and SHA256; owner performs self-update using existing application UI. DO NOT install on DOMKAT. [owner-controlled]
+- source: owner approval and delivery instruction 28.10.2026.
+- authority: owner-directive.

@@ -90,3 +90,12 @@ verified partial progress: stages 1-3 passed local E2E, all 23 Windows tools rem
 - authority: owner-directive
 - verified partial progress: reproducing actual hidden native HWND and successful ShowWindow SW_SHOW on DOMKAT, v0.2.4 source patch and self-contained local selftests.
 - remaining: Windows CI installer v0.2.4 and live DOMKAT update with visible-menu acceptance.
+
+## v0.2.5 two installers; do not install on DOMKAT
+- commitment_id: approved-settings-both-installers-2026-10-28
+- status: accepted/active
+- owner: project-manager
+- source: owner approved HTML settings mockup then requested full and update installers, explicitly reserving right to use built-in updater personally.
+- authority: owner-directive
+- verified partial progress: source implements approved server/client secret-free main forms and temporary entry, automated --test-secret-forms plus selftest/icon/probe pass in local publish.
+- remaining: validate capsule, commit, GitHub Windows installer CI, publish/verify binary Release. No DOMKAT update or change of 192.168.0.3.

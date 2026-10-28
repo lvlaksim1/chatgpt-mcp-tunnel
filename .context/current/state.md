@@ -85,3 +85,12 @@
 - v0.2.4 source adds native IsWindowVisible + ShowWindow(SW_SHOW) after Form.Show, and when reopening existing window. App compilation, --selftest, --test-icons and --probe-server all return 0; no live replacement yet.
 - source: actual DOMKAT installed runtime and local .NET v0.2.4 tests.
 - authority: verified-runtime.
+
+## Approved settings UX pending v0.2.5 release (28.10.2026)
+- Source modifications implementing accepted HTML mockups: main Server/Client settings contain no secret TextBox; temporary popup supplies secret, cleared on close; client lacks reveal/copy key functions; server can copy existing DPAPI client secret or generate/select replacement. Tunnel ID is editable only during first server setup; stored Tunnel ID remains unchanged thereafter.
+- Client enters bare server hostname/IP, uses ws/wss existing scheme and automatic :55201/agent; server retains stored local listen address, currently 192.168.0.3.
+- Buttons Проверить added: server checks local readyz + router TCP; client checks TCP reachability. Stored DPAPI key stays when user saves unrelated settings.
+- Local self-contained Windows v0.2.5 build tested: --selftest exit 0, --test-icons exit 0, --probe-server exit 0, --test-secret-forms exit 0, git diff check clean.
+- Owner explicitly requests full and update installer artifacts, to update DOMKAT personally via built-in app UI. Installed DOMKAT remains v0.2.3; do not run updater/remotely install.
+- source: owner approval, local source build/tests 28.10.2026.
+- authority: owner-directive, verified-runtime.

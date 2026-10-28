@@ -46,3 +46,8 @@ Stages 1–3 were completed and locally verified on DOMKAT; do not repeat that w
 - Verify SHA256 and update DOMKAT in place, preserving existing Tunnel ID/DPAPI keys.
 - Run installed --settings and confirm desktop.window.list finds visible foreground Server Settings window without any external ShowWindow command; test reopen and successful server state.
 - Then continue remote MKATUSHONOK acceptance.
+
+## Release deliverable
+- Commit v0.2.5 source and approved manager capsule, dispatch Windows Actions release, confirm run success.
+- Verify GitHub release includes full ChatGPT_MCP_Tunnel_Setup_v0.2.5.exe and update ChatGPT_MCP_Tunnel_Update_v0.2.5.exe with SHA256 digests; built-in updater compatibility should be preserved.
+- Provide links only, do not install/upgrade the active DOMKAT server. Wait for owner self-update and further acceptance feedback.

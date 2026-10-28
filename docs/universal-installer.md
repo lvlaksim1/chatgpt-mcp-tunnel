@@ -49,3 +49,14 @@ An original, high-contrast, multi-resolution Windows icon in Resources/App.ico i
 
 ## Follow-up: guaranteed native settings-window visibility (v0.2.4)
 After v0.2.3 installed, the new modeless Settings handler ran, but native Windows UI inspection still found a hidden Server Settings HWND (native WS_VISIBLE absent). A direct ShowWindow(hwnd, SW_SHOW) on DOMKAT immediately made the window visible, foregrounded with normal size. v0.2.4 therefore calls Win32 IsWindowVisible / ShowWindow(SW_SHOW) when necessary after Form.Show and when reactivating an existing Settings window. This change is limited to the GUI process and does not modify tunnel credentials or OpenAI registration.
+
+## v0.2.5 — согласованные формы подключения (28.10.2026)
+Подтверждённые пользователем HTML-макеты реализованы в Windows WinForms:
+- Сервер: статус существующего OpenAI Tunnel без изменения ID в обычных настройках, отдельная кнопка «Сменить токен» (временная форма), адрес Router Lite без смены текущего 192.168.0.3, порт 55201 в виде текста, ключ клиентов управляется кнопками «Указать ключ», «Создать новый», «Копировать ключ». Копирование только на сервере, из DPAPI либо подготовленного к сохранению нового значения. При первом запуске ID может быть введён в первоначальной настройке.
+- Клиент: имя ПК, адрес сервера без схемы/порта, автоматический порт 55201, статус ключа и кнопка «Указать ключ». Ни просмотр, ни копирование сохранённого ключа не доступны в интерфейсе клиента.
+- В обеих формах секреты отсутствуют в постоянных полях. Ввод по нажатию кнопки открывает небольшую форму SecretInputDialog и закрывается при подтверждении/отмене. На основной форме выводится только статус. DPAPI секреты сохраняются только после нажатия «Сохранить» на основной форме; если пользователь изменил обычные настройки, ключи не перезаписываются.
+- Кнопки «Проверить» делают сетевую проверку: на сервере local readyz и Router Lite, на клиенте TCP-доступность указанного сервера, без проверки клиентского ключа до фактического подключения.
+- Работают прежние пользовательская иконка, надёжное Win32-отображение окна настроек, автозапуск и штатные обновления.
+- Автоматические тесты: --selftest, --test-icons, --probe-server и --test-secret-forms. CI собирает полный и обновляющий Inno-установщики с проверкой сохранения настроек и удаления.
+
+Владелец явно указал: установить обновление самостоятельно через штатные средства. Не обновлять приложение на DOMKAT автоматически. Текущий IP 192.168.0.3 сохраняется; вопрос статического DHCP-резервирования отложен.
