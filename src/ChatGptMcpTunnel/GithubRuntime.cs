@@ -125,7 +125,8 @@ internal static class GithubRuntime
         if (!Path.IsPathFullyQualified(destination)) throw new ArgumentException("destination must be absolute");
         using var request = new HttpRequestMessage(HttpMethod.Get, ApiUri(endpoint));
         request.Headers.UserAgent.ParseAdd("ChatGptMcpTunnel-GitHub/1.0");
-        request.Headers.Accept.ParseAdd("application/vnd.github+json");
+        request.Headers.Accept.ParseAdd(endpoint.Contains("/releases/assets/", StringComparison.OrdinalIgnoreCase)
+            ? "application/octet-stream" : "application/vnd.github+json");
         request.Headers.Add("X-GitHub-Api-Version", "2022-11-28");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await Token());
         using var response = await Client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
