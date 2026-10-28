@@ -85,21 +85,25 @@ jobs:
           $setup = "dist\ChatGPT_MCP_Agent_Setup_v$env:VERSION.exe"
           $update = "dist\ChatGPT_MCP_Agent_Update_v$env:VERSION.exe"
           if (-not (Test-Path $setup) -or -not (Test-Path $update)) { throw 'Installer missing' }
-          $first = Start-Process -FilePath (Resolve-Path $setup) -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -Wait -PassThru
+          $first = Start-Process -FilePath (Resolve-Path $setup) -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -PassThru
+          if (-not $first.WaitForExit(180000)) { $first.Kill(); throw 'first installer timed out' }
           if ($first.ExitCode -ne 0) { throw "First install failed: $($first.ExitCode)" }
           if (-not (Test-Path $exe) -or -not (Test-Path $runtime)) { throw 'Installed files missing' }
           $check = Start-Process -FilePath $exe -ArgumentList '--selftest' -Wait -PassThru
           if ($check.ExitCode -ne 0) { throw 'Installed agent selftest failed' }
           New-Item -ItemType Directory -Force -Path $data | Out-Null
           Set-Content -Path (Join-Path $data 'preserve.test') -Value 'KEEP'
-          $second = Start-Process -FilePath (Resolve-Path $update) -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -Wait -PassThru
+          $second = Start-Process -FilePath (Resolve-Path $update) -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -PassThru
+          if (-not $second.WaitForExit(180000)) { $second.Kill(); throw 'second installer timed out' }
           if ($second.ExitCode -ne 0) { throw "Update failed: $($second.ExitCode)" }
           if ((Get-Content (Join-Path $data 'preserve.test')) -ne 'KEEP') { throw 'Update removed runtime settings' }
           $check = Start-Process -FilePath $exe -ArgumentList '--selftest' -Wait -PassThru
           if ($check.ExitCode -ne 0) { throw 'Updated agent selftest failed' }
-          & $exe --shutdown
+          $stop = Start-Process -FilePath $exe -ArgumentList '--shutdown' -Wait -PassThru
+          if ($stop.ExitCode -ne 0) { throw 'Agent shutdown command failed' }
           $uninstall = Join-Path $env:LOCALAPPDATA 'Programs\ChatGPTMCPAgent\unins000.exe'
-          $last = Start-Process -FilePath $uninstall -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -Wait -PassThru
+          $last = Start-Process -FilePath $uninstall -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -PassThru
+          if (-not $last.WaitForExit(180000)) { $last.Kill(); throw 'last installer timed out' }
           if ($last.ExitCode -ne 0) { throw "Uninstall failed: $($last.ExitCode)" }
           if (Test-Path $data) { throw 'Uninstall left application-owned data' }
           if (Test-Path $exe) { throw 'Uninstall left installed executable' }
