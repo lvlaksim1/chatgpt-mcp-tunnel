@@ -39,34 +39,40 @@ def call(tool_name, **params):
     return obj
 
 fixture = r"""
-Add-Type -AssemblyName System.Windows.Forms
-Add-Type -AssemblyName System.Drawing
+Add-Type -AssemblyName PresentationFramework
+Add-Type -AssemblyName PresentationCore
 $global:stateFile=$args[0]
-$form = New-Object System.Windows.Forms.Form
-$form.Name='McpTestWindow'
-$form.Text='ChatGPT MCP UIA TEST WINDOW'
-$form.StartPosition='Manual'
-$form.Location=New-Object System.Drawing.Point(120,120)
-$form.Size=New-Object System.Drawing.Size(600,310)
-$box=New-Object System.Windows.Forms.TextBox
+$window=New-Object System.Windows.Window
+$window.Title='ChatGPT MCP UIA TEST WINDOW'
+$window.Width=600
+$window.Height=310
+$window.WindowStartupLocation='Manual'
+$window.Left=120
+$window.Top=120
+$panel=New-Object System.Windows.Controls.StackPanel
+$panel.Margin=New-Object System.Windows.Thickness(25)
+$box=New-Object System.Windows.Controls.TextBox
 $box.Name='McpTestEdit'
 $box.Text='ORIGINAL'
-$box.Location=New-Object System.Drawing.Point(25,35)
-$box.Size=New-Object System.Drawing.Size(420,30)
-$form.Controls.Add($box)
-$button=New-Object System.Windows.Forms.Button
+$box.Height=30
+[System.Windows.Automation.AutomationProperties]::SetAutomationId($box,'McpTestEdit')
+[void]$panel.Children.Add($box)
+$button=New-Object System.Windows.Controls.Button
 $button.Name='McpTestAction'
-$button.Text='Apply MCP'
-$button.Location=New-Object System.Drawing.Point(25,110)
-$button.Size=New-Object System.Drawing.Size(140,35)
+$button.Content='Apply MCP'
+$button.Height=35
+$button.Margin=New-Object System.Windows.Thickness(0,20,0,0)
+[System.Windows.Automation.AutomationProperties]::SetAutomationId($button,'McpTestAction')
 $button.Add_Click({ [IO.File]::WriteAllText($global:stateFile, 'CLICKED') })
-$form.Controls.Add($button)
-$check=New-Object System.Windows.Forms.CheckBox
+[void]$panel.Children.Add($button)
+$check=New-Object System.Windows.Controls.CheckBox
 $check.Name='McpTestOption'
-$check.Text='Enable MCP'
-$check.Location=New-Object System.Drawing.Point(25,170)
-$form.Controls.Add($check)
-[System.Windows.Forms.Application]::Run($form)
+$check.Content='Enable MCP'
+$check.Margin=New-Object System.Windows.Thickness(0,20,0,0)
+[System.Windows.Automation.AutomationProperties]::SetAutomationId($check,'McpTestOption')
+[void]$panel.Children.Add($check)
+$window.Content=$panel
+$null=$window.ShowDialog()
 """
 
 gui=None
@@ -107,7 +113,7 @@ try:
             time.sleep(.1)
         assert marker.exists() and marker.read_text()=="CLICKED", "Button InvokePattern did not run click handler"
         print("UIA_INVOKE_BUTTON_OK",flush=True)
-        edits=call("desktop.uia.find",hwnd=hwnd,name="ORIGINAL")
+        edits=call("desktop.uia.find",hwnd=hwnd,control_type="Edit")
         assert edits["count"]>0,edits
         edit=edits["matches"][0]
         details=call("desktop.uia.get",hwnd=hwnd,path=edit["path"])
@@ -118,7 +124,7 @@ try:
         updated=call("desktop.uia.get",hwnd=hwnd,path=edit["path"])
         assert updated.get("value")==new_text,updated
         print("UIA_SET_VALUE_OK",flush=True)
-        checks=call("desktop.uia.find",hwnd=hwnd,name="Enable MCP")
+        checks=call("desktop.uia.find",hwnd=hwnd,control_type="CheckBox")
         assert checks["count"]>0,checks
         check=checks["matches"][0]
         before=call("desktop.uia.get",hwnd=hwnd,path=check["path"])
