@@ -1,5 +1,12 @@
 # Current blockers and open risks
 
+## WAN direct option: remaining acceptance gates
+- Public IPv4 confirmed on DOMKAT router; direct Internet transport is possible in principle, but inbound port forwarding and real Internet reachability were not validated. UPnP TCP 55201/443 mapping absent (714) is not evidence about manual mappings.
+- Current Router Lite ws:// port 55201 permits only the LAN subnet through existing Windows Firewall. Directly opening it publicly would expose unencrypted agent credentials and command transport; secure authenticated WSS/TLS is a hard prerequisite.
+- Owner has not chosen whether to replace/extend the v0.2.7 Tailscale path with direct WSS. Nothing deployed and no two-computer real acceptance.
+- source: verified RT-GM2-3 WAN and Windows firewall 28.10.2026.
+
+
 ## Remaining after v0.2.7 successful release
 - Source, CI, release and Windows installer acceptance completed. Network acceptance remains: Tailscale client must be installed/authenticated on both DOMKAT and MKATUSHONOK in the same accessible tailnet.
 - No current direct access to MKATUSHONOK has been proven. No end-to-end remote instrument execution across physical networks has been observed.

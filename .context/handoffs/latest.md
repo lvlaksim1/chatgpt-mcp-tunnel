@@ -1,5 +1,13 @@
 # Latest handoff
 
+## Verified public WAN on DOMKAT — topology re-evaluation 28.10.2026
+- Owner reports a static IP; direct read-only IGD UPnP router RT-GM2-3 verification shows globally routable WAN IPv4 identical to three outside IP service readings. This is much stronger than the Xray/TUN-influenced outbound address; static assignment over time is user assertion. Exact IPv4 withheld from public repo.
+- Existing router local IP is 192.168.0.1, DOMKAT 192.168.0.3. Windows Router Lite TCP 55201 bound only LAN, firewall restricted to 192.168.0.0/24. Router replied UPnP 714 for mappings TCP 55201 and 443. Manually configured forwards unknown, and no test was performed from a second network.
+- Direct secure WSS remote agents without Tailscale/Headscale/cloud mediator are feasible in principle. DO NOT expose current raw ws:// and client key. Need TLS + agent authentication, explicit safe inbound port mapping, firewall and real external testing.
+- Released v0.2.7 Tailscale functionality remains a working development option; Owner has not yet approved replacing that approach with direct WSS, and running installed v0.2.6 remains untouched.
+- source: DOMKAT read-only shell and router GetExternalIPAddress/GetSpecificPortMappingEntry, Owner 28.10.2026.
+
+
 ## v0.2.7 Tailscale implementation/release handoff — 28.10.2026 22:45 MSK
 - Owner clarified DOMKAT and MKATUSHONOK are in DIFFERENT local networks and then instructed to execute the proposed protected inter-network approach. Chosen Tailscale/WireGuard overlay preserves ONE OpenAI Secure MCP Tunnel and Router Lite.
 - Source c04e2ec adds a narrowly scoped per-peer Tailscale Windows Firewall rule (only exact client IP → exact server IP, TCP 55201, runtime executable), validation of local Tailscale adapter, UAC confirmation, automatic server Settings button label and new selftest. No existing LAN feature removed.

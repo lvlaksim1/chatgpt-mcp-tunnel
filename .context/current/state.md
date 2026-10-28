@@ -1,5 +1,14 @@
 # Current state
 
+## Direct public IPv4 feasibility verification — 28.10.2026
+- User reports static IP. Router RT-GM2-3, at local gateway 192.168.0.1, directly responded to UPnP WANIPConnection GetExternalIPAddress with a globally routable IPv4 matching three IP-checking services, including a --noproxy curl check. Exact public IP intentionally excluded from this publicly visible repository.
+- The independently verified property is a public WAN address (not CG-NAT at this router), not the address permanence; latter remains user-reported. No global IPv6 observed.
+- Router Lite still listening on 192.168.0.3:55201 and existing local-only Windows firewall ChatGPTMCPRouterLiteLAN remote 192.168.0.0/24. UPnP port mapping query for 55201 and 443 returned fault code 714 (no UPnP mapping); manual forwarding and Internet reachability not established.
+- Direct WSS/TLS remote connection can potentially replace dependency on Tailscale/Headscale; requires explicit port forwarding and firewall handling, strong authenticated encryption and real remote verification. Never expose raw ws:// token protocol to Internet.
+- No configuration, port forwarding or installed binaries modified in this WAN inspection. Working v0.2.6 on DOMKAT, v0.2.7 GitHub release available. Physical MKATUSHONOK still NOT PROVEN.
+- source: read-only route/adapter/gateway, UPnP SOAP, firewall and owner statement 28.10.2026.
+
+
 ## Published Tailscale interoperability release — 28.10.2026 22:45 MSK
 - Stable v0.2.7 now available at https://github.com/lvlaksim1/chatgpt-mcp-tunnel/releases/tag/v0.2.7; Windows CI run 40756470762 completed SUCCESS on source commit c04e2ec44c287d4f41ee4433f05b728609ed94ae.
 - Full installer ChatGPT_MCP_Tunnel_Setup_v0.2.7.exe SHA256 f260ec4092e68e88f00b40d800002aec83a00470b26787939618765d23084913; Update ChatGPT_MCP_Tunnel_Update_v0.2.7.exe SHA256 0d775d1a06f82d70e2daf8a00c54352b5f9a62a2cbd0828e26ed2f936d968deb.

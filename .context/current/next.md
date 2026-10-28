@@ -1,5 +1,13 @@
 # Next actions
 
+## Next after verified public WAN IP
+1. Present verified feasibility: RT-GM2-3 has public WAN IPv4 matching external Internet egress; IP permanence reported by Owner; no CG-NAT at the router. Exact IP omitted from public repo.
+2. Choose with Owner whether to develop self-hosted direct WSS/TLS + strong agent authentication instead of Tailscale. Existing v0.2.7 optional Tailscale solution stays available.
+3. Only after secure server is ready and Owner authorizes network changes: configure explicit port forwarding and least-privilege Windows Firewall; never expose existing raw ws:// Router Lite on public WAN.
+4. Validate inbound from remote MKATUSHONOK and 23 tools, screenshot/UIA, reconnect. No success claim before actual external proof.
+- source: real router WAN IP SOAP and firewall read-only check 28.10.2026.
+
+
 ## Next actions after v0.2.7 release
 1. On DOMKAT and MKATUSHONOK install Tailscale from the official Windows package and sign both into one permitted tailnet, completing interactive browser authorization; no public router port forwarding.
 2. Read each computer's own 100.x Tailscale IP. Preserve the working OpenAI tunnel; update DOMKAT Agent to v0.2.7 via owner-approved method when ready.

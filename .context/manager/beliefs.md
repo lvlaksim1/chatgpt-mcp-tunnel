@@ -1,5 +1,14 @@
 # Manager beliefs
 
+## WAN verification changes architecture options — 28.10.2026
+- Owner reports a static public IP for DOMKAT. Read-only verification directly asked the RT-GM2-3 router via local UPnP WANIPConnection:GetExternalIPAddress; router WAN IPv4 is public and matches three public IP-checking services, including direct curl without HTTP proxy. Numeric public IP deliberately excluded from this public repository. Consequently CG-NAT is not present at that router's WAN IPv4 interface; the proxy/TUN adapter is irrelevant to this independent WAN reading.
+- This proves publicly addressed WAN, NOT contractual static permanence. Stable assignment is the owner's statement, not independently proved by one snapshot.
+- Router UPnP GetSpecificPortMappingEntry for external TCP 55201 and 443 both returned SOAP fault 714, meaning no corresponding UPnP mappings. This does not rule out manually configured router forwarding. The active DOMKAT Windows Firewall rule ChatGPTMCPRouterLiteLAN only allows remote 192.168.0.0/24, local 192.168.0.3, TCP 55201; Router Lite listens only on 192.168.0.3:55201.
+- Direct connection from remote MKATUSHONOK over the Internet without a Tailscale/Headscale/VPS middle server is technically feasible if port forwarding, firewall and secure TLS/WSS + authenticated remote agent are deployed. Current ws:// bearer-key router MUST NOT be directly exposed to the Internet. No external-to-internal reachability test was executed; physical MKATUSHONOK remains NOT PROVEN.
+- Tailscale-capable v0.2.7 remains valid and released as an option; direct WSS architecture is not yet approved or implemented.
+- Source: read-only DOMKAT shell, router IGD SOAP, network firewall and listener checks, owner statement; authority: verified-runtime, owner-directive.
+
+
 ## B21 — Защищённый Tailscale-транспорт выбран и поддерживается выпуском v0.2.7 (28.10.2026)
 - Владелец поручил выполнить план после поправки о разных локальных сетях. Для минимальной архитектуры с одним OpenAI MCP Tunnel выбран вариант защищённой виртуальной сети Tailscale/WireGuard между DOMKAT и MKATUSHONOK; второй облачный туннель, общедоступный незащищённый порт и отдельный сервер-посредник не требуются.
 - Реализована ограниченная одним IP клиента настройка брандмауэра для адреса Tailscale сервера (100.64.0.0/10) с отдельным подтверждением и Windows UAC. Предполагается реально назначенный локальному Tailscale-адаптеру IPv4 и точный IP другого устройства. Обычный локальный режим не изменён.

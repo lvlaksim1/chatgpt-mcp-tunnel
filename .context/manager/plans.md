@@ -1,5 +1,13 @@
 # Manager plans
 
+## Public WAN direct-connection investigation (28.10.2026)
+1. Verified: router RT-GM2-3 reports globally routable IPv4 as its WAN address, matching public egress, without CG-NAT at its interface. Owner reports IP is static; only current presence was independently checked.
+2. Verified current Router Lite 55201 listens only on local DOMKAT 192.168.0.3. Windows firewall entry allows only LAN /24, and UPnP reports no dynamic mapping of TCP 55201/443 (fault 714). Other manually configured router forwards and external inbound reachability still unverified.
+3. Propose Owner choose direct secure WAN path instead of requiring embedded Tailscale: add TLS/WSS server or trusted reverse proxy, secure enrollment/authenticated client, strict limits/logs; then configure explicit router forward and firewall rule with user authorization.
+4. Test from actual external physical network MKATUSHONOK. Do not call direct path operational without external proof. Keep released v0.2.7 as an alternative; do not change current running tunnel.
+- source: router UPnP and read-only Windows check, 28.10.2026.
+
+
 ## Post-release v0.2.7 remote computer plan
 1. Retain the working DOMKAT OpenAI tunnel; do not remotely update the installed v0.2.6, change Tunnel ID, keys, or 192.168.0.3 without separate approval.
 2. Install/sign in to Tailscale on DOMKAT and MKATUSHONOK under authorized Windows/account interaction. Both must be members of one permitted tailnet; verify direct or encrypted relay and exact 100.x IP addresses.

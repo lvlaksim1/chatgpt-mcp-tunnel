@@ -1,5 +1,13 @@
 # Manager intentions and commitments
 
+## Direct WAN option after validated public router IP
+- commitment_id: compare-direct-wss-vs-vpn-2026-10-28
+- status: read-only feasibility verified; adoption pending Owner decision; no changes to server/router/firewall.
+- Reassess need for Tailscale/Headscale/VPS because DOMKAT router has a verified public WAN IPv4; design secure WSS or equivalent cryptographic channel and authenticated agents before public inbound exposure.
+- Explicitly keep production unchanged until new transport is selected/tested; retain v0.2.7 Tailscale feature as fallback.
+- source: owner static-IP statement, verified router GetExternalIPAddress and NAT/firewall inspection 28.10.2026.
+
+
 ## Tailscale Router Lite integration v0.2.7
 - commitment_id: tailscale-cross-network-v027-2026-10-28
 - status: implementation/release completed; physical deployment and client E2E acceptance active
