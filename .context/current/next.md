@@ -1,5 +1,12 @@
 # Next actions
 
+## Priority: publish and deploy v0.2.9 — 29.10.2026
+1. Commit code, release v0.2.9 and pass GitHub Actions Windows installer tests.
+2. Update DOMKAT and MKATUSHONOK while preserving WSS credentials and TLS pin. Verify the three new file.transfer tools.
+3. Copy the original MKATUSHONOK C:\Users\m.katushonok\Downloads\MAX.msi to DOMKAT through Router Lite. Check 324820992 bytes, SHA-256 14A528C373B19B35B3C9E77B5FAEE88DC34A073F15D8801673DDB7C040B2D48F and tray progress.
+4. Keep test PASS distinct from physical WAN acceptance; MAX installation is a separate task.
+
+
 ## Next: v0.2.8 direct WSS deployment and actual separate-LAN acceptance — 29.10.2026
 1. Owner-controlled DOMKAT Update from verified running v0.2.7 to v0.2.8; keep old cloud Tunnel ID and local Router Lite address unchanged.
 2. Configure public IPv4 or domain in Server settings, enable WSS, save/generate PFX and copy verified SHA-256 pin; use a strong 32+ char client key.

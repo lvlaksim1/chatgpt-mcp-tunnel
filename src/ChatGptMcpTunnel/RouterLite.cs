@@ -46,6 +46,7 @@ public static class RouterLite
     private static readonly ConcurrentDictionary<string, Session> Sessions = new(StringComparer.OrdinalIgnoreCase);
     private static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
     private const int MaxMessageBytes = 16 * 1024 * 1024;
+    public static bool IsConnected(string computer) => Sessions.ContainsKey(computer);
     public static string LocalComputer => Environment.MachineName;
     public static bool IsRemote(string? computer) =>
         !string.IsNullOrWhiteSpace(computer) &&
@@ -101,7 +102,7 @@ public static class RouterLite
 
     private static async Task<Packet> CallAsync(string computer, string tool, object arguments)
     {
-        if (!WindowsMethods.Value.ContainsKey(tool)) throw new InvalidOperationException($"Unknown Windows tool: {tool}");
+        if (!WindowsMethods.Value.ContainsKey(tool) && !FileTransferTools.IsWireTool(tool)) throw new InvalidOperationException($"Unknown Windows tool: {tool}");
         if (!Sessions.TryGetValue(computer, out var session))
             throw new InvalidOperationException($"Computer '{computer}' is not connected. Call computers.list.");
         var requestId = Guid.NewGuid().ToString("N");
@@ -333,6 +334,7 @@ public static class RouterLite
 
     private static async Task<object?> InvokeLocalAsync(string name, JsonElement arguments)
     {
+        if (FileTransferTools.IsWireTool(name)) return await FileTransferTools.HandleWireAsync(name, arguments);
         if (!WindowsMethods.Value.TryGetValue(name, out var method))
             throw new NotSupportedException($"Unsupported Windows tool: {name}");
         var parameters = method.GetParameters();

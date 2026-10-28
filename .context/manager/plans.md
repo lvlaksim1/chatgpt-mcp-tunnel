@@ -1,5 +1,11 @@
 # Manager plans
 
+## Large file transfer development, 29.10.2026
+- Code and local tests: DONE. 90 MiB integrity PASS, 15 MiB two-way, cancellation/resume, GUI.
+- v0.2.9 CI publication and two-endpoint deployment: IN PROGRESS.
+- Original MAX.msi copy from MKATUSHONOK to DOMKAT and hash + progress check: PENDING.
+
+
 ## Active priority: direct WSS static WAN, 29.10.2026
 1. Source v0.2.8 is built, locally tested and released by Windows CI; keep installed DOMKAT v0.2.7 and existing OpenAI tunnel unchanged until owner-controlled deployment.
 2. Keep DOMKAT local 192.168.0.3; external IPv4 belongs to the router. Preserve TCP 55201 only for LAN; prepare WSS TCP 55202 on local address in updated application.

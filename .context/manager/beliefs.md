@@ -1,5 +1,12 @@
 # Manager beliefs
 
+## Router Lite file transfers — 29.10.2026
+- Large binary files are streamed within existing authenticated WSS, never through model MCP text responses.
+- Transfer tool family: file.transfer.start/status/cancel. Server orchestrates both directions using internal bounded RPC.
+- Destination partial and metadata track size/hash; final save requires matching SHA-256. Safe default is no overwrite.
+- Physical WAN two-device acceptance remains pending after isolated E2E 90 MiB PASS.
+
+
 ## B22 — Direct WSS via public WAN is selected and v0.2.8 released (29.10.2026)
 - Решение владельца 29.10.2026: DOMKAT имеет статический публичный IPv4 на WAN-интерфейсе маршрутизатора; удалённый клиент расположен в другой локальной сети. Развивается прямой защищённый WSS без обязательного Tailscale/посредника. Локальный адрес DOMKAT не заменяется внешним IP. Источник: прямая команда владельца; код основной ветки f8cc66848a475030b63ad5c15e25ec6c68e76308.
 - Сервер Kestrel обслуживает защищённый порт TCP 55202 в дополнение к прежнему локальному TCP 55201. Сервер создаёт собственный TLS-сертификат, шифрует пароль PFX через DPAPI Windows, клиент проверяет точный SHA-256 отпечаток до передачи общего ключа. Новый режим требует минимум 32 символа общего ключа. Проверены сборки, 42 инструмента, 23 направляемых инструмента Windows, запрет неверного сертификата, выполнение удалённой команды по WSS, восстановление связи, сохранение старого LAN-подключения; GitHub Actions 40781905752 завершён успешно; v0.2.8 опубликована с установщиками Setup и Update.

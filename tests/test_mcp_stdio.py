@@ -52,6 +52,7 @@ try:
     github_tools = {"github.auth", "github.api", "github.graphql", "github.repositories", "github.files", "github.branches", "github.commits", "github.batch_commit", "github.issues", "github.pulls", "github.actions", "github.jobs", "github.releases", "github.release_assets", "github.artifacts", "github.search", "github.git"}
     expected |= github_tools
     expected.add("computers.list")
+    expected.update({"file.transfer.start", "file.transfer.status", "file.transfer.cancel"})
     assert len(github_tools) == 17
     assert set(tools) == expected, tools
     # Logical category alias: keep existing tool IDs, add Russian user-facing titles

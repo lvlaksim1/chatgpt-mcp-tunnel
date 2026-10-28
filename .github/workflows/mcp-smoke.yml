@@ -37,5 +37,7 @@ jobs:
         run: dotnet build src/ChatGptMcpTunnel/ChatGptMcpTunnel.csproj -c Release --nologo
       - name: Verify all eight Windows tools through MCP
         run: python tests/test_windows_tools.py
+      - name: Verify resumable file transfer through Router Lite
+        run: python tests/test_file_transfer.py
       - name: Goose restricted MCP test on Windows
         run: python tests/test_goose_safe_profile.py

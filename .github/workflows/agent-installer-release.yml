@@ -6,7 +6,7 @@ on:
       version:
         description: 'Stable numeric release version (X.Y.Z)'
         required: true
-        default: '0.2.8'
+        default: '0.2.9'
         type: string
 
 permissions:
@@ -105,7 +105,8 @@ jobs:
           if ($tailnetFirewallTest.ExitCode -ne 0) { throw "Tailnet-specific firewall rule/address test failed: $($tailnetFirewallTest.ExitCode)" }
           $stagingTest = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--test-updater-download' -Wait -PassThru
           if ($stagingTest.ExitCode -ne 0) { throw "Windows updater staging/rename test failed: $($stagingTest.ExitCode)" }
-          $secretForms = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--test-secret-forms' -Wait -PassThru
+          $transferUi = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--test-transfer-window' -Wait -PassThru
+          if ($transferUi.ExitCode -ne 0) { throw "File transfer window test failed: $($transferUi.ExitCode)" }          $secretForms = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--test-secret-forms' -Wait -PassThru
           if ($secretForms.ExitCode -ne 0) { throw "Client/server secret field UX test failed: $($secretForms.ExitCode)" }
           $appIcon = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--test-icons' -Wait -PassThru
           if ($appIcon.ExitCode -ne 0) { throw "Embedded Windows tray icon test failed: $($appIcon.ExitCode)" }
@@ -119,6 +120,8 @@ jobs:
           python tests/test_router_lite.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python tests/test_router_reconnect.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tests/test_file_transfer.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python tests/test_direct_wan.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

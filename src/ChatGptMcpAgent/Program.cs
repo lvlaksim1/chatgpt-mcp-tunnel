@@ -58,6 +58,15 @@ internal static class Program
             Environment.ExitCode = AgentStorage.RunSelfTest();
             return;
         }
+        if (args.Length == 1 && args[0] == "--test-transfer-window")
+        {
+            Application.EnableVisualStyles();
+            using var form = new TransferProgressWindow();
+            var hwnd = form.Handle;
+            if (hwnd == IntPtr.Zero || form.Text.Length < 5)
+                throw new InvalidOperationException("Transfer progress window did not initialize.");
+            return;
+        }
         if (args.Length == 1 && args[0] == "--test-secret-forms")
         {
             try
@@ -254,6 +263,7 @@ internal sealed class TrayContext : ApplicationContext
         menu.Items.Add("Настройки подключения", null, (_, _) => ShowSettings());
         menu.Items.Add("Переподключиться", null, (_, _) => RestartAgent());
         menu.Items.Add("Проверить обновления", null, async (_, _) => await CheckUpdatesAsync(true));
+        menu.Items.Add("Передача файлов", null, (_, _) => ShowTransfers());
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("Выход", null, (_, _) => ExitThread());
         _tray = new NotifyIcon
@@ -313,6 +323,19 @@ internal sealed class TrayContext : ApplicationContext
         }
     }
 
+    private Form? _transferWindow;
+    private void ShowTransfers()
+    {
+        if (_transferWindow is { IsDisposed: false } existing)
+        {
+            EnsureSettingsWindowVisible(existing);
+            return;
+        }
+        var form = new TransferProgressWindow();
+        _transferWindow = form;
+        form.FormClosed += (_, _) => { if (ReferenceEquals(_transferWindow, form)) _transferWindow = null; form.Dispose(); };
+        EnsureSettingsWindowVisible(form);
+    }
     private void ShowSettings()
     {
         if (_updating || _stopping) return;
@@ -512,6 +535,7 @@ internal sealed class TrayContext : ApplicationContext
     private void RestartAgent()
     {
         if (_updating || _stopping) return;
+        if (_transferWindow is { IsDisposed: false } transfers) transfers.Close();
         StopAgent();
         _connection = "Переподключение…";
         _nextStart = DateTime.MinValue;
@@ -596,6 +620,7 @@ internal sealed class TrayContext : ApplicationContext
         _timer.Stop();
         if (_settingsWindow is { IsDisposed: false } window)
             window.Close();
+        if (_transferWindow is { IsDisposed: false } transfers) transfers.Close();
         StopAgent();
         _tray.Visible = false;
         _tray.Dispose();

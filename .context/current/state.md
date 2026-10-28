@@ -1,5 +1,12 @@
 # Current state
 
+## File transfer feature developed and locally tested — 29.10.2026
+- Feature for v0.2.9: authenticated 1 MiB Router Lite chunks, resume sidecars, SHA-256, explicit overwrite, MCP status/cancel/start and WinForms tray progress.
+- Isolated Windows tests PASS: 15 MiB both directions, 90 MiB transfer, cancel and resume, overwrite, 45 MCP tools, LAN/WSS regressions, GUI creation.
+- Physical MKATUSHONOK to DOMKAT transfer of MAX.msi (324820992 bytes) still awaits deployment; acceptance is NOT YET VERIFIED.
+- Protocol: docs/file-transfers.md; decision .context/decisions/streaming-file-transfer-2026-10-29.md.
+
+
 ## Direct WAN TLS implementation: v0.2.8 released — 29.10.2026
 - Решение владельца 29.10.2026: DOMKAT имеет статический публичный IPv4 на WAN-интерфейсе маршрутизатора; удалённый клиент расположен в другой локальной сети. Развивается прямой защищённый WSS без обязательного Tailscale/посредника. Локальный адрес DOMKAT не заменяется внешним IP. Источник: прямая команда владельца; код основной ветки f8cc66848a475030b63ad5c15e25ec6c68e76308.
 - Сервер Kestrel обслуживает защищённый порт TCP 55202 в дополнение к прежнему локальному TCP 55201. Сервер создаёт собственный TLS-сертификат, шифрует пароль PFX через DPAPI Windows, клиент проверяет точный SHA-256 отпечаток до передачи общего ключа. Новый режим требует минимум 32 символа общего ключа. Проверены сборки, 42 инструмента, 23 направляемых инструмента Windows, запрет неверного сертификата, выполнение удалённой команды по WSS, восстановление связи, сохранение старого LAN-подключения; GitHub Actions 40781905752 завершён успешно; v0.2.8 опубликована с установщиками Setup и Update.
