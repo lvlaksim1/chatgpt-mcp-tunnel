@@ -111,6 +111,21 @@ try:
         assert shell["exit_code"] == 0 and "MCP_SHELL_OK" in shell["stdout"], shell
         print("SHELL_EXEC_OK", flush=True)
 
+        # shell.exec must close stdin: the MCP server's own stdio pipe stays
+        # open for future calls, and Git must not inherit that live input.
+        eof = call("shell.exec", command='python -c "import sys; print(\'STDIN_EOF=\' + str(sys.stdin.read() == \'\'))"',
+                   working_directory=str(location), timeout_seconds=8)
+        assert eof["exit_code"] == 0 and "STDIN_EOF=True" in eof["stdout"], eof
+        print("SHELL_STDIN_EOF_OK", flush=True)
+
+        import shutil
+        if shutil.which("git"):
+            for which_shell in ("powershell", "cmd"):
+                git = call("shell.exec", command="git --version", shell=which_shell,
+                           working_directory=str(location), timeout_seconds=8)
+                assert git["exit_code"] == 0 and "git version" in git["stdout"] and not git["timed_out"], git
+                print("SHELL_GIT_" + which_shell.upper() + "_OK", flush=True)
+
         listed_processes = call("process.list", name_filter="python", max_results=200)
         assert listed_processes["count"] >= 1, listed_processes
         print("PROCESS_LIST_OK", flush=True)

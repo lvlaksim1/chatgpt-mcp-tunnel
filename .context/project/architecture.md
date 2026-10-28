@@ -17,3 +17,5 @@ Verified deployment (28 October 2026):
 - After server restart ChatGPT custom plugin metadata may still be cached. Refresh the tool listing in ChatGPT plugin management and begin a new conversation for direct calls; do not mistake the prior-cached `bridge_ping`-only catalog for a server defect.
 - Never import or depend on code from the separate ChatGPT Desktop Local Bridge project.
 - The owner explicitly chose not to add a separate owner-authentication or approval framework at this stage. Do not silently reintroduce one.
+
+- 2026-10-28 shell.exec stdio correction: child PowerShell/CMD standard input is explicitly redirected and closed at startup, preventing external programs (notably Git for Windows) from inheriting the persistent MCP transport stdin; stdout/stderr and timeout behavior remain unchanged. tests/test_windows_tools.py covers stdin EOF and real `git --version` in PowerShell and CMD.

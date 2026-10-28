@@ -204,6 +204,7 @@ public static class ComputerTools
                 _ => throw new ArgumentException("shell must be powershell or cmd")
             },
             WorkingDirectory = working_directory is null ? Environment.CurrentDirectory : Path.GetFullPath(working_directory),
+            RedirectStandardInput = true,
             RedirectStandardOutput = true, RedirectStandardError = true,
             UseShellExecute = false, CreateNoWindow = true
         };
@@ -224,6 +225,11 @@ public static class ComputerTools
         using var process = new Process { StartInfo = startInfo };
         var timer = Stopwatch.StartNew();
         if (!process.Start()) throw new InvalidOperationException("Failed to start command.");
+        // MCP stdio is a persistent protocol stream. Never let a child shell
+        // inherit it: Git and other console programs may await input forever.
+        // Deliver EOF to the command immediately unless a future tool adds
+        // an explicit stdin payload.
+        process.StandardInput.Close();
         var stdoutTask = process.StandardOutput.ReadToEndAsync();
         var stderrTask = process.StandardError.ReadToEndAsync();
         var timedOut = false;
