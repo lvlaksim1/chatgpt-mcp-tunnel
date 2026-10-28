@@ -29,8 +29,8 @@ def request(method, params=None):
             if data.get("error"): raise RuntimeError(data["error"])
             return data["result"]
 
-def call(name, **params):
-    data=request("tools/call",{"name":name,"arguments":params})
+def call(tool_name, **params):
+    data=request("tools/call",{"name":tool_name,"arguments":params})
     if data.get("isError"): raise RuntimeError(str(data))
     texts=[b["text"] for b in data.get("content",[]) if b.get("type")=="text"]
     if not texts: raise RuntimeError("Empty UI Automation response: "+str(data))
@@ -107,7 +107,7 @@ try:
             time.sleep(.1)
         assert marker.exists() and marker.read_text()=="CLICKED", "Button InvokePattern did not run click handler"
         print("UIA_INVOKE_BUTTON_OK",flush=True)
-        edits=call("desktop.uia.find",hwnd=hwnd,control_type="Edit")
+        edits=call("desktop.uia.find",hwnd=hwnd,name="ORIGINAL")
         assert edits["count"]>0,edits
         edit=edits["matches"][0]
         details=call("desktop.uia.get",hwnd=hwnd,path=edit["path"])
@@ -118,7 +118,7 @@ try:
         updated=call("desktop.uia.get",hwnd=hwnd,path=edit["path"])
         assert updated.get("value")==new_text,updated
         print("UIA_SET_VALUE_OK",flush=True)
-        checks=call("desktop.uia.find",hwnd=hwnd,control_type="CheckBox")
+        checks=call("desktop.uia.find",hwnd=hwnd,name="Enable MCP")
         assert checks["count"]>0,checks
         check=checks["matches"][0]
         before=call("desktop.uia.get",hwnd=hwnd,path=check["path"])
