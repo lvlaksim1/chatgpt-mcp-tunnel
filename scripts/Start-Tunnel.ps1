@@ -73,7 +73,7 @@ try {
     # Use Windows-compatible forward slashes so Go's argv parser keeps the DLL path intact.
     $mcpDllArgument = $dll.Replace([char]92, [char]47)
     $launchCommand = 'dotnet "' + $mcpDllArgument + '"'
-    & $exe init --sample sample_mcp_stdio_local --profile $profileName --profile-dir $profiles --tunnel-id $TunnelId --mcp-command $launchCommand --health-listen-addr "127.0.0.1:0" --force
+    & $exe init --sample sample_mcp_stdio_local --profile $profileName --profile-dir $profiles --tunnel-id $TunnelId --mcp-command $launchCommand --health-listen-addr "127.0.0.1:55198" --force
     if ($LASTEXITCODE -ne 0) { throw "tunnel-client init failed (exit $LASTEXITCODE)." }
 
     Set-State "doctor" "Checking tunnel configuration and account permissions."
