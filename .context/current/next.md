@@ -1,7 +1,7 @@
 # Next actions
 
 ## Next: v0.2.8 direct WSS deployment and actual separate-LAN acceptance — 29.10.2026
-1. Owner-controlled DOMKAT Update v0.2.8; keep old cloud Tunnel ID and local Router Lite address unchanged.
+1. Owner-controlled DOMKAT Update from verified running v0.2.7 to v0.2.8; keep old cloud Tunnel ID and local Router Lite address unchanged.
 2. Configure public IPv4 or domain in Server settings, enable WSS, save/generate PFX and copy verified SHA-256 pin; use a strong 32+ char client key.
 3. With owner action and Windows UAC, permit TCP 55202 for router executable, then manually forward public TCP 55202 to DOMKAT LAN TCP 55202. Never forward plaintext 55201.
 4. On MKATUSHONOK (different LAN) enter public IP, select secure mode and pin, enter agent key; verify from that physical PC.

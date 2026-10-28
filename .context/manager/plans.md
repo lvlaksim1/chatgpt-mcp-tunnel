@@ -1,7 +1,7 @@
 # Manager plans
 
 ## Active priority: direct WSS static WAN, 29.10.2026
-1. Source v0.2.8 is built, locally tested and released by Windows CI; keep installed DOMKAT and existing OpenAI tunnel unchanged until owner-controlled deployment.
+1. Source v0.2.8 is built, locally tested and released by Windows CI; keep installed DOMKAT v0.2.7 and existing OpenAI tunnel unchanged until owner-controlled deployment.
 2. Keep DOMKAT local 192.168.0.3; external IPv4 belongs to the router. Preserve TCP 55201 only for LAN; prepare WSS TCP 55202 on local address in updated application.
 3. On explicit owner-controlled steps install Update v0.2.8, enter public WAN address, generate certificate, verify SHA-256 fingerprint, authorize Windows WAN rule and configure router WAN TCP 55202 -> DOMKAT local TCP 55202. Do not expose plain 55201.
 4. On physical MKATUSHONOK in another LAN configure WSS endpoint and independently checked pin and key; verify real cross-internet connection, remote Windows commands, GUI/PNG and recovery. If inbound reachability fails, inspect router mapping/provider policy and certificate diagnostics before architecture changes.

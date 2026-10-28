@@ -1,7 +1,7 @@
 # Current blockers and open risks
 
 ## Open gate after direct WSS v0.2.8 release (29.10.2026)
-- На рабочий DOMKAT v0.2.8 не устанавливалась. При последней проверке на DOMKAT работает прежний процесс и слушает 192.168.0.3:55201, порт 55202 пока не открыт. На маршрутизаторе не создавался проброс TCP 55202, правила брандмауэра не менялись. Физическая связь с MKATUSHONOK через Интернет и 23 удалённых инструмента остаётся НЕ ДОКАЗАНА. Публичный WAN IPv4 подтверждён чтением роутера; постоянство адреса основывается на словах владельца.
+- Проверка 29.10.2026 через работающий MCP Tunnel: активный процесс ChatGptMcpAgent.exe PID 14536 имеет FileVersion 0.2.7.0 (запущен 2026-10-29 00:33:36 по системному времени Windows); Router Lite слушает 192.168.0.3:55201 (PID 2992), TCP 55202 не слушает. v0.2.8 не устанавливалась менеджером; bridge_ping успешен. Этот факт supersedes прежний текущий статус v0.2.6, но не меняет вывод о непроверенном межсетевом соединении. На маршрутизаторе не создавался проброс TCP 55202, правила брандмауэра не менялись. Физическая связь с MKATUSHONOK через Интернет и 23 удалённых инструмента остаётся НЕ ДОКАЗАНА. Публичный WAN IPv4 подтверждён чтением роутера; постоянство адреса основывается на словах владельца.
 - Setup from separate networks still requires owner-controlled server update, explicit local Windows firewall permission, manual router port forwarding, correct server certificate fingerprint transferred over a trusted channel, and one strong client key. No firewall/router/network change has yet been made. Blocking external TCP 55202 or an incorrect fingerprint prevents remote connection.
 - Do not interpret local TLS/CI acceptance as proof of production multi-PC readiness. Tailscale remains fallback only.
 
