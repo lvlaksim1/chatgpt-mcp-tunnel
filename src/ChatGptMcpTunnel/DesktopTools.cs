@@ -164,9 +164,30 @@ public static class DesktopTools
         RequireWindows();
         var window = ParseWindow(hwnd);
         if (IsIconic(window)) ShowWindowAsync(window, SwRestore);
-        BringWindowToTop(window);
-        var requested = SetForegroundWindow(window);
+        var currentThread = GetCurrentThreadId();
+        var foreground = GetForegroundWindow();
+        var foregroundThread = foreground != IntPtr.Zero
+            ? GetWindowThreadProcessId(foreground, out _) : 0;
+        var targetThread = GetWindowThreadProcessId(window, out _);
+        var attachedForeground = foregroundThread != 0 && foregroundThread != currentThread &&
+                                 AttachThreadInput(currentThread, foregroundThread, true);
+        var attachedTarget = targetThread != 0 && targetThread != currentThread &&
+                             targetThread != foregroundThread &&
+                             AttachThreadInput(currentThread, targetThread, true);
+        bool requested;
+        try
+        {
+            BringWindowToTop(window);
+            requested = SetForegroundWindow(window);
+        }
+        finally
+        {
+            if (attachedTarget) AttachThreadInput(currentThread, targetThread, false);
+            if (attachedForeground) AttachThreadInput(currentThread, foregroundThread, false);
+        }
         Thread.Sleep(160);
+        // Windows sometimes rejects foreground activation even after thread attachment.
+        // Report the actual result instead of pretending that focus changed.
         return AsJson(new
         {
             hwnd = HandleToString(window),
@@ -432,6 +453,9 @@ public static class DesktopTools
     [DllImport("user32.dll")] private static extern int GetSystemMetrics(int index);
     [DllImport("user32.dll", SetLastError = true)] private static extern bool GetCursorPos(out Point point);
     [DllImport("user32.dll", SetLastError = true)] private static extern bool SetCursorPos(int x, int y);
+    [DllImport("kernel32.dll")] private static extern uint GetCurrentThreadId();
+    [DllImport("user32.dll", SetLastError = true)] private static extern bool AttachThreadInput(
+        uint idAttach, uint idAttachTo, bool attach);
     [DllImport("user32.dll")] private static extern IntPtr GetForegroundWindow();
     [DllImport("user32.dll", SetLastError = true)] private static extern bool EnumWindows(EnumWindowsCallback callback, IntPtr param);
     [DllImport("user32.dll")] private static extern bool IsWindowVisible(IntPtr hwnd);
