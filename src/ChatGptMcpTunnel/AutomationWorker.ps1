@@ -116,6 +116,11 @@ try {
     }
 
     function Get-Children($node) {
+        if ($null -eq $node) { throw 'UIA_DEBUG: node is null' }
+        if ($node -isnot [System.Windows.Automation.AutomationElement]) {
+            throw ('UIA_DEBUG: unexpected node type '+$node.GetType().FullName)
+        }
+        if ($null -eq $walker) { throw 'UIA_DEBUG: walker is null' }
         $result = New-Object System.Collections.ArrayList
         $child = $walker.GetFirstChild($node)
         while ($null -ne $child -and $result.Count -lt 1000) {
