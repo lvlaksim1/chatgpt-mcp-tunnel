@@ -102,7 +102,10 @@ public static class ComputerTools
         using var input = File.OpenRead(file);
         var head = new byte[Math.Min((int)Math.Min(input.Length, 8192L), 8192)];
         var headRead = input.Read(head, 0, head.Length);
-        var binary = head.AsSpan(0, headRead).Contains((byte)0);
+        // UTF-16/UTF-32 text contains zero bytes; recognize BOMs before classifying it as binary.
+        var hasUnicodeBom = headRead >= 2 &&
+            ((head[0] == 0xFF && head[1] == 0xFE) || (head[0] == 0xFE && head[1] == 0xFF));
+        var binary = !hasUnicodeBom && head.AsSpan(0, headRead).Contains((byte)0);
         input.Position = 0;
         if (binary)
         {
@@ -255,13 +258,14 @@ public static class ComputerTools
         [Description("Maximum number of processes to return (default 300).")] int max_results = 300)
     {
         if (max_results < 1 || max_results > 20000) throw new ArgumentOutOfRangeException(nameof(max_results), "Use 1..20000.");
-        var filtered = Process.GetProcesses().Where(p =>
-        {
-            try { return name_filter is null || p.ProcessName.Contains(name_filter, StringComparison.OrdinalIgnoreCase); }
-            catch { return false; }
-        }).OrderBy(p => p.Id).Take(max_results).ToList();
+        var allProcesses = Process.GetProcesses();
         try
         {
+            var filtered = allProcesses.Where(p =>
+            {
+                try { return name_filter is null || p.ProcessName.Contains(name_filter, StringComparison.OrdinalIgnoreCase); }
+                catch { return false; }
+            }).OrderBy(p => p.Id).Take(max_results).ToList();
             var results = filtered.Select(p =>
             {
                 long? ram = null;
@@ -270,7 +274,7 @@ public static class ComputerTools
             }).ToArray();
             return Json(new { count = results.Length, name_filter, processes = results });
         }
-        finally { foreach (var p in filtered) p.Dispose(); }
+        finally { foreach (var p in allProcesses) p.Dispose(); }
     }
 
     [McpServerTool(Name = "process.kill")]
