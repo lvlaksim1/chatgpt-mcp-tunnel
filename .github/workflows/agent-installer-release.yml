@@ -6,7 +6,7 @@ on:
       version:
         description: 'Stable numeric release version (X.Y.Z)'
         required: true
-        default: '0.2.0'
+        default: '0.2.1'
         type: string
 
 permissions:
@@ -31,6 +31,27 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
+
+      - name: Validate PowerShell launchers and existing tunnel only
+        shell: pwsh
+        run: |
+          $scripts = @(
+            'installer/ServerStart.ps1',
+            'scripts/Prepare-Clean-Reinstall-DOMKAT.ps1',
+            'scripts/Complete-Clean-Reinstall-DOMKAT.ps1'
+          )
+          foreach ($file in $scripts) {
+            $tokens = $null
+            $errors = @()
+            [System.Management.Automation.Language.Parser]::ParseFile(
+              (Resolve-Path $file), [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors.Count -ne 0) { throw "$file has PowerShell syntax errors: $($errors[0])" }
+          }
+          $launcher = Get-Content installer/ServerStart.ps1 -Raw
+          if ($launcher -match 'admin\s+tunnels\s+create|admin\s+tunnels\s+delete') {
+            throw 'Server launcher may not create or delete an OpenAI tunnel'
+          }
+          Write-Host "EXISTING_OPENAI_TUNNEL_ONLY_OK"
 
       - name: Build self-contained tray application
         shell: pwsh

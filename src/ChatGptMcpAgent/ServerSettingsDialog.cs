@@ -26,15 +26,13 @@ internal sealed class ServerSettingsDialog : Form
             Text = "Основной компьютер: один туннель OpenAI и маршрутизатор клиентов",
             Left = 20, Top = 14, Width = 490, Height = 30
         });
-        Field("ID существующего туннеля OpenAI", tunnel, 50, settings.TunnelId);
+        Field("ID существующего туннеля OpenAI (не изменяется)", tunnel, 50, settings.TunnelId);
         Field("IP-адрес интерфейса маршрутизатора", address, 111, settings.ListenAddress);
         Field("Ключ OpenAI API (доступ к туннелю)", api, 172, "");
         Field("Общий ключ подключения клиентов", agents, 233, "");
         api.PlaceholderText = AgentStorage.HasServerApiKey()
-            ? "Сохранён — пустое поле не изменяет ключ"
-            : AgentStorage.HasLegacyOpenAiKey()
-                ? "Найден существующий ключ DOMKAT — ввод не нужен"
-                : "Введите ключ доступа OpenAI";
+            ? "Сохранён — оставьте пустым для сохранения"
+            : "Введите токен доступа к существующему туннелю";
         agents.PlaceholderText = AgentStorage.HasCredential()
             ? "Сохранён — пустое поле не изменяет ключ"
             : "Введите общий ключ для клиентов";
@@ -89,9 +87,10 @@ internal sealed class ServerSettingsDialog : Form
             var apiKey = api.Text.Length == 0 ? null : api.Text;
             if (agentKey is null && !AgentStorage.HasCredential())
                 throw new ArgumentException("Необходимо создать ключ подключения клиентов.");
-            if (apiKey is null && !AgentStorage.HasServerApiKey() &&
-                !AgentStorage.HasLegacyOpenAiKey())
+            if (apiKey is null && !AgentStorage.HasServerApiKey())
                 throw new ArgumentException("Необходимо указать ключ доступа OpenAI.");
+            if (!AgentStorage.IsValidTunnelId(tunnel.Text.Trim()))
+                throw new ArgumentException("Укажите ID уже существующего туннеля OpenAI.");
             AgentStorage.SaveServer(new AgentSettings
             {
                 Computer = Environment.MachineName,

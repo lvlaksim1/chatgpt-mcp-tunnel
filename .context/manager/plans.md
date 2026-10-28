@@ -29,3 +29,13 @@ Source: accepted Owner scope, inspected repository code and verified eight test 
 4. Verify defaults and custom folder in Windows CI. [next]
 - source: owner directive 28.10.2026, Inno Setup code.
 - authority: owner-directive.
+
+## Same-existing-tunnel rollout
+1. Remove new OpenAI tunnel creation and require existing Tunnel ID. [implemented]
+2. Fix Windows PowerShell 5.1 server launcher and verify local WinForms x64 selftest. [complete]
+3. Release/test universal installer v0.2.1 and verify existing-only workflow in Windows CI. [next]
+4. Pre-stage SHA256-verified installer on DOMKAT while old MCP channel is live; preserve only Tunnel ID metadata. [next]
+5. Execute independent local cutover, erase old runtime/auth and launch server UI for Owner-entered token. Keep source Git repository. [pending]
+6. Verify 42 tools and MKATUSHONOK on same plugin. [pending]
+- source: Owner instructions and observed local tests 28.10.2026.
+- authority: owner-directive, verified-runtime.

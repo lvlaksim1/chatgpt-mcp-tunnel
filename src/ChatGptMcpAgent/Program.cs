@@ -119,8 +119,7 @@ internal sealed class TrayContext : ApplicationContext
     {
         Application.Idle -= OnIdle;
         if (!File.Exists(AgentStorage.SettingsPath) || !AgentStorage.HasCredential() ||
-            (AgentStorage.SelectedRole == "server" && !AgentStorage.HasServerApiKey() &&
-                !AgentStorage.HasLegacyOpenAiKey()))
+            (AgentStorage.SelectedRole == "server" && !AgentStorage.HasServerApiKey()))
             ShowSettings();
         else
         {
@@ -167,7 +166,7 @@ internal sealed class TrayContext : ApplicationContext
                 var serverKey = AgentStorage.LoadServerAgentKey();
                 var openAiKey = AgentStorage.LoadServerApiKey();
                 if (serverKey.Length < 16 ||
-                    (string.IsNullOrWhiteSpace(openAiKey) && !AgentStorage.HasLegacyOpenAiKey()) ||
+                    string.IsNullOrWhiteSpace(openAiKey) ||
                     string.IsNullOrWhiteSpace(settings.TunnelId))
                 {
                     _connection = "Настройте сервер";

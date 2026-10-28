@@ -18,3 +18,9 @@ Stages 1–3 were completed and locally verified on DOMKAT; do not repeat that w
 - Prepare a safe autonomous transition of DOMKAT from the old running tunnel to clean Server v0.2.0 installation without preserving the old credentials; let owner enter a new token directly in the UI.
 - This transition will terminate the MCP channel. Ensure a recoverable local installer and startup procedure are present before shutting down the old tunnel.
 - Then connect MKATUSHONOK as Client via the sole DOMKAT router and verify remote controls across physical PCs.
+
+## Next existing-tunnel migration
+- Publish and validate Windows v0.2.1 installer with PowerShell syntax checking and without new-cloud-tunnel API calls.
+- Stage verified installer with Prepare-Clean-Reinstall-DOMKAT.ps1, preserving only existing Tunnel ID.
+- Run independent Start-Clean-Install.cmd to remove old local files and install server; Owner enters token in new program.
+- Verify connectivity of same ChatGPT plugin and MKATUSHONOK remote tools.

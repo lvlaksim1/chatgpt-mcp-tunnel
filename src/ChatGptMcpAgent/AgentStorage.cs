@@ -26,15 +26,20 @@ internal static class AgentStorage
     internal static string ServerKeyPath => Path.Combine(DataFolder, "server-key.dpapi");
     internal static string ServerApiKeyPath => Path.Combine(DataFolder, "openai-key.dpapi");
     internal static string ServerRoot => Path.Combine(DataFolder, "Server");
-    internal static string LegacyOpenAiKeyPath => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "ChatGptMcpTunnel", "runtime-key.dpapi");
-    internal static string LegacyTunnelIdPath => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "ChatGptMcpTunnel", "tunnel-id.txt");
-    internal static bool HasLegacyOpenAiKey() => File.Exists(LegacyOpenAiKeyPath);
-    internal static string LegacyTunnelId() =>
-        File.Exists(LegacyTunnelIdPath) ? File.ReadAllText(LegacyTunnelIdPath).Trim() : "";
+    internal static string ExistingTunnelId()
+    {
+        var old = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "ChatGptMcpTunnel", "tunnel-id.txt");
+        return File.Exists(old) ? File.ReadAllText(old).Trim() : "";
+    }
+    internal static bool IsValidTunnelId(string? id) =>
+        id is { Length: > 7 and <= 130 } &&
+        System.Text.RegularExpressions.Regex.IsMatch(id, @"^tunnel_(?:[a-z0-9]{4}_)?[a-z0-9]{32}$");
+    internal static bool IsValidScope(string? scope, string prefix) =>
+        !string.IsNullOrWhiteSpace(scope) && scope.StartsWith(prefix, StringComparison.Ordinal) &&
+        scope.Length <= 150 &&
+        scope.All(c => char.IsAsciiLetterOrDigit(c) || c is '_' or '-' or '.' or ':');
     internal static string SelectedRole
     {
         get
@@ -56,7 +61,7 @@ internal static class AgentStorage
             : new AgentSettings();
         settings.Role = SelectedRole;
         if (settings.Role == "server" && string.IsNullOrWhiteSpace(settings.TunnelId))
-            settings.TunnelId = LegacyTunnelId();
+            settings.TunnelId = ExistingTunnelId();
         // The installer's autostart checkbox is authoritative for both roles.
         settings.AutoStart = Registry.CurrentUser.OpenSubKey(RunKey)?
             .GetValue(RunValueName) is string;
@@ -93,7 +98,7 @@ internal static class AgentStorage
     internal static void SaveServer(AgentSettings settings, string? agentKey, string? openAiKey)
     {
         settings.Role = "server";
-        if (!System.Text.RegularExpressions.Regex.IsMatch(settings.TunnelId, @"^tunnel_[A-Za-z0-9_.:-]+$"))
+        if (!IsValidTunnelId(settings.TunnelId))
             throw new ArgumentException("Укажите действительный ID туннеля OpenAI.");
         if (agentKey is { Length: < 16 })
             throw new ArgumentException("Ключ агентов должен содержать не менее 16 символов.");
@@ -217,6 +222,11 @@ internal static class AgentStorage
                     File.ReadAllBytes(Path.Combine(test, "key")), Entropy,
                     DataProtectionScope.CurrentUser)) != secret)
                     return 3;
+                var sameTunnelId = "tunnel_" + new string('a', 32);
+                if (!IsValidTunnelId(sameTunnelId) ||
+                    IsValidTunnelId("tunnel_invalid") ||
+                    !IsValidTunnelId("tunnel_abcd_" + new string('9', 32)))
+                    return 7;
                 if (!ValidateRouter("ws://127.0.0.1:55201/agent", out _) ||
                     !ValidateRouter("ws://100.103.25.9:55201/agent", out _) ||
                     !ValidateRouter("wss://router.example/agent", out _) ||

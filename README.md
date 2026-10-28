@@ -194,3 +194,6 @@ python tests/test_mcp_stdio.py
 ### Выбор папки установки
 
 Полный универсальный установщик позволяет самостоятельно выбрать каталог. По умолчанию сервер предлагает D:\ChatGPTMCPAgent, клиент — пользовательский каталог на C: (%LOCALAPPDATA%\Programs\ChatGPTMCPAgent); при отсутствии D: сервер предлагает доступный пользовательский каталог. Обновление сохраняет выбор. См. docs/universal-installer.md.
+
+### Clean reinstall with the SAME existing OpenAI Tunnel ID
+No new OpenAI cloud tunnel or ChatGPT plugin will be created. The old local Windows runtime and cached credentials are replaced, while the existing logical Tunnel ID remains. See docs/clean-domkat-reinstall.md for safe preparation and independent cutover.

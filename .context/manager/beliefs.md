@@ -36,3 +36,8 @@ source: isolated Release build; test_mcp_stdio.py, test_router_lite.py, test_rou
 - statement: Single Server/Client Windows full installer v0.2.0 was published after CI successfully tested the role-based default/custom installation directories and update/uninstall operations. Existing live DOMKAT installation remains unchanged.
 - source: GitHub Actions 40696034380; GitHub Release v0.2.0; observed on 28.10.2026.
 - authority: verified-repository, verified-runtime.
+
+## B9 — Same OpenAI tunnel identity
+- statement: Owner explicitly rejected creating new OpenAI tunnels; clean DOMKAT migration retains existing logical Tunnel ID and ChatGPT plugin while removing old local runtime, profiles and credentials.
+- source: Owner correction 28.10.2026 and official tunnel-client CLI help.
+- authority: owner-directive, verified-runtime.

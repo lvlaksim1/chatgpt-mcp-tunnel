@@ -36,3 +36,6 @@ Windows CI проверяет серверный и клиентский пут�
 
 ## Результат приёмки v0.2.0 (28.10.2026)
 GitHub Actions 40696034380 завершился успешно. В релизе v0.2.0 доступны универсальный Setup, Update и совместимый обновляющий файл для прежнего клиента. Реальным запуском Inno Setup проверены оба режима, выбор папки, серверный и клиентский пути по умолчанию, пользовательский путь клиента, сохранение каталога при обновлении и удаление. Существующий DOMKAT ещё работает на старой версии: чистая переустановка будет отдельной операцией.
+
+## Existing OpenAI Tunnel ID only
+The server role never creates a new OpenAI cloud tunnel. It creates only a fresh local tunnel-client configuration pointing at the pre-existing Tunnel ID. After clean local reinstall the Owner enters a new runtime key into the UI. See docs/clean-domkat-reinstall.md.

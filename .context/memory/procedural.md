@@ -45,3 +45,11 @@
 - Release v0.2.0 includes official verified OpenAI client and one universal executable. Existing DOMKAT runner was not touched by CI.
 - source: actions 40696034380, release v0.2.0.
 - authority: verified-runtime.
+
+## Reusing logical OpenAI Tunnel ID
+- tunnel-client init creates only a local profile for an EXISTING tunnel; never call tunnel-client admin tunnels create/delete during this rollout.
+- Windows PowerShell 5.1 does not support 1>&2; use 2>&1 pipeline and verify syntax via PowerShell Parser.
+- Valid logical tunnel IDs use 32 lowercase alphanumeric characters, optionally preceded by a 4-character namespace. Retain existing ID but do not transfer old credentials.
+- First stage is read-only preflight plus verified download and independent CMD; destructive transition starts only after local runner can finish without the old MCP channel.
+- source: official CLI help and local PowerShell tests, 28.10.2026.
+- authority: owner-directive, verified-runtime.

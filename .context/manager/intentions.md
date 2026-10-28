@@ -44,3 +44,13 @@ verified partial progress: stages 1-3 passed local E2E, all 23 Windows tools rem
 - Remaining commitment: clean migration of DOMKAT and cross-host acceptance with MKATUSHONOK, not additional installer design.
 - source: GitHub Actions 40696034380, Release v0.2.0, Owner instructions.
 - authority: verified-repository, owner-directive.
+
+## Clean local reinstall without creating any OpenAI tunnel
+- commitment_id: clean-domkat-same-tunnel-2026-10-28
+- status: accepted/active
+- owner: project-manager
+- source: Owner requested clean DOMKAT installation and token entry, then explicitly confirmed all operations must use the existing OpenAI tunnel.
+- authority: owner-directive
+- outcome: preserve the logical Tunnel ID, erase old local auth, install new server and enter new token in the UI; do not create another OpenAI tunnel.
+- verified partial progress: removed new-cloud-tunnel code, local x64 .NET selftest passes, autonomous staging and cutover scripts written and PowerShell syntax validated.
+- remaining: release CI v0.2.1, prepare verified installer staging, actual clean cutover and remote client acceptance.

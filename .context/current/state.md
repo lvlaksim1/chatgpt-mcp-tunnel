@@ -40,3 +40,12 @@
 - Live DOMKAT legacy tunnel has not been removed or restarted. The owner requested a clean install and will enter the new OpenAI token; migration with temporary loss of MCP access is a separate next operation.
 - source: GitHub Actions run 40696034380 and release v0.2.0.
 - authority: verified-repository, verified-runtime.
+
+## Same-tunnel clean reinstall preparation (28.10.2026)
+- Owner explicitly requires same existing OpenAI cloud Tunnel ID and plugin; no create/delete cloud tunnel calls.
+- New server UI uses existing Tunnel ID and accepts runtime API key; old key is not reused.
+- Windows PowerShell 5.1 unsupported output redirection corrected; GUI x64 publish/selftest passed.
+- Two-stage DOMKAT plan: prepare verified Setup and identity-only metadata while old tunnel works; independent local script then removes old autostart, executable, cached profiles/credentials and installs Server role on D, prompting for token.
+- Old tunnel currently remains live; no destructive cutover occurred.
+- source: Owner correction, source, local build and PowerShell AST checks 28.10.2026.
+- authority: owner-directive, verified-runtime.

@@ -41,3 +41,9 @@ Physical PC onboarding and cross-host tests; do not claim production-ready multi
 - Successful Windows CI 40696034380 and published GitHub Release v0.2.0 (Setup, Update, legacy update alias).
 - Role picker, default server D/client C, editable custom destination, preservation on update, autostart task on/off, clean uninstall were validated by real installer execution in CI.
 - DOMKAT still has the previous active tunnel. The owner wants a clean reinstallation and will supply the token in the new server UI; do not prematurely stop the only connection.
+
+## Owner correction 28.10.2026: existing tunnel only
+- NO new logical OpenAI cloud tunnel; preserve current Tunnel ID and ChatGPT plugin.
+- Replace only local DOMKAT runner, stored auth and profiles; Owner enters new token in new server UI.
+- PowerShell 5.1 launcher fixed, x64 GUI selftest passed, staging/cutover scripts authored; live old tunnel unchanged.
+- Next: CI release v0.2.1, stage verified installer, then autonomous cutover.

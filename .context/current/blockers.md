@@ -10,3 +10,8 @@ The local routing, controls and reconnection tests passed; these risks do not in
 
 6. Agent installer Setup/Update v0.1.0 was compiled/tested/published on Windows GitHub Actions; next blocker is real deployment on second physical Windows PC.
 7. Protected per-user DPAPI secret is functional for the client; Router Lite still requires the same manually configured shared secret server-side. A second physical PC has not been onboarded.
+
+## Same-tunnel transition risk
+- Current MCP channel is the old DOMKAT tunnel. Cutover will temporarily disconnect ChatGPT; independent local script and verified installer must be staged first.
+- Owner's replacement runtime key is not available and must be entered directly into new server GUI.
+- Keep the Git source repository even when removing installed old executable/profile and scheduled task.
