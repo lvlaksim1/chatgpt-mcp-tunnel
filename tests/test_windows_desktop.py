@@ -108,6 +108,7 @@ try:
         hwnd = target["hwnd"]
         activation = value("desktop.window.activate", hwnd=hwnd)
         print("WINDOW_ACTIVATE", activation, flush=True)
+        assert activation["foreground"] is True, "Test window must be foreground before keyboard or pointer input"
         moved = value("desktop.window.move", hwnd=hwnd, x=100, y=100, width=520, height=260)
         assert abs(moved["bounds"]["x"] - 100) <= 10, moved
         print("WINDOW_MOVE_OK", flush=True)
