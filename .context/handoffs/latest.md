@@ -1,5 +1,14 @@
 # Latest handoff
 
+## v0.2.7 Tailscale implementation/release handoff — 28.10.2026 22:45 MSK
+- Owner clarified DOMKAT and MKATUSHONOK are in DIFFERENT local networks and then instructed to execute the proposed protected inter-network approach. Chosen Tailscale/WireGuard overlay preserves ONE OpenAI Secure MCP Tunnel and Router Lite.
+- Source c04e2ec adds a narrowly scoped per-peer Tailscale Windows Firewall rule (only exact client IP → exact server IP, TCP 55201, runtime executable), validation of local Tailscale adapter, UAC confirmation, automatic server Settings button label and new selftest. No existing LAN feature removed.
+- Local Windows selftests and MCP 42-tools/router/reconnect passed, Windows CI run 40756470762 completed success, v0.2.7 stable full/update installers published with SHA256. Physical VPN installation/login and real MKATUSHONOK connection not yet executed or verified.
+- Working DOMKAT v0.2.6 was NOT upgraded/restarted. No firewall/IP/Tunnel ID/keys changed during development.
+- Next: interactive Windows Tailscale installation/authentication on BOTH PCs, ensure same authorized tailnet, owner-side v0.2.7 in-place update, server listen on own VPN IP and exact peer firewall approval, client own key and physical E2E test.
+- source: Owner directive, local runtime tests, GitHub Actions/Release 28.10.2026; authority: owner-directive, verified-runtime, verified-repository.
+
+
 ## Критическая поправка владельца — разные локальные сети (28.10.2026)
 - Владелец уточнил: DOMKAT и MKATUSHONOK НЕ находятся в одной локальной сети. Указанный ранее клиентский адрес 192.168.0.3:55201 — лишь частный адрес DOMKAT; инструкции подключения к нему без виртуальной сети или иной маршрутизации ошибочны.
 - Один OpenAI MCP Tunnel сохраняется. Для реальной связи между удалёнными агентами нужен отдельный защищённый интернет-маршрут: рекомендуемый к оценке Tailscale/WireGuard, либо WSS-посредник. Решение по установке/транспорту ещё не принято.

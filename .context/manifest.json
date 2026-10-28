@@ -47,7 +47,8 @@
   ],
   "decisions": [
     ".context/decisions/router-lite-2026-10-28.md",
-    ".context/decisions/agent-installer-2026-10-28.md"
+    ".context/decisions/agent-installer-2026-10-28.md",
+    ".context/decisions/tailscale-overlay-2026-10-28.md"
   ],
   "dialogues": [],
   "history": [],

@@ -1,5 +1,14 @@
 # Current state
 
+## Published Tailscale interoperability release — 28.10.2026 22:45 MSK
+- Stable v0.2.7 now available at https://github.com/lvlaksim1/chatgpt-mcp-tunnel/releases/tag/v0.2.7; Windows CI run 40756470762 completed SUCCESS on source commit c04e2ec44c287d4f41ee4433f05b728609ed94ae.
+- Full installer ChatGPT_MCP_Tunnel_Setup_v0.2.7.exe SHA256 f260ec4092e68e88f00b40d800002aec83a00470b26787939618765d23084913; Update ChatGPT_MCP_Tunnel_Update_v0.2.7.exe SHA256 0d775d1a06f82d70e2daf8a00c54352b5f9a62a2cbd0828e26ed2f936d968deb.
+- Chosen transport for different physical networks is Tailscale. Client RouterUrl already supports 100.64.0.0/10; v0.2.7 adds Tailscale-address validation of real interface and a Windows Firewall UAC path allowing only exact remote peer IP and server IP TCP 55201 (not whole tailnet). Standard LAN rule remains.
+- Local compilation zero warnings/errors; --test-tailnet-firewall, --test-lan-firewall, --selftest, --test-secret-forms, --test-client-errors, --test-updater-download all exit 0. Local MCP 42-tool / Router Lite / reconnect tests passed. CI passed install/update-preservation/uninstall on Windows.
+- Real Tailscale login/interface on DOMKAT and MKATUSHONOK and physical inter-network client connection are NOT PROVEN. The working installed DOMKAT agent was not changed by this operation; last observed installed v0.2.6. No public port or firewall modification performed.
+- source: source and local tests, authenticated GitHub Actions & Releases, Owner network topology 28.10.2026; authority: verified-runtime, verified-repository, owner-directive.
+
+
 ## Уточнение топологии — 28.10.2026 после восстановления менеджера
 - Владелец сообщил: DOMKAT и MKATUSHONOK находятся в РАЗНЫХ локальных сетях. Прежний план прямого соединения клиента с 192.168.0.3:55201 и настройки обычного LAN-брандмауэра был ошибочным по топологии.
 - DOMKAT v0.2.6 остаётся работающим узлом единственного OpenAI MCP Tunnel, Router Lite слушает локальный 192.168.0.3:55201. Реальное межсетевое подключение не подтверждено, транспорт не выбран.

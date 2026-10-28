@@ -1,5 +1,12 @@
 # Project architecture
 
+## Cross-network Tailscale transport, implemented in v0.2.7 (28.10.2026)
+- Physical topology: DOMKAT and MKATUSHONOK reside in separate LANs. Existing OpenAI cloud tunnel continues only ChatGPT → DOMKAT; Router Lite remote agents connect over a separately protected Tailscale overlay.
+- Source `src/ChatGptMcpAgent/LanFirewall.cs`: Tailscale local-address verification against active adapter and peer-scope IP filter. UI in `ServerSettingsDialog.cs` switches between LAN and Tailscale firewall setup. `Program.cs` adds `--configure-tailnet-firewall` and `--test-tailnet-firewall`.
+- Version v0.2.7 release built and tested on GitHub Actions run 40756470762. No installation or real tailnet authorization performed on DOMKAT/MKATUSHONOK; physical network acceptance remains pending.
+- source: verified code and GitHub release 28.10.2026.
+
+
 Verified deployment (28 October 2026):
 `ChatGPT custom MCP plugin → OpenAI Secure MCP Tunnel → official tunnel-client v0.0.18 → ChatGptMcpTunnel.dll (.NET 8, stdio MCP)`.
 

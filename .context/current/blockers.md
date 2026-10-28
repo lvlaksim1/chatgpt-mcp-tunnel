@@ -1,5 +1,13 @@
 # Current blockers and open risks
 
+## Remaining after v0.2.7 successful release
+- Source, CI, release and Windows installer acceptance completed. Network acceptance remains: Tailscale client must be installed/authenticated on both DOMKAT and MKATUSHONOK in the same accessible tailnet.
+- No current direct access to MKATUSHONOK has been proven. No end-to-end remote instrument execution across physical networks has been observed.
+- DOMKAT live installed v0.2.6 is deliberately untouched; v0.2.7 release does not mean it has been deployed. Tailscale link, server IP binding and per-peer firewall rule require actual owner-authorized Windows/account interactions and tests.
+- Firewall UAC operation has only been statically and locally validated without an actual Tailscale interface/admin privileges, not yet exercised on the physical VPN network.
+- source: source and release acceptance 28.10.2026.
+
+
 ## Критический блокер: разные физические сети (28.10.2026)
 - Владелец подтвердил, что DOMKAT и MKATUSHONOK находятся НЕ в общей локальной сети. Прямой путь к частному IP DOMKAT 192.168.0.3 с MKATUSHONOK не доказан; прежние инструкции по LAN-подключению считать недействующими.
 - Способ безопасной маршрутизации через интернет не утверждён. Требуется либо защищённая виртуальная сеть, либо общедоступный WSS-сервис/ретранслятор; прямое открытие ws:// в интернет исключается архитектурными ограничениями проекта.

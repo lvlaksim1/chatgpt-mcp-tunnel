@@ -1,5 +1,12 @@
 # Router Lite — один MCP-туннель для нескольких компьютеров
 
+## Accepted VPN approach and release v0.2.7 (28.10.2026)
+- Owner authorized proceeding after confirming that DOMKAT and MKATUSHONOK are in different local networks. Selected minimal connection transport: Tailscale encrypted virtual network using each computer's assigned 100.x Tailscale address; one existing OpenAI MCP tunnel remains.
+- New server Settings firewall action validates active Tailscale adapter and local IP, opens separate form for the exact peer 100.x IP and asks for confirmation/UAC. Windows rule is scoped to the exact remote IP + local VPN IP + program + TCP port 55201; existing LAN rule behavior is unchanged.
+- Windows GitHub Actions 40756470762 success; stable Setup/Update v0.2.7 published. Physical PC link, actual VPN login, firewall UAC and end-to-end remote agent acceptance are still **NOT VERIFIED**.
+- See docs/agent-installer.md for operational steps and diagnostics.
+
+
 ## Фактическая топология DOMKAT — MKATUSHONOK (поправка 28.10.2026)
 DOMKAT и MKATUSHONOK находятся **в разных локальных сетях**. Адрес DOMKAT `192.168.0.3:55201` — адрес его локального интерфейса, поэтому ранее предлагавшееся прямое подключение MKATUSHONOK к этому адресу без дополнительного маршрута ошибочно. В текущем проекте один OpenAI MCP Tunnel обеспечивает канал ChatGPT → DOMKAT, но не предоставляет автоматически обратного общедоступного адреса для клиентов Router Lite.
 **Транспорт не выбран владельцем**. Минимальное решение для проверки — зашифрованная виртуальная сеть (например, Tailscale/WireGuard): обе машины получают маршрутизируемые внутри VPN адреса; Router Lite должен слушать адрес DOMKAT на защищённом виртуальном интерфейсе. Альтернатива — отдельный защищённый WSS-маршрут, но это другая инфраструктура.

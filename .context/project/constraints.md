@@ -1,5 +1,12 @@
 # Project constraints
 
+## Approved transport decision after owner execution order — 28.10.2026
+- Tailscale/WireGuard virtual network chosen for different physical LANs. Keep one OpenAI MCP Tunnel and do not expose unencrypted ws:// publicly.
+- Only exact authorized Tailscale client IPv4 may receive inbound firewall rule for Router Lite at exact local Tailscale IP and port 55201. The VPN adapter must actually exist and belong to the server before firewall setup; Windows UAC approval is required.
+- Tailscale installation and sign-in involve user account/Windows authorization; verified release alone does not demonstrate physical connectivity.
+- Supersedes earlier 'transport not yet selected' status; retains network security and independent owner authorization requirements.
+
+
 ## Межсетевой транспорт (уточнение владельца 28.10.2026)
 - DOMKAT и MKATUSHONOK работают в разных локальных сетях; существующий частный адрес DOMKAT 192.168.0.3 не является сам по себе доступным адресом со стороны MKATUSHONOK.
 - Для подключения дополнительных агентов нужна согласованная защищённая межсетевая связь (например, Tailscale/WireGuard либо WSS). Прямые незащищённые WebSocket-порты в интернет не выставлять.

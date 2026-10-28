@@ -1,5 +1,14 @@
 # Manager plans
 
+## Post-release v0.2.7 remote computer plan
+1. Retain the working DOMKAT OpenAI tunnel; do not remotely update the installed v0.2.6, change Tunnel ID, keys, or 192.168.0.3 without separate approval.
+2. Install/sign in to Tailscale on DOMKAT and MKATUSHONOK under authorized Windows/account interaction. Both must be members of one permitted tailnet; verify direct or encrypted relay and exact 100.x IP addresses.
+3. Update installed ChatGPT MCP Agent to published v0.2.7 by owner-controlled method, configure the DOMKAT Router Lite listening IP as its own Tailscale address; check listening/health.
+4. In server Settings grant one remote MKATUSHONOK Tailscale IP access via the new dialog with explicit UAC approval (not whole 100.64.0.0/10). On client set DOMKAT Tailscale IP and protected shared agent key.
+5. Verify Tailscale connectivity, then router authentication, computer targeting, 23 Windows tools, PNG/UIA and reconnect; only after evidence close physical acceptance gate. Review whether multiple listening interfaces are needed without disturbing existing cloud tunnel.
+- source: approved cross-network design and verified v0.2.7 Windows CI/Release, 28.10.2026.
+
+
 ## Исправленный план: разные сети — 28.10.2026
 1. Прекратить сценарий прямого подключения MKATUSHONOK к локальному IP DOMKAT 192.168.0.3; отдельного маршрута между сетями нет в подтверждённых данных.
 2. Согласовать способ защищённого транспорта между компьютерами: предпочтительный вариант испытания — Tailscale/WireGuard, альтернатива — отдельный WSS-посредник. Не разворачивать инфраструктуру без решения владельца.

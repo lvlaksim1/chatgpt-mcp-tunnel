@@ -1,5 +1,14 @@
 # Next actions
 
+## Next actions after v0.2.7 release
+1. On DOMKAT and MKATUSHONOK install Tailscale from the official Windows package and sign both into one permitted tailnet, completing interactive browser authorization; no public router port forwarding.
+2. Read each computer's own 100.x Tailscale IP. Preserve the working OpenAI tunnel; update DOMKAT Agent to v0.2.7 via owner-approved method when ready.
+3. In DOMKAT server Settings choose Tailscale interface address as Router Lite listening address (port 55201); then use the new Tailscale firewall button and approve exactly MKATUSHONOK's Tailscale IP in Windows UAC.
+4. On MKATUSHONOK set the DOMKAT Tailscale IP, enter protected client key and connect. Observe Tailscale ping, client error classification and actual computer selection.
+5. Run real remote tests for files, processes, PowerShell, screenshot, UIA, reconnect. Keep physical acceptance NOT PROVEN until observed success; update manager then.
+- Official release v0.2.7 and CI are complete; no re-build needed for the existing scope.
+
+
 ## Приоритет после уточнения владельца: компьютеры в разных сетях
 1. Не направлять MKATUSHONOK на 192.168.0.3:55201 без подтверждённого защищённого маршрута между сетями. Не использовать настройку доступа для локальной подсети как решение задачи связи через интернет.
 2. Определить с владельцем допустимый сетевой транспорт: предпочтителен простой защищённый VPN (например, Tailscale), альтернатива — отдельный WSS-посредник. Предложение VPN не означает одобрение установки стороннего ПО.

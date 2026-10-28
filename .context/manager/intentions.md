@@ -1,5 +1,14 @@
 # Manager intentions and commitments
 
+## Tailscale Router Lite integration v0.2.7
+- commitment_id: tailscale-cross-network-v027-2026-10-28
+- status: implementation/release completed; physical deployment and client E2E acceptance active
+- verified: v0.2.7 CI run 40756470762 success, Setup/Update available, local Windows and router tests passed. One client IP is authorized per explicit firewall confirmation; LAN compatibility retained.
+- remaining: Tailscale installation/sign-in on BOTH physical PCs, owner-side in-place update of DOMKAT if desired, Tailscale IP binding, peer-specific firewall rule, key entry, real MKATUSHONOK connection, 23 remote Windows tools and reconnect acceptance.
+- source: owner execution command, GitHub commit c04e2ec, Windows CI 40756470762, Release v0.2.7.
+- Do not claim working inter-network link before observed remote test; do not modify installed DOMKAT or IP/Tunnel ID through manager.
+
+
 ## Межсетевое соединение компьютеров — уточнённое обязательство
 - commitment_id: cross-network-transport-after-owner-correction-2026-10-28
 - status: active; технический способ ещё не согласован, проверка двух физических компьютеров не выполнена.
