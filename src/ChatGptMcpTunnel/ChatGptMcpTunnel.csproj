@@ -13,5 +13,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Update="AutomationWorker.ps1" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="MsaaBridge.cs.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
