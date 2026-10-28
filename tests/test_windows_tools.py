@@ -72,7 +72,7 @@ try:
         print("FS_WRITE_OK", flush=True)
 
         read = call("fs.read", path=str(target))
-        assert read["format"] == "text" and read["content"] == "Привет, MCP!\nстрока 2", read
+        assert read["format"] == "text" and read["text"] == "Привет, MCP!\nстрока 2", read
         print("FS_READ_OK", flush=True)
 
         listed = call("fs.list", path=str(target.parent))
