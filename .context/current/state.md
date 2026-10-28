@@ -1,5 +1,11 @@
 # Current state
 
+## Direct WAN TLS implementation: v0.2.8 released — 29.10.2026
+- Решение владельца 29.10.2026: DOMKAT имеет статический публичный IPv4 на WAN-интерфейсе маршрутизатора; удалённый клиент расположен в другой локальной сети. Развивается прямой защищённый WSS без обязательного Tailscale/посредника. Локальный адрес DOMKAT не заменяется внешним IP. Источник: прямая команда владельца; код основной ветки f8cc66848a475030b63ad5c15e25ec6c68e76308.
+- Сервер Kestrel обслуживает защищённый порт TCP 55202 в дополнение к прежнему локальному TCP 55201. Сервер создаёт собственный TLS-сертификат, шифрует пароль PFX через DPAPI Windows, клиент проверяет точный SHA-256 отпечаток до передачи общего ключа. Новый режим требует минимум 32 символа общего ключа. Проверены сборки, 42 инструмента, 23 направляемых инструмента Windows, запрет неверного сертификата, выполнение удалённой команды по WSS, восстановление связи, сохранение старого LAN-подключения; GitHub Actions 40781905752 завершён успешно; v0.2.8 опубликована с установщиками Setup и Update.
+- На рабочий DOMKAT v0.2.8 не устанавливалась. При последней проверке на DOMKAT работает прежний процесс и слушает 192.168.0.3:55201, порт 55202 пока не открыт. На маршрутизаторе не создавался проброс TCP 55202, правила брандмауэра не менялись. Физическая связь с MKATUSHONOK через Интернет и 23 удалённых инструмента остаётся НЕ ДОКАЗАНА. Публичный WAN IPv4 подтверждён чтением роутера; постоянство адреса основывается на словах владельца.
+- Implementation: docs/direct-wan.md; code commits 2b504600 and f8cc6684, CI run 40781905752; secure port 55202, private legacy port 55201.
+
 ## Direct public IPv4 feasibility verification — 28.10.2026
 - User reports static IP. Router RT-GM2-3, at local gateway 192.168.0.1, directly responded to UPnP WANIPConnection GetExternalIPAddress with a globally routable IPv4 matching three IP-checking services, including a --noproxy curl check. Exact public IP intentionally excluded from this publicly visible repository.
 - The independently verified property is a public WAN address (not CG-NAT at this router), not the address permanence; latter remains user-reported. No global IPv6 observed.

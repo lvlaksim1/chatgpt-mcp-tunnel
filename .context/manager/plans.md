@@ -1,5 +1,12 @@
 # Manager plans
 
+## Active priority: direct WSS static WAN, 29.10.2026
+1. Source v0.2.8 is built, locally tested and released by Windows CI; keep installed DOMKAT and existing OpenAI tunnel unchanged until owner-controlled deployment.
+2. Keep DOMKAT local 192.168.0.3; external IPv4 belongs to the router. Preserve TCP 55201 only for LAN; prepare WSS TCP 55202 on local address in updated application.
+3. On explicit owner-controlled steps install Update v0.2.8, enter public WAN address, generate certificate, verify SHA-256 fingerprint, authorize Windows WAN rule and configure router WAN TCP 55202 -> DOMKAT local TCP 55202. Do not expose plain 55201.
+4. On physical MKATUSHONOK in another LAN configure WSS endpoint and independently checked pin and key; verify real cross-internet connection, remote Windows commands, GUI/PNG and recovery. If inbound reachability fails, inspect router mapping/provider policy and certificate diagnostics before architecture changes.
+5. Record observed evidence; close physical acceptance only upon successful end-to-end tests. Tailscale v0.2.7 remains an optional fallback, not a prerequisite.
+
 ## Public WAN direct-connection investigation (28.10.2026)
 1. Verified: router RT-GM2-3 reports globally routable IPv4 as its WAN address, matching public egress, without CG-NAT at its interface. Owner reports IP is static; only current presence was independently checked.
 2. Verified current Router Lite 55201 listens only on local DOMKAT 192.168.0.3. Windows firewall entry allows only LAN /24, and UPnP reports no dynamic mapping of TCP 55201/443 (fault 714). Other manually configured router forwards and external inbound reachability still unverified.

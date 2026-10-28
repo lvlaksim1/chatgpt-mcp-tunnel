@@ -1,5 +1,12 @@
 # Latest handoff
 
+## Direct static WAN architecture implemented and released — 29.10.2026
+- Решение владельца 29.10.2026: DOMKAT имеет статический публичный IPv4 на WAN-интерфейсе маршрутизатора; удалённый клиент расположен в другой локальной сети. Развивается прямой защищённый WSS без обязательного Tailscale/посредника. Локальный адрес DOMKAT не заменяется внешним IP. Источник: прямая команда владельца; код основной ветки f8cc66848a475030b63ad5c15e25ec6c68e76308.
+- Сервер Kestrel обслуживает защищённый порт TCP 55202 в дополнение к прежнему локальному TCP 55201. Сервер создаёт собственный TLS-сертификат, шифрует пароль PFX через DPAPI Windows, клиент проверяет точный SHA-256 отпечаток до передачи общего ключа. Новый режим требует минимум 32 символа общего ключа. Проверены сборки, 42 инструмента, 23 направляемых инструмента Windows, запрет неверного сертификата, выполнение удалённой команды по WSS, восстановление связи, сохранение старого LAN-подключения; GitHub Actions 40781905752 завершён успешно; v0.2.8 опубликована с установщиками Setup и Update.
+- На рабочий DOMKAT v0.2.8 не устанавливалась. При последней проверке на DOMKAT работает прежний процесс и слушает 192.168.0.3:55201, порт 55202 пока не открыт. На маршрутизаторе не создавался проброс TCP 55202, правила брандмауэра не менялись. Физическая связь с MKATUSHONOK через Интернет и 23 удалённых инструмента остаётся НЕ ДОКАЗАНА. Публичный WAN IPv4 подтверждён чтением роутера; постоянство адреса основывается на словах владельца.
+- Next action: owner-controlled v0.2.8 install and WAN rule/forwarding, then physical MKATUSHONOK WSS connectivity and full tool acceptance. Tailscale remains optional fallback, not required.
+- Evidence: docs/direct-wan.md, commit f8cc66848a475030b63ad5c15e25ec6c68e76308, Windows Actions 40781905752 success, GitHub Release v0.2.8.
+
 ## Verified public WAN on DOMKAT — topology re-evaluation 28.10.2026
 - Owner reports a static IP; direct read-only IGD UPnP router RT-GM2-3 verification shows globally routable WAN IPv4 identical to three outside IP service readings. This is much stronger than the Xray/TUN-influenced outbound address; static assignment over time is user assertion. Exact IPv4 withheld from public repo.
 - Existing router local IP is 192.168.0.1, DOMKAT 192.168.0.3. Windows Router Lite TCP 55201 bound only LAN, firewall restricted to 192.168.0.0/24. Router replied UPnP 714 for mappings TCP 55201 and 443. Manually configured forwards unknown, and no test was performed from a second network.

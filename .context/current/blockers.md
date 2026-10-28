@@ -1,5 +1,10 @@
 # Current blockers and open risks
 
+## Open gate after direct WSS v0.2.8 release (29.10.2026)
+- На рабочий DOMKAT v0.2.8 не устанавливалась. При последней проверке на DOMKAT работает прежний процесс и слушает 192.168.0.3:55201, порт 55202 пока не открыт. На маршрутизаторе не создавался проброс TCP 55202, правила брандмауэра не менялись. Физическая связь с MKATUSHONOK через Интернет и 23 удалённых инструмента остаётся НЕ ДОКАЗАНА. Публичный WAN IPv4 подтверждён чтением роутера; постоянство адреса основывается на словах владельца.
+- Setup from separate networks still requires owner-controlled server update, explicit local Windows firewall permission, manual router port forwarding, correct server certificate fingerprint transferred over a trusted channel, and one strong client key. No firewall/router/network change has yet been made. Blocking external TCP 55202 or an incorrect fingerprint prevents remote connection.
+- Do not interpret local TLS/CI acceptance as proof of production multi-PC readiness. Tailscale remains fallback only.
+
 ## WAN direct option: remaining acceptance gates
 - Public IPv4 confirmed on DOMKAT router; direct Internet transport is possible in principle, but inbound port forwarding and real Internet reachability were not validated. UPnP TCP 55201/443 mapping absent (714) is not evidence about manual mappings.
 - Current Router Lite ws:// port 55201 permits only the LAN subnet through existing Windows Firewall. Directly opening it publicly would expose unencrypted agent credentials and command transport; secure authenticated WSS/TLS is a hard prerequisite.

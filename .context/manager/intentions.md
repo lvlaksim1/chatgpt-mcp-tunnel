@@ -1,5 +1,12 @@
 # Manager intentions and commitments
 
+## Direct WAN deployment and physical acceptance, 29.10.2026
+- commitment_id: direct-wan-wss-2026-10-29
+- status: code, local tests and stable v0.2.8 release completed; owner-controlled physical deployment and verification remain active.
+- owner: project-manager
+- Решение владельца 29.10.2026: DOMKAT имеет статический публичный IPv4 на WAN-интерфейсе маршрутизатора; удалённый клиент расположен в другой локальной сети. Развивается прямой защищённый WSS без обязательного Tailscale/посредника. Локальный адрес DOMKAT не заменяется внешним IP. Источник: прямая команда владельца; код основной ветки f8cc66848a475030b63ad5c15e25ec6c68e76308.
+- Remaining: verify server/local IP, install v0.2.8 through Owner-controlled updater; configure WAN rule and router TCP 55202 forwarding on explicit Windows/router interaction; transfer and independently verify SHA-256 certificate fingerprint and 32+ character key; test MKATUSHONOK from separate network, all 23 remote Windows functions, screenshots/UIA, reconnect, invalid cert/key. Do not close before live proof.
+
 ## Direct WAN option after validated public router IP
 - commitment_id: compare-direct-wss-vs-vpn-2026-10-28
 - status: read-only feasibility verified; adoption pending Owner decision; no changes to server/router/firewall.
