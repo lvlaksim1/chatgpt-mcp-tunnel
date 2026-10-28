@@ -122,15 +122,17 @@ try:
         assert (w, h) == (520, 260), (w, h)
         print("SCREEN_CAPTURE_PNG_OK", len(png), flush=True)
 
+        focus = value("desktop.window.activate", hwnd=hwnd)
+        assert focus["foreground"] is True, "Window lost focus before simulated input"
         original = screen["cursor"]
         try:
-            moved_pointer = value("desktop.mouse.move", x=166, y=206)
+            moved_pointer = value("desktop.mouse.move", x=166, y=190)
             assert moved_pointer["moved"], moved_pointer
             print("MOUSE_MOVE_OK", flush=True)
-            click = value("desktop.mouse.click", x=166, y=206, button="left")
+            click = value("desktop.mouse.click", x=166, y=190, button="left")
             assert click["clicks"] == 1, click
             print("MOUSE_CLICK_OK", flush=True)
-            scroll = value("desktop.mouse.scroll", notches=-1, x=166, y=206)
+            scroll = value("desktop.mouse.scroll", notches=-1, x=166, y=190)
             assert scroll["scrolled"], scroll
             print("MOUSE_SCROLL_OK", flush=True)
             hotkey = value("desktop.keyboard.hotkey", keys="CTRL+A")
@@ -157,7 +159,12 @@ try:
             if "Привет MCP 2026" in text.value:
                 found.append(text.value)
         if not found:
-            raise AssertionError(f"Keyboard input not observed in test textbox (children={len(child_windows)})")
+            seen = []
+            for child in child_windows:
+                text = ctypes.create_unicode_buffer(256)
+                user32.GetWindowTextW(child, text, len(text))
+                seen.append(text.value)
+            raise AssertionError(f"Keyboard input not observed in test textbox (children={len(child_windows)}, actual={seen})")
         print("KEYBOARD_TEXT_VERIFIED", found[0], flush=True)
         closed = value("desktop.window.close", hwnd=hwnd)
         assert closed["close_requested"], closed
