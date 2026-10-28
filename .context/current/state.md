@@ -32,3 +32,11 @@
 - CI tests were extended for default and custom directories. Real Inno acceptance pending.
 - source: owner directive and local source review.
 - authority: owner-directive, verified-repository.
+
+## Universal installer v0.2.0 RELEASED (28.10.2026)
+- GitHub Actions run 40696034380 completed success, including standalone WinForms and runtime build, official OpenAI tunnel-client SHA256 verification, MCP/router tests and real Inno first-install/update/uninstall acceptance.
+- Universal Setup v0.2.0 published at https://github.com/lvlaksim1/chatgpt-mcp-tunnel/releases/tag/v0.2.0; Setup and Update assets both verified present (plus legacy updater alias).
+- CI accepted server default D (fallback if not present), client default user-local C, arbitrary custom client directory, preservation during update and correct uninstall.
+- Live DOMKAT legacy tunnel has not been removed or restarted. The owner requested a clean install and will enter the new OpenAI token; migration with temporary loss of MCP access is a separate next operation.
+- source: GitHub Actions run 40696034380 and release v0.2.0.
+- authority: verified-repository, verified-runtime.

@@ -31,3 +31,8 @@ source: isolated Release build; test_mcp_stdio.py, test_router_lite.py, test_rou
 - statement: The Owner requests a user-selectable installation directory; server suggests drive D and client suggests drive C. Update must preserve the chosen directory.
 - source: Owner directive 28.10.2026, installer source and CI tests.
 - authority: owner-directive, verified-repository.
+
+## B8 — universal installer release acceptance
+- statement: Single Server/Client Windows full installer v0.2.0 was published after CI successfully tested the role-based default/custom installation directories and update/uninstall operations. Existing live DOMKAT installation remains unchanged.
+- source: GitHub Actions 40696034380; GitHub Release v0.2.0; observed on 28.10.2026.
+- authority: verified-repository, verified-runtime.

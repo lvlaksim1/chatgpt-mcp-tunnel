@@ -38,3 +38,10 @@
 - CI tests server D: default, client user-local C: default, custom client path and update preservation.
 - source: Inno documentation and locally inspected installer source.
 - authority: verified-repository.
+
+## Release proof for folder selection
+- GitHub Actions workflow run 40696034380 passed the compiled Inno Setup full/update installers.
+- Server default D if present; client default user-local C; user-defined client directory persisted through update, deleted on uninstall.
+- Release v0.2.0 includes official verified OpenAI client and one universal executable. Existing DOMKAT runner was not touched by CI.
+- source: actions 40696034380, release v0.2.0.
+- authority: verified-runtime.

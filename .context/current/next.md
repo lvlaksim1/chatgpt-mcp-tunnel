@@ -13,3 +13,8 @@ Stages 1–3 were completed and locally verified on DOMKAT; do not repeat that w
 ## Folder acceptance
 - Compile and validate both role-specific paths and custom folder preservation in Windows CI; publish universal installer when passing.
 - Do not remove the existing DOMKAT tunnel until the new installation and independent recovery procedure are verified. The Owner will input a new token for the clean installation.
+
+## Next after v0.2.0 release
+- Prepare a safe autonomous transition of DOMKAT from the old running tunnel to clean Server v0.2.0 installation without preserving the old credentials; let owner enter a new token directly in the UI.
+- This transition will terminate the MCP channel. Ensure a recoverable local installer and startup procedure are present before shutting down the old tunnel.
+- Then connect MKATUSHONOK as Client via the sole DOMKAT router and verify remote controls across physical PCs.

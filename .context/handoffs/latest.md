@@ -36,3 +36,8 @@ Physical PC onboarding and cross-host tests; do not claim production-ready multi
 - Owner directive: one full installer with selectable install folder, server default D:, client default C:.
 - Source implemented and CI tests added for custom directory, update, default paths and uninstall.
 - Binary acceptance pending; existing DOMKAT tunnel still running.
+
+## Verified universal installer release v0.2.0
+- Successful Windows CI 40696034380 and published GitHub Release v0.2.0 (Setup, Update, legacy update alias).
+- Role picker, default server D/client C, editable custom destination, preservation on update, autostart task on/off, clean uninstall were validated by real installer execution in CI.
+- DOMKAT still has the previous active tunnel. The owner wants a clean reinstallation and will supply the token in the new server UI; do not prematurely stop the only connection.

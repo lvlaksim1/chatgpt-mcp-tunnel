@@ -38,3 +38,9 @@ verified partial progress: stages 1-3 passed local E2E, all 23 Windows tools rem
 - authority: owner-directive
 - verified partial progress: source implementation and CI assertions complete.
 - remaining: Inno Setup compile, Windows CI acceptance and stable universal installer release.
+
+## Outcome of universal installer v0.2.0
+- Source-complete and CI-verified: universal Setup/Update v0.2.0 released; verified default and custom paths, update preservation and installer cleanup.
+- Remaining commitment: clean migration of DOMKAT and cross-host acceptance with MKATUSHONOK, not additional installer design.
+- source: GitHub Actions 40696034380, Release v0.2.0, Owner instructions.
+- authority: verified-repository, owner-directive.
