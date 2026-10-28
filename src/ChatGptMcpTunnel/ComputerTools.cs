@@ -112,14 +112,14 @@ public static class ComputerTools
             var bytes = new byte[Math.Min(max_chars, (int)Math.Min(input.Length, 2_000_000L))];
             var count = input.Read(bytes, 0, bytes.Length);
             return Json(new { path = file, format = "base64", size_bytes = input.Length,
-                truncated = input.Length > count, content = Convert.ToBase64String(bytes, 0, count) });
+                truncated = input.Length > count, base64 = Convert.ToBase64String(bytes, 0, count) });
         }
         using var reader = new StreamReader(input, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
         var buffer = new char[max_chars + 1];
         var read = reader.ReadBlock(buffer, 0, buffer.Length);
         return Json(new { path = file, format = "text", size_bytes = input.Length,
             truncated = read > max_chars,
-            content = new string(buffer, 0, Math.Min(read, max_chars)) });
+            text = new string(buffer, 0, Math.Min(read, max_chars)) });
     }
 
     [McpServerTool(Name = "fs.write")]
