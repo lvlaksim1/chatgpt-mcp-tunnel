@@ -1,5 +1,14 @@
 # Manager beliefs
 
+## B20 — DOMKAT и MKATUSHONOK находятся в разных локальных сетях (28.10.2026)
+- Установленный владельцем факт: компьютеры DOMKAT и MKATUSHONOK НЕ в одной локальной сети. Адрес DOMKAT 192.168.0.3 является частным адресом его локальной сети, а не проверенным межсетевым адресом клиента. Прежние рекомендации подключать удалённый MKATUSHONOK непосредственно к ws://192.168.0.3:55201/agent и нажать кнопку разрешения локальной сети недостаточны и не должны повторяться без дополнительного защищённого маршрута.
+- Межсетевой транспорт пока не выбран владельцем. Возможности: согласованная шифрованная виртуальная сеть (например, Tailscale/WireGuard) либо безопасный общедоступный WSS-конечный узел/ретранслятор. Наличие публичного IP, проброса портов и VPN на MKATUSHONOK не установлено. На DOMKAT при проверке не обнаружены службы/адаптеры Tailscale, WireGuard, ZeroTier, OpenVPN, NetBird.
+- По исходникам v0.2.6 клиентская проверка допускает ws://100.64.0.0/10, сервер разрешает адрес только назначенного компьютеру IPv4, а кнопка LanFirewall.LocalNetwork принимает лишь 10/8, 172.16/12, 192.168/16 с ограничением маски. Следовательно, стандартная кнопка локального брандмауэра не является решением для Tailscale; реальная работа требует доступного VPN-адреса интерфейса, безопасной политики брандмауэра и реальной проверки.
+- Существующий OpenAI MCP Tunnel не следует считать автоматически предоставляющим маршрут между двумя Windows-агентами: функция облачного туннеля — подключение ChatGPT к основному MCP-серверу; отдельный маршрут к агентам всё равно нужен.
+- source: прямая поправка владельца 28.10.2026; проверенные исходники AgentStorage.cs, SettingsDialog.cs, ServerSettingsDialog.cs, LanFirewall.cs, Program.cs и наблюдение DOMKAT VPN-служб.
+- authority: owner-directive, verified-repository, verified-runtime. supersedes: B17 как достаточное объяснение проблемы подключения и неверное предположение об общей LAN в прежних планах.
+
+
 ## B19 — Verified DOMKAT running version 0.2.6 (28.10.2026 22:20 MSK)
 - statement: The running WinForms agent PID 30196 on DOMKAT is D:/ChatGPTMCPAgent/ChatGptMcpAgent.exe (FileVersion 0.2.6.0; started 20:38:25 MSK); router listens on 192.168.0.3:55201. ChatGPT MCP bridge_ping succeeds. Physical MKATUSHONOK connection remains unverified and no established client TCP connection was observed during the snapshot. Current chat exposes 41 connector tools versus 42 locally advertised earlier.
 - source: original ChatGPT MCP Tunnel read-only shell.exec process/version/TCP checks; bridge_ping; GitHub v0.2.6 release and Actions run 40736310056, all 28.10.2026.

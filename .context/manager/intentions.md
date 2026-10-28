@@ -1,5 +1,13 @@
 # Manager intentions and commitments
 
+## Межсетевое соединение компьютеров — уточнённое обязательство
+- commitment_id: cross-network-transport-after-owner-correction-2026-10-28
+- status: active; технический способ ещё не согласован, проверка двух физических компьютеров не выполнена.
+- Установленный владельцем факт: DOMKAT и MKATUSHONOK находятся в разных локальных сетях. Сохраняем один OpenAI MCP Tunnel и Router Lite.
+- До подключения MKATUSHONOK необходимо спроектировать безопасный межсетевой транспорт. Рекомендуемый для проверки вариант — виртуальная зашифрованная сеть; альтернативой является защищённый WSS-посредник. Не считать одну кнопку LAN-брандмауэра решением.
+- source: прямая поправка владельца и проверка кода v0.2.6 28.10.2026; authority: owner-directive, verified-repository.
+
+
 ## Post-install physical client acceptance (28.10.2026 22:20 MSK)
 - commitment_id: physical-client-acceptance-after-v026
 - status: active; installed v0.2.6 verified on DOMKAT, cross-machine acceptance NOT PROVEN.

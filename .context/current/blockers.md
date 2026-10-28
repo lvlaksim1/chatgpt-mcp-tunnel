@@ -1,5 +1,13 @@
 # Current blockers and open risks
 
+## Критический блокер: разные физические сети (28.10.2026)
+- Владелец подтвердил, что DOMKAT и MKATUSHONOK находятся НЕ в общей локальной сети. Прямой путь к частному IP DOMKAT 192.168.0.3 с MKATUSHONOK не доказан; прежние инструкции по LAN-подключению считать недействующими.
+- Способ безопасной маршрутизации через интернет не утверждён. Требуется либо защищённая виртуальная сеть, либо общедоступный WSS-сервис/ретранслятор; прямое открытие ws:// в интернет исключается архитектурными ограничениями проекта.
+- Для рекомендованного к оценке Tailscale не подходит существующая кнопка LAN-брандмауэра: она не поддерживает 100.64.0.0/10. Требуются отдельная проверка привязки серверного интерфейса и ограниченного разрешения сетевого доступа.
+- Факт незавершённой приёмки на MKATUSHONOK не следует приписывать ошибке ключа или локального брандмауэра без проверки маршрута.
+- source: поправка владельца и проверенный код v0.2.6 28.10.2026.
+
+
 ## Latest blocker assessment — 28.10.2026 22:20 MSK
 - DOMKAT v0.2.6 is already installed and running: older installation-pending notes below are historical and superseded.
 - Real MKATUSHONOK-to-DOMKAT Router Lite connection remains NOT PROVEN. No established remote client socket was present at observation; this is not conclusive evidence of a firewall issue.

@@ -1,5 +1,14 @@
 # Latest handoff
 
+## Критическая поправка владельца — разные локальные сети (28.10.2026)
+- Владелец уточнил: DOMKAT и MKATUSHONOK НЕ находятся в одной локальной сети. Указанный ранее клиентский адрес 192.168.0.3:55201 — лишь частный адрес DOMKAT; инструкции подключения к нему без виртуальной сети или иной маршрутизации ошибочны.
+- Один OpenAI MCP Tunnel сохраняется. Для реальной связи между удалёнными агентами нужен отдельный защищённый интернет-маршрут: рекомендуемый к оценке Tailscale/WireGuard, либо WSS-посредник. Решение по установке/транспорту ещё не принято.
+- Код v0.2.6 принимает частные VPN-адреса Tailscale для ws:// клиента, но сервер должен слушать правильный интерфейс, а LanFirewall.LocalNetwork не поддерживает 100.64.0.0/10; стандартная кнопка LAN-доступа не подходит для VPN-сценария без адаптации/безопасной настройки.
+- На DOMKAT сейчас не обнаружены VPN-службы/адаптеры указанного типа. Нет данных о наличии VPN на MKATUSHONOK. Раздельная сеть — факт со слов владельца; реальные параметры NAT/доступности не проверены.
+- Следующий шаг: согласование сетевого транспорта, затем защищённая настройка и испытание реального MKATUSHONOK; не менять работающий Tunnel ID, программу или публичную доступность пока решение не принято.
+- source: owner-directive 28.10.2026, read-only проверка DOMKAT и прочитанные исходники v0.2.6.
+
+
 ## Reinstantiation reconciliation — 28.10.2026 22:20 MSK
 - Project Manager project-manager restored from generation 16, all 8 coupled Git blob digests matched. PM 2.1.0 and Capsule 1.3.1; both authority branches main.
 - Original bridge_ping responded CHATGPT_MCP_TUNNEL_PING_OK. DOMKAT is now running agent FileVersion 0.2.6.0 (PID 30196, started 20:38:25 MSK), so the older v0.2.6 manual-install pending state is superseded.

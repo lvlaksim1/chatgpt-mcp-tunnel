@@ -1,5 +1,14 @@
 # Current state
 
+## Уточнение топологии — 28.10.2026 после восстановления менеджера
+- Владелец сообщил: DOMKAT и MKATUSHONOK находятся в РАЗНЫХ локальных сетях. Прежний план прямого соединения клиента с 192.168.0.3:55201 и настройки обычного LAN-брандмауэра был ошибочным по топологии.
+- DOMKAT v0.2.6 остаётся работающим узлом единственного OpenAI MCP Tunnel, Router Lite слушает локальный 192.168.0.3:55201. Реальное межсетевое подключение не подтверждено, транспорт не выбран.
+- Прочитанный код v0.2.6: AgentStorage позволяет адрес из диапазона 100.64.0.0/10 для ws://; серверная настройка может привязываться к назначенному локальному IPv4; текущая кнопка LanFirewall.LocalNetwork не принимает адреса Tailscale 100.64.0.0/10. Поэтому установка одной VPN без проверки адреса прослушивания и защиты брандмауэра ещё не доказывает подключение.
+- Проверка DOMKAT не обнаружила служб или адаптеров Tailscale/WireGuard/ZeroTier/NetBird/OpenVPN. О сети MKATUSHONOK, внешнем IP, NAT и дополнительных VPN-средствах данных нет.
+- Исходники программы и текущую установленную конфигурацию на компьютере при этой проверке не меняли.
+- source: непосредственная поправка владельца, прочитанные файлы репозитория и запрос к службам/адаптерам DOMKAT 28.10.2026; authority: owner-directive, verified-repository, verified-runtime.
+
+
 ## Reconciled live status — 28.10.2026 22:20 MSK
 - Original ChatGPT MCP Tunnel bridge_ping succeeds; current chat exposes 41 tools.
 - Running DOMKAT ChatGptMcpAgent.exe PID 30196: FileVersion 0.2.6.0, started 20:38:25 MSK; tunnel-client.exe is running. The 192.168.0.3:55201 router TCP socket listens and showed no established remote clients during the observation.
