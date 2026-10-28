@@ -60,21 +60,12 @@ with tempfile.TemporaryDirectory(prefix="mcp-wss-test-") as d:
     tmp = Path(d)
     pfx = tmp / "test-only.pfx"
     pwd = secrets.token_urlsafe(32)
-    ps = tmp / "certificate.ps1"
-    ps.write_text("""
-$ErrorActionPreference = 'Stop'
-$cert = New-SelfSignedCertificate -DnsName 'localhost' -CertStoreLocation 'Cert:\\CurrentUser\\My' -KeyExportPolicy Exportable -Type SSLServerAuthentication -NotAfter (Get-Date).AddDays(2)
-try {
-    $password = ConvertTo-SecureString $env:TEST_CERT_PASS -AsPlainText -Force
-    Export-PfxCertificate -Cert $cert -FilePath $env:TEST_CERT_FILE -Password $password | Out-Null
-} finally {
-    Remove-Item ('Cert:\\CurrentUser\\My\\' + $cert.Thumbprint) -Force
-}
-""", encoding="utf-8-sig")
     env = {**os.environ, "TEST_CERT_FILE": str(pfx), "TEST_CERT_PASS": pwd}
-    subprocess.run(["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass",
-                    "-File", str(ps)], check=True, env=env, cwd=ROOT,
-                   timeout=30, capture_output=True, text=True)
+    fixture = ROOT / "tests" / "tls-fixture" / "TlsFixture.csproj"
+    result = subprocess.run(["dotnet", "run", "--project", str(fixture), "-c", "Release"],
+                            check=False, env=env, cwd=ROOT, timeout=45,
+                            capture_output=True, text=True)
+    assert result.returncode == 0, result.stdout + "\\n" + result.stderr
     assert pfx.is_file()
 
     ws_port, wss_port = free_port(), free_port()
