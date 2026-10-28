@@ -39,6 +39,7 @@ public static class MsaaBridge
             var acc = Open(hwnd, out ptr);
             object child = 0;
             result["available"] = true;
+            try { result["child_count"] = acc.accChildCount; } catch { }
             result["source"] = "oleacc.dll AccessibleObjectFromWindow OBJID_CLIENT";
             try { result["name"] = acc.get_accName(child) ?? ""; } catch { }
             try { result["value"] = acc.get_accValue(child) ?? ""; } catch { }
