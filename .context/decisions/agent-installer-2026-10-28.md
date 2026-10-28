@@ -23,3 +23,8 @@ GitHub Actions must build both installer EXEs, run silent first install/update/u
 
 - source: Owner directive 28.10.2026, inspected GitHub source, observed DOMKAT .NET builds and tests.
 - authority: owner-directive, verified-repository, verified-runtime.
+
+## Implementation status
+Stable v0.1.0 installer release published after GitHub Actions run 40689966362 passed self-contained build, full install, update preservation and clean uninstall. Physical second computer not yet tested.
+- source: GitHub Actions 40689966362, release v0.1.0 (28.10.2026).
+- authority: verified-repository, verified-runtime.

@@ -7,7 +7,7 @@
 #ifndef OutputDir
   #define OutputDir "..\dist"
 #endif
-#define AppName "ChatGPT MCP Agent"
+#define AppName "ChatGPT MCP Tunnel"
 #define AppExeName "ChatGptMcpAgent.exe"
 #define AppId "{{E4CEB6E3-91C8-44D1-8A2E-2F309DA8F40A}"
 
@@ -18,16 +18,16 @@ AppVersion={#AppVersion}
 AppPublisher=lvlaksim1
 AppPublisherURL=https://github.com/lvlaksim1/chatgpt-mcp-tunnel
 AppSupportURL=https://github.com/lvlaksim1/chatgpt-mcp-tunnel/issues
-DefaultDirName={localappdata}\Programs\ChatGPTMCPAgent
+DefaultDirName={code:GetInstalledDir}
 DisableDirPage=yes
 DisableProgramGroupPage=yes
 DisableWelcomePage=yes
 DisableReadyPage=yes
 DisableFinishedPage=yes
 DirExistsWarning=no
-UsePreviousAppDir=no
+UsePreviousAppDir=yes
 OutputDir={#OutputDir}
-OutputBaseFilename=ChatGPT_MCP_Agent_Update_v{#AppVersion}
+OutputBaseFilename=ChatGPT_MCP_Tunnel_Update_v{#AppVersion}
 Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern
@@ -40,10 +40,11 @@ RestartApplications=no
 SetupLogging=no
 VersionInfoVersion={#AppVersion}
 VersionInfoProductName={#AppName}
-VersionInfoDescription=ChatGPT MCP Agent update installer
+VersionInfoDescription=ChatGPT MCP Tunnel update installer
 
 [Files]
 Source: "{#PublishDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "ServerStart.ps1"; DestDir: "{app}"; Flags: ignoreversion
 
 ; Preserve existing settings, DPAPI credentials, autostart and all shortcuts.
 ; The update creates no new shortcuts and leaves desktop icon positions intact.
@@ -63,11 +64,19 @@ Type: files; Name: "{userdesktop}\ChatGPT MCP Agent.lnk"
 Filename: "{app}\{#AppExeName}"; Flags: nowait runhidden
 
 [Code]
+function GetInstalledDir(Param: String): String;
+begin
+  Result := '';
+  RegQueryStringValue(HKCU, 'Software\ChatGPTMCPAgent', 'InstallDir', Result);
+  if Result = '' then
+    Result := ExpandConstant('{localappdata}\Programs\ChatGPTMCPAgent');
+end;
+
 function InitializeSetup(): Boolean;
 var
   InstalledExe: String;
 begin
-  InstalledExe := ExpandConstant('{localappdata}\Programs\ChatGPTMCPAgent\{#AppExeName}');
+  InstalledExe := AddBackslash(GetInstalledDir('')) + '{#AppExeName}';
   if not FileExists(InstalledExe) then
   begin
     MsgBox('ChatGPT MCP Agent не установлен.' + #13#10 +

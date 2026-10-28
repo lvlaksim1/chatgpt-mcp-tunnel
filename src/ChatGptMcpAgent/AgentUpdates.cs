@@ -22,7 +22,7 @@ internal static class AgentUpdates
             !string.Equals(url.Host, "github.com", StringComparison.OrdinalIgnoreCase) ||
             !string.IsNullOrEmpty(url.Query) || !string.IsNullOrEmpty(url.Fragment)) return false;
         return System.Text.RegularExpressions.Regex.IsMatch(url.AbsolutePath,
-            @"^/lvlaksim1/chatgpt-mcp-tunnel/releases/download/v[0-9]+\.[0-9]+\.[0-9]+/ChatGPT_MCP_Agent_Update_v[0-9]+\.[0-9]+\.[0-9]+\.exe$",
+            @"^/lvlaksim1/chatgpt-mcp-tunnel/releases/download/v[0-9]+\.[0-9]+\.[0-9]+/ChatGPT_MCP_Tunnel_Update_v[0-9]+\.[0-9]+\.[0-9]+\.exe$",
             System.Text.RegularExpressions.RegexOptions.IgnoreCase);
     }
 
@@ -35,7 +35,7 @@ internal static class AgentUpdates
         using var json = JsonDocument.Parse(await resp.Content.ReadAsStringAsync());
         var tag = json.RootElement.GetProperty("tag_name").GetString() ?? "";
         if (!tag.StartsWith('v') || !Version.TryParse(tag[1..], out var version)) return (null, null);
-        var expected = "ChatGPT_MCP_Agent_Update_v" + version + ".exe";
+        var expected = "ChatGPT_MCP_Tunnel_Update_v" + version + ".exe";
         foreach (var asset in json.RootElement.GetProperty("assets").EnumerateArray())
         {
             if (asset.GetProperty("name").GetString() != expected) continue;

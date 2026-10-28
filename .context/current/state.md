@@ -17,3 +17,18 @@
 - No second physical Windows computer tested.
 - source: local build/test and owner-approved MailRu Desktop architecture.
 - authority: verified-runtime, owner-directive.
+
+## Published installer acceptance (28.10.2026 MSK)
+- Binary release `v0.1.0` published with both Setup and Update assets at `https://github.com/lvlaksim1/chatgpt-mcp-tunnel/releases/tag/v0.1.0`.
+- GitHub Actions run 40689966362 passed: Windows self-contained publish, agent DPAPI selftest, 42 MCP-tool checks, Router Lite integration/reconnect, Inno Setup compilation, first-install/update-preserves-data/uninstall-cleanup test.
+- On DOMKAT the live MCP Tunnel was not restarted/replaced; physical second computer is still unverified.
+- source: GitHub Actions release workflow 40689966362, GitHub Release v0.1.0.
+- authority: verified-runtime, verified-repository.
+
+## Editable installer folder (28.10.2026)
+- Owner requirement: editable install path, server default D:, client default C:.
+- Source implemented: native Inno directory page after role selection, server D:\ChatGPTMCPAgent if drive exists, client per-user program folder, fallback on no D.
+- Persist InstallDir in HKCU registry; updater targets stored directory and preserves chosen path.
+- CI tests were extended for default and custom directories. Real Inno acceptance pending.
+- source: owner directive and local source review.
+- authority: owner-directive, verified-repository.

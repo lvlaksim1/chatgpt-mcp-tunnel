@@ -8,5 +8,5 @@
 
 The local routing, controls and reconnection tests passed; these risks do not invalidate that narrower evidence.
 
-6. Agent installer is source-complete and self-contained EXE compiled, but Inno Setup isn't installed on DOMKAT. GitHub Actions Windows release build must compile and test both actual installer EXEs.
+6. Agent installer Setup/Update v0.1.0 was compiled/tested/published on Windows GitHub Actions; next blocker is real deployment on second physical Windows PC.
 7. Protected per-user DPAPI secret is functional for the client; Router Lite still requires the same manually configured shared secret server-side. A second physical PC has not been onboarded.

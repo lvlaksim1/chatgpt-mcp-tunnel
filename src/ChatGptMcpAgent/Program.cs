@@ -82,7 +82,7 @@ internal sealed class TrayContext : ApplicationContext
         _tray = new NotifyIcon
         {
             Icon = SystemIcons.Application,
-            Text = "ChatGPT MCP Agent",
+            Text = "ChatGPT MCP Tunnel",
             Visible = true,
             ContextMenuStrip = menu
         };
@@ -108,7 +108,7 @@ internal sealed class TrayContext : ApplicationContext
             if (!_stopping && !_updating && _child is null && DateTime.UtcNow >= _nextStart &&
                 File.Exists(AgentStorage.SettingsPath))
                 StartAgent();
-            var label = "ChatGPT MCP Agent — " + _connection;
+            var label = "ChatGPT MCP Tunnel — " + _connection;
             _tray.Text = label.Length > 63 ? label[..63] : label;
         };
         _timer.Start();
@@ -118,7 +118,9 @@ internal sealed class TrayContext : ApplicationContext
     private void OnIdle(object? sender, EventArgs e)
     {
         Application.Idle -= OnIdle;
-        if (!File.Exists(AgentStorage.SettingsPath) || !AgentStorage.HasCredential())
+        if (!File.Exists(AgentStorage.SettingsPath) || !AgentStorage.HasCredential() ||
+            (AgentStorage.SelectedRole == "server" && !AgentStorage.HasServerApiKey() &&
+                !AgentStorage.HasLegacyOpenAiKey()))
             ShowSettings();
         else
         {
@@ -133,7 +135,9 @@ internal sealed class TrayContext : ApplicationContext
         _openingSettings = true;
         try
         {
-            using var form = new SettingsDialog(AgentStorage.Load());
+            using Form form = AgentStorage.SelectedRole == "server"
+                ? new ServerSettingsDialog(AgentStorage.Load())
+                : new SettingsDialog(AgentStorage.Load());
             if (form.ShowDialog() == DialogResult.OK)
                 RestartAgent();
         }
@@ -146,26 +150,71 @@ internal sealed class TrayContext : ApplicationContext
         try
         {
             var settings = AgentStorage.Load();
-            if (!AgentStorage.ValidateRouter(settings.RouterUrl, out var reason))
+            ProcessStartInfo info;
+            if (settings.Role == "server")
             {
-                _connection = "Проверьте адрес";
-                AgentStorage.Log("Configuration rejected: " + reason);
-                _nextStart = DateTime.UtcNow.AddSeconds(30);
-                return;
+                // Existing OpenAI tunnel must never be duplicated during migration.
+                if (Process.GetProcessesByName("tunnel-client").Any())
+                {
+                    _connection = "Другой туннель уже запущен";
+                    _nextStart = DateTime.UtcNow.AddMinutes(1);
+                    AgentStorage.Log("Existing tunnel-client detected; server startup skipped.");
+                    return;
+                }
+                var launcher = Path.Combine(AppContext.BaseDirectory, "ServerStart.ps1");
+                if (!File.Exists(launcher))
+                    throw new FileNotFoundException("Сценарий сервера не найден", launcher);
+                var serverKey = AgentStorage.LoadServerAgentKey();
+                var openAiKey = AgentStorage.LoadServerApiKey();
+                if (serverKey.Length < 16 ||
+                    (string.IsNullOrWhiteSpace(openAiKey) && !AgentStorage.HasLegacyOpenAiKey()) ||
+                    string.IsNullOrWhiteSpace(settings.TunnelId))
+                {
+                    _connection = "Настройте сервер";
+                    _nextStart = DateTime.UtcNow.AddMinutes(1);
+                    return;
+                }
+                info = new ProcessStartInfo("powershell.exe")
+                {
+                    WorkingDirectory = AppContext.BaseDirectory,
+                    UseShellExecute = false, CreateNoWindow = true,
+                    RedirectStandardError = true
+                };
+                info.ArgumentList.Add("-NoProfile");
+                info.ArgumentList.Add("-ExecutionPolicy");
+                info.ArgumentList.Add("Bypass");
+                info.ArgumentList.Add("-File");
+                info.ArgumentList.Add(launcher);
+                info.Environment["CONTROL_PLANE_API_KEY"] = openAiKey;
+                info.Environment["CHATGPT_MCP_TUNNEL_ID"] = settings.TunnelId;
+                info.Environment["CHATGPT_MCP_AGENT_TOKEN"] = serverKey;
+                info.Environment["CHATGPT_MCP_ROUTER_ENABLED"] = "1";
+                info.Environment["CHATGPT_MCP_ROUTER_LISTEN"] =
+                    "http://" + settings.ListenAddress + ":55201";
             }
-            var token = AgentStorage.LoadCredential();
-            var runtime = Path.Combine(AppContext.BaseDirectory, "Runtime", "ChatGptMcpTunnel.exe");
-            if (!File.Exists(runtime)) throw new FileNotFoundException("Модуль агента не найден", runtime);
-            var info = new ProcessStartInfo(runtime)
+            else
             {
-                WorkingDirectory = Path.GetDirectoryName(runtime)!,
-                UseShellExecute = false, CreateNoWindow = true,
-                RedirectStandardError = true
-            };
-            info.ArgumentList.Add("--agent");
-            info.Environment["CHATGPT_MCP_COMPUTER_ID"] = settings.Computer;
-            info.Environment["CHATGPT_MCP_AGENT_TOKEN"] = token;
-            info.Environment["CHATGPT_MCP_ROUTER_URL"] = settings.RouterUrl;
+                if (!AgentStorage.ValidateRouter(settings.RouterUrl, out var reason))
+                {
+                    _connection = "Проверьте адрес";
+                    AgentStorage.Log("Configuration rejected: " + reason);
+                    _nextStart = DateTime.UtcNow.AddSeconds(30);
+                    return;
+                }
+                var token = AgentStorage.LoadCredential();
+                var runtime = Path.Combine(AppContext.BaseDirectory, "Runtime", "ChatGptMcpTunnel.exe");
+                if (!File.Exists(runtime)) throw new FileNotFoundException("Модуль агента не найден", runtime);
+                info = new ProcessStartInfo(runtime)
+                {
+                    WorkingDirectory = Path.GetDirectoryName(runtime)!,
+                    UseShellExecute = false, CreateNoWindow = true,
+                    RedirectStandardError = true
+                };
+                info.ArgumentList.Add("--agent");
+                info.Environment["CHATGPT_MCP_COMPUTER_ID"] = settings.Computer;
+                info.Environment["CHATGPT_MCP_AGENT_TOKEN"] = token;
+                info.Environment["CHATGPT_MCP_ROUTER_URL"] = settings.RouterUrl;
+            }
             _child = new Process { StartInfo = info, EnableRaisingEvents = true };
             _child.ErrorDataReceived += (_, e) =>
             {
@@ -177,7 +226,10 @@ internal sealed class TrayContext : ApplicationContext
                          e.Data.Contains("refused", StringComparison.OrdinalIgnoreCase))
                     _connection = "Нет соединения";
                 // No environment variable, authorization headers or secrets are logged.
-                AgentStorage.Log(e.Data);
+                if (settings.Role == "client")
+                    AgentStorage.Log(e.Data);
+                else if (e.Data.Contains("Router Lite", StringComparison.OrdinalIgnoreCase))
+                    AgentStorage.Log("Server event: Router Lite");
             };
             _child.Start();
             _child.BeginErrorReadLine();

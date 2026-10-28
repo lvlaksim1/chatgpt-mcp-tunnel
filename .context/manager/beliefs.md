@@ -23,6 +23,11 @@ source: isolated Release build; test_mcp_stdio.py, test_router_lite.py, test_rou
 
 
 ## B5 — Agent installer reference and current status
-- statement: Owner chose MailRu Desktop's per-user Inno Setup full/update design for the Router Lite agent. The WinForms tray host and self-contained runtime compile on DOMKAT with DPAPI selftest success. CI/Inno and second physical PC are not yet proven.
+- statement: Owner chose MailRu Desktop's per-user Inno Setup full/update design for the Router Lite agent. The WinForms tray host, self-contained runtime, Inno Setup full/update installers and CI acceptance have passed and numeric v0.1.0 is published; second physical PC is not yet proven.
 - source: Owner confirmation 28.10.2026; MailRu Desktop `installer/*.iss`, `MailRuDesktop.UpdateAgent`, release workflow; local `dotnet publish`, `--selftest`, MCP/router tests.
 - authority: owner-directive, verified-repository, verified-runtime.
+
+## B7 — Installation directory
+- statement: The Owner requests a user-selectable installation directory; server suggests drive D and client suggests drive C. Update must preserve the chosen directory.
+- source: Owner directive 28.10.2026, installer source and CI tests.
+- authority: owner-directive, verified-repository.

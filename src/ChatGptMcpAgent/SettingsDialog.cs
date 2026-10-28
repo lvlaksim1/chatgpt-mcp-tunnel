@@ -12,7 +12,7 @@ internal sealed class SettingsDialog : Form
 
     internal SettingsDialog(AgentSettings existing)
     {
-        Text = "ChatGPT MCP Agent — Настройки";
+        Text = "ChatGPT MCP Tunnel — Клиент";
         ClientSize = new Size(490, 325);
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
@@ -22,7 +22,7 @@ internal sealed class SettingsDialog : Form
         Icon = SystemIcons.Application;
         var intro = new Label
         {
-            Text = "Подключение к единому маршрутизатору ChatGPT MCP Tunnel",
+            Text = "Клиент подключается к основному компьютеру с маршрутизатором",
             Left = 20, Top = 14, Width = 460, Height = 34,
             ForeColor = SystemColors.GrayText
         };

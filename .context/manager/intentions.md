@@ -27,5 +27,14 @@ verified partial progress: stages 1-3 passed local E2E, all 23 Windows tools rem
 - authority: owner-directive
 - outcome: a self-contained x64 per-user Windows agent with two Inno Setup installers, DPAPI credentials, tray interface, user-session autostart and GitHub Releases updates.
 - verified partial progress: application and runtime built self-contained on DOMKAT; `--selftest` and 42-tool/router/reconnect smoke tests passed; installer source/workflow are written.
-- remaining: Inno Setup CI install/update/uninstall acceptance and binary GitHub Release; second physical PC connection.
+- remaining: second physical PC connection, protected network and real cross-host GUI/shell acceptance.
 - completion gate: valid downloadable Setup and Update installer assets, CI acceptance, then physical network operation validated separately.
+
+## Installation directory commitment
+- commitment_id: install-directory-2026-10-28
+- status: accepted/active
+- owner: project-manager
+- source: Owner requested custom folder selection and role-based D/C defaults on 28.10.2026.
+- authority: owner-directive
+- verified partial progress: source implementation and CI assertions complete.
+- remaining: Inno Setup compile, Windows CI acceptance and stable universal installer release.

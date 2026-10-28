@@ -10,6 +10,9 @@ internal sealed class AgentSettings
     public string Computer { get; set; } = Environment.MachineName;
     public string RouterUrl { get; set; } = "";
     public bool AutoStart { get; set; } = true;
+    public string Role { get; set; } = "client";
+    public string TunnelId { get; set; } = "";
+    public string ListenAddress { get; set; } = "127.0.0.1";
 }
 
 internal static class AgentStorage
@@ -20,18 +23,96 @@ internal static class AgentStorage
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ChatGPTMCPAgent");
     internal static string SettingsPath => Path.Combine(DataFolder, "settings.json");
     internal static string CredentialPath => Path.Combine(DataFolder, "credential.dpapi");
+    internal static string ServerKeyPath => Path.Combine(DataFolder, "server-key.dpapi");
+    internal static string ServerApiKeyPath => Path.Combine(DataFolder, "openai-key.dpapi");
+    internal static string ServerRoot => Path.Combine(DataFolder, "Server");
+    internal static string LegacyOpenAiKeyPath => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "ChatGptMcpTunnel", "runtime-key.dpapi");
+    internal static string LegacyTunnelIdPath => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "ChatGptMcpTunnel", "tunnel-id.txt");
+    internal static bool HasLegacyOpenAiKey() => File.Exists(LegacyOpenAiKeyPath);
+    internal static string LegacyTunnelId() =>
+        File.Exists(LegacyTunnelIdPath) ? File.ReadAllText(LegacyTunnelIdPath).Trim() : "";
+    internal static string SelectedRole
+    {
+        get
+        {
+            using var key = Registry.CurrentUser.OpenSubKey(@"Software\ChatGPTMCPAgent");
+            var role = key?.GetValue("Role") as string;
+            return role is "server" or "client" ? role : "client";
+        }
+    }
     internal static string UpdatesFolder => Path.Combine(DataFolder, "Updates");
     internal static string LogFolder => Path.Combine(DataFolder, "Logs");
     private static readonly byte[] Entropy = Encoding.UTF8.GetBytes("ChatGPT-MCP-Agent-Credential-v1");
 
     internal static AgentSettings Load()
     {
-        if (!File.Exists(SettingsPath)) return new AgentSettings();
-        return JsonSerializer.Deserialize<AgentSettings>(File.ReadAllText(SettingsPath))
-               ?? new AgentSettings();
+        AgentSettings settings = File.Exists(SettingsPath)
+            ? JsonSerializer.Deserialize<AgentSettings>(File.ReadAllText(SettingsPath))
+                ?? new AgentSettings()
+            : new AgentSettings();
+        settings.Role = SelectedRole;
+        if (settings.Role == "server" && string.IsNullOrWhiteSpace(settings.TunnelId))
+            settings.TunnelId = LegacyTunnelId();
+        // The installer's autostart checkbox is authoritative for both roles.
+        settings.AutoStart = Registry.CurrentUser.OpenSubKey(RunKey)?
+            .GetValue(RunValueName) is string;
+        return settings;
     }
 
-    internal static bool HasCredential() => File.Exists(CredentialPath);
+    internal static bool HasCredential() =>
+        File.Exists(SelectedRole == "server" ? ServerKeyPath : CredentialPath);
+
+    internal static bool HasServerApiKey() => File.Exists(ServerApiKeyPath);
+    internal static string LoadServerApiKey() => LoadProtected(ServerApiKeyPath);
+    internal static string LoadServerAgentKey() => LoadProtected(ServerKeyPath);
+
+    private static string LoadProtected(string path)
+    {
+        if (!File.Exists(path)) return "";
+        var plaintext = ProtectedData.Unprotect(File.ReadAllBytes(path),
+            Entropy, DataProtectionScope.CurrentUser);
+        try { return Encoding.UTF8.GetString(plaintext); }
+        finally { CryptographicOperations.ZeroMemory(plaintext); }
+    }
+    private static void SaveProtected(string path, string secret)
+    {
+        var plain = Encoding.UTF8.GetBytes(secret);
+        try
+        {
+            var encrypted = ProtectedData.Protect(plain, Entropy, DataProtectionScope.CurrentUser);
+            var tmp = path + ".tmp";
+            File.WriteAllBytes(tmp, encrypted);
+            File.Move(tmp, path, overwrite: true);
+        }
+        finally { CryptographicOperations.ZeroMemory(plain); }
+    }
+    internal static void SaveServer(AgentSettings settings, string? agentKey, string? openAiKey)
+    {
+        settings.Role = "server";
+        if (!System.Text.RegularExpressions.Regex.IsMatch(settings.TunnelId, @"^tunnel_[A-Za-z0-9_.:-]+$"))
+            throw new ArgumentException("Укажите действительный ID туннеля OpenAI.");
+        if (agentKey is { Length: < 16 })
+            throw new ArgumentException("Ключ агентов должен содержать не менее 16 символов.");
+        if (openAiKey is { Length: < 12 })
+            throw new ArgumentException("Ключ OpenAI слишком короткий.");
+        Directory.CreateDirectory(DataFolder);
+        if (agentKey is not null) SaveProtected(ServerKeyPath, agentKey);
+        if (openAiKey is not null) SaveProtected(ServerApiKeyPath, openAiKey);
+        WriteSettings(settings);
+    }
+    private static void WriteSettings(AgentSettings settings)
+    {
+        Directory.CreateDirectory(DataFolder);
+        var temp = SettingsPath + ".tmp";
+        File.WriteAllText(temp, JsonSerializer.Serialize(settings,
+            new JsonSerializerOptions { WriteIndented = true }), new UTF8Encoding(false));
+        File.Move(temp, SettingsPath, overwrite: true);
+        SetAutoStart(settings.AutoStart);
+    }
 
     internal static string LoadCredential()
     {
@@ -60,11 +141,8 @@ internal static class AgentStorage
             }
             finally { CryptographicOperations.ZeroMemory(plain); }
         }
-        var tmpSettings = SettingsPath + ".tmp";
-        File.WriteAllText(tmpSettings, JsonSerializer.Serialize(settings,
-            new JsonSerializerOptions { WriteIndented = true }), new UTF8Encoding(false));
-        File.Move(tmpSettings, SettingsPath, overwrite: true);
-        SetAutoStart(settings.AutoStart);
+        settings.Role = "client";
+        WriteSettings(settings);
     }
 
     internal static void SetAutoStart(bool enabled)

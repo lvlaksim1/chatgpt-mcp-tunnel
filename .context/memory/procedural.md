@@ -23,3 +23,18 @@
 - Inno Setup does not exist on DOMKAT; GitHub Actions Windows must verify Setup/Update/uninstall actual binaries before release.
 - source: observed .NET self-contained publish and test on DOMKAT 28.10.2026 and the owner-approved MailRu Desktop installer pattern.
 - authority: verified-runtime, owner-directive.
+
+## Windows CI WinExe and Inno updater process lifetime (28.10.2026)
+- Graphical WinExe `ChatGptMcpAgent.exe --selftest` must be started with `Start-Process -Wait -PassThru`; calling `&` and checking `$LASTEXITCODE` is not reliable (could be empty).
+- For Inno Setup processes which start persistent tray apps, use `Start-Process -PassThru` followed by the returned `Process.WaitForExit(timeout)` instead of PowerShell `Start-Process -Wait`, because PowerShell can wait for descendant long-running tray processes too.
+- CI run 40689966362 verified that correction through first install, update and uninstall.
+- source: GitHub Actions release acceptance 40689966362 and prior test failures 40687941223 / 40688327383 / 40689211248.
+- authority: verified-runtime.
+
+## Inno Setup role-aware path (28.10.2026)
+- Full setup computes initial directory from role with code callback and shows native folder picker after role page.
+- Interactively change suggested path only when it equals an unmodified default; preserve custom user input and prior installations.
+- Store final InstallDir at ssPostInstall and have update use that registry path; keep same AppId.
+- CI tests server D: default, client user-local C: default, custom client path and update preservation.
+- source: Inno documentation and locally inspected installer source.
+- authority: verified-repository.

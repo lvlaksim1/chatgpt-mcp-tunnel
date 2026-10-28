@@ -9,3 +9,7 @@ Stages 1–3 were completed and locally verified on DOMKAT; do not repeat that w
 
 5. Publish agent installer source in `main`, trigger Windows GitHub Actions release workflow for numeric v0.1.0, inspect output/repair failures until Setup and Update EXE are published. Verify installation, update preservation and uninstall.
 6. After binary release, configure DOMKAT Router Lite and connect a second Windows PC via a protected network; perform physical multi-PC acceptance.
+
+## Folder acceptance
+- Compile and validate both role-specific paths and custom folder preservation in Windows CI; publish universal installer when passing.
+- Do not remove the existing DOMKAT tunnel until the new installation and independent recovery procedure are verified. The Owner will input a new token for the clean installation.

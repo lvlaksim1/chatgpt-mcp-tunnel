@@ -24,3 +24,15 @@ Physical PC onboarding and cross-host tests; do not claim production-ready multi
 - Added `src/ChatGptMcpAgent` Windows Forms tray host, `installer/agent-full.iss`, `installer/agent-update.iss`, `.github/workflows/agent-installer-release.yml`, `docs/agent-installer.md`.
 - Self-contained publish and DPAPI/URL selftest passed on DOMKAT. 42-tool MCP, router and reconnect tests passed on self-contained runtime.
 - Next: GitHub Actions Inno Setup build and install/update/uninstall acceptance; publish numeric v0.1.0; second physical Windows PC remains not checked. Do not modify live tunnel before acceptance.
+
+## Agent installer release acceptance
+- GitHub Actions 40689966362: success on Windows, both Setup and Update v0.1.0 tested and published as GitHub Release assets.
+- Installation, settings preservation during update, uninstall cleanup and agent DPAPI/MCP/router smoke checks passed in CI.
+- Next: physical PC onboarding, protected network address, real remote UI/IO tests. Existing tunnel DOMKAT unchanged.
+- source: GitHub Actions 40689966362 and GitHub Release v0.1.0; verified 28.10.2026.
+- authority: verified-repository, verified-runtime.
+
+## Editable installation folder
+- Owner directive: one full installer with selectable install folder, server default D:, client default C:.
+- Source implemented and CI tests added for custom directory, update, default paths and uninstall.
+- Binary acceptance pending; existing DOMKAT tunnel still running.
