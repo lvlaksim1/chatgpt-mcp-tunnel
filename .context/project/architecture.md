@@ -25,3 +25,9 @@ Verified deployment (28 October 2026):
 Accepted by Owner: one OpenAI tunnel, one ChatGPT plugin, several Windows computers. `RouterLite.cs` adds an optional background WebSocket listener on DOMKAT when explicitly enabled, a `--agent` run mode in the same .NET 8 executable, computer discovery and request/response correlation. Original 41 tools remain available; `computers.list` raises count to 42. Only `system.info` currently has a `computer` argument and remote execution. GitHub remains main-host global functionality.
 
 A Release build isolated from the live runtime and local two-process tests of 42 tool discovery, agent connection, remote system info, unknown name rejection and disconnect succeeded. This is not proof of physical multi-computer operation. Next: remote routing for remaining 22 Windows tools and MCP screenshot image blocks, physical-PC connectivity, secure setup. Details: `docs/router-lite.md`.
+
+## Router Lite stages 2–3 (28.10.2026)
+
+All 23 Windows tools now accept the optional `computer` parameter. Reflection-based local execution of registered Windows MCP methods avoids duplicating application logic. Remote calls return strings or MCP text/image blocks through one WebSocket transport. Screenshots preserve raw PNG content. On-agent concurrent system commands and serialized GUI actions are implemented; duplicate computer names and wrong tokens fail; agent reconnects after test-router restart.
+
+Evidence: isolated Release build, `test_router_lite.py`, `test_router_reconnect.py`, and existing `test_windows_tools.py`, `test_gui_input_tk.py`, `test_windows_uia.py`, `test_winforms_uia_compat.py`, `test_uia_real_apps.py`, all passed on DOMKAT. No second physical PC tested yet and existing tunnel not restarted. See `docs/router-lite.md`.

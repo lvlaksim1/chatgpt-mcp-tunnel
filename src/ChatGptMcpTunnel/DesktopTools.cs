@@ -48,8 +48,9 @@ public static class DesktopTools
 
     [McpServerTool(Name = "desktop.screen.info", Title = "Мультимедиа · Сведения об экране")]
     [Description("Категория «Мультимедиа» (multimedia): Get Windows desktop bounds in physical pixels, virtual desktop dimensions, mouse position and active window handle.")]
-    public static string ScreenInfo()
+    public static async Task<string> ScreenInfo([Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.screen.info", new { });
         RequireWindows();
         if (!GetCursorPos(out var cursor)) throw NativeError("GetCursorPos");
         var bounds = ScreenBounds();
@@ -65,13 +66,15 @@ public static class DesktopTools
 
     [McpServerTool(Name = "desktop.screen.capture", Title = "Мультимедиа · Снимок экрана")]
     [Description("Категория «Мультимедиа» (multimedia): Capture a real Windows desktop screenshot as a PNG image. Coordinates are physical pixels. By default includes all monitors and scales image to max_width=1920.")]
-    public static IEnumerable<ContentBlock> ScreenCapture(
+    public static async Task<IEnumerable<ContentBlock>> ScreenCapture(
         [Description("Optional left x of the region; omit for the full virtual desktop.")] int? x = null,
         [Description("Optional top y of the region; omit for the full virtual desktop.")] int? y = null,
         [Description("Optional region width in pixels.")] int? width = null,
         [Description("Optional region height in pixels.")] int? height = null,
-        [Description("Maximum returned image width in pixels, 320..4096 (default 1920).")] int max_width = 1920)
+        [Description("Maximum returned image width in pixels, 320..4096 (default 1920).")] int max_width = 1920,
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallBlocksAsync(computer!, "desktop.screen.capture", new { x, y, width, height, max_width });
         RequireWindows();
         if (max_width < 320 || max_width > 4096) throw new ArgumentOutOfRangeException(nameof(max_width));
         var screen = ScreenBounds();
@@ -120,10 +123,12 @@ public static class DesktopTools
 
     [McpServerTool(Name = "desktop.window.list", Title = "Мультимедиа · Список окон")]
     [Description("Категория «Мультимедиа» (multimedia): List visible top-level Windows application windows with titles, handles, PIDs, screen coordinates and foreground status.")]
-    public static string WindowList(
+    public static async Task<string> WindowList(
         [Description("Optional case-insensitive substring to filter window titles.")] string? title_filter = null,
-        [Description("Include visible windows without titles (default false).")] bool include_untitled = false)
+        [Description("Include visible windows without titles (default false).")] bool include_untitled = false,
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.window.list", new { title_filter, include_untitled });
         RequireWindows();
         var active = GetForegroundWindow();
         var windows = new List<object>();
@@ -159,8 +164,10 @@ public static class DesktopTools
 
     [McpServerTool(Name = "desktop.window.activate", Title = "Мультимедиа · Активировать окно")]
     [Description("Категория «Мультимедиа» (multimedia): Restore and bring a Windows application window to the foreground using a handle from desktop.window.list.")]
-    public static string WindowActivate([Description("Window handle as hex (0x...) or decimal string.")] string hwnd)
+    public static async Task<string> WindowActivate([Description("Window handle as hex (0x...) or decimal string.")] string hwnd,
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.window.activate", new { hwnd });
         RequireWindows();
         var window = ParseWindow(hwnd);
         if (IsIconic(window)) ShowWindowAsync(window, SwRestore);
@@ -201,13 +208,15 @@ public static class DesktopTools
 
     [McpServerTool(Name = "desktop.window.move", Title = "Мультимедиа · Переместить окно")]
     [Description("Категория «Мультимедиа» (multimedia): Move or resize an application window to exact screen pixel coordinates.")]
-    public static string WindowMove(
+    public static async Task<string> WindowMove(
         [Description("Handle from desktop.window.list.")] string hwnd,
         [Description("New left position, physical pixels.")] int x,
         [Description("New top position, physical pixels.")] int y,
         [Description("New window width in pixels.")] int width,
-        [Description("New window height in pixels.")] int height)
+        [Description("New window height in pixels.")] int height,
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.window.move", new { hwnd, x, y, width, height });
         RequireWindows();
         if (width < 50 || height < 50 || width > 20000 || height > 20000)
             throw new ArgumentOutOfRangeException(nameof(width), "Window size must be between 50 and 20000 pixels.");
@@ -225,8 +234,10 @@ public static class DesktopTools
 
     [McpServerTool(Name = "desktop.window.close", Title = "Мультимедиа · Закрыть окно")]
     [Description("Категория «Мультимедиа» (multimedia): Request graceful closing of a Windows application window. An application may display an unsaved-changes prompt.")]
-    public static string WindowClose([Description("Handle from desktop.window.list.")] string hwnd)
+    public static async Task<string> WindowClose([Description("Handle from desktop.window.list.")] string hwnd,
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.window.close", new { hwnd });
         RequireWindows();
         var window = ParseWindow(hwnd);
         if (!PostMessageW(window, WmClose, IntPtr.Zero, IntPtr.Zero))
@@ -237,9 +248,11 @@ public static class DesktopTools
 
     [McpServerTool(Name = "desktop.mouse.move", Title = "Мультимедиа · Переместить курсор")]
     [Description("Категория «Мультимедиа» (multimedia): Move the Windows pointer to exact physical screen coordinates without clicking.")]
-    public static string MouseMove([Description("Absolute x coordinate.")] int x,
-        [Description("Absolute y coordinate.")] int y)
+    public static async Task<string> MouseMove([Description("Absolute x coordinate.")] int x,
+        [Description("Absolute y coordinate.")] int y,
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.mouse.move", new { x, y });
         RequireWindows();
         CheckCoordinates(x, y);
         if (!SetCursorPos(x, y)) throw NativeError("SetCursorPos");
@@ -248,11 +261,13 @@ public static class DesktopTools
 
     [McpServerTool(Name = "desktop.mouse.click", Title = "Мультимедиа · Щелчок мышью")]
     [Description("Категория «Мультимедиа» (multimedia): Click at a specified physical screen coordinate with the left, right or middle mouse button; optionally double-click.")]
-    public static string MouseClick([Description("Absolute x coordinate.")] int x,
+    public static async Task<string> MouseClick([Description("Absolute x coordinate.")] int x,
         [Description("Absolute y coordinate.")] int y,
         [Description("left, right, or middle (default left).")] string button = "left",
-        [Description("1 or 2 clicks (default 1).")] int clicks = 1)
+        [Description("1 or 2 clicks (default 1).")] int clicks = 1,
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.mouse.click", new { x, y, button, clicks });
         RequireWindows();
         CheckCoordinates(x, y);
         if (clicks is not (1 or 2)) throw new ArgumentOutOfRangeException(nameof(clicks));
@@ -278,10 +293,12 @@ public static class DesktopTools
 
     [McpServerTool(Name = "desktop.mouse.scroll", Title = "Мультимедиа · Прокрутка")]
     [Description("Категория «Мультимедиа» (multimedia): Scroll vertically with the Windows mouse wheel; positive notches go up, negative go down.")]
-    public static string MouseScroll([Description("Wheel notches, positive=up, negative=down; range -100..100.")] int notches,
+    public static async Task<string> MouseScroll([Description("Wheel notches, positive=up, negative=down; range -100..100.")] int notches,
         [Description("Optional x coordinate of the target.")] int? x = null,
-        [Description("Optional y coordinate of the target.")] int? y = null)
+        [Description("Optional y coordinate of the target.")] int? y = null,
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.mouse.scroll", new { notches, x, y });
         RequireWindows();
         if (notches == 0 || notches < -100 || notches > 100) throw new ArgumentOutOfRangeException(nameof(notches));
         if (x.HasValue != y.HasValue) throw new ArgumentException("Supply both x and y, or neither.");
@@ -296,8 +313,10 @@ public static class DesktopTools
 
     [McpServerTool(Name = "desktop.keyboard.type", Title = "Мультимедиа · Ввод текста")]
     [Description("Категория «Мультимедиа» (multimedia): Type arbitrary Unicode text into the current foreground Windows application without using the clipboard.")]
-    public static string KeyboardType([Description("Exact Unicode text to type.")] string text)
+    public static async Task<string> KeyboardType([Description("Exact Unicode text to type.")] string text,
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.keyboard.type", new { text });
         RequireWindows();
         if (text.Length > 20000) throw new ArgumentOutOfRangeException(nameof(text), "Maximum 20000 UTF-16 units.");
         // KEYEVENTF_UNICODE sends UTF-16 units, including surrogate pairs.
@@ -316,8 +335,10 @@ public static class DesktopTools
 
     [McpServerTool(Name = "desktop.keyboard.hotkey", Title = "Мультимедиа · Сочетание клавиш")]
     [Description("Категория «Мультимедиа» (multimedia): Send a keyboard shortcut to the foreground application: e.g. CTRL+S, ALT+TAB, CTRL+SHIFT+ESC or ENTER.")]
-    public static string KeyboardHotkey([Description("Hotkey string separated by +: CTRL+S, ALT+F4, ENTER, etc.")] string keys)
+    public static async Task<string> KeyboardHotkey([Description("Hotkey string separated by +: CTRL+S, ALT+F4, ENTER, etc.")] string keys,
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.keyboard.hotkey", new { keys });
         RequireWindows();
         var tokens = keys.Split('+', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
         if (tokens.Length is < 1 or > 6) throw new ArgumentException("Shortcut must have 1..6 keys.");

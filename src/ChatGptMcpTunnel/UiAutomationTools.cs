@@ -18,7 +18,8 @@ public static class UiAutomationTools
         [Description("Window handle from desktop.window.list (0x... format).")] string hwnd,
         [Description("Traversal depth: 0..12, default 5.")] int max_depth = 5,
         [Description("Maximum controls to return: 1..500, default 150.")] int max_results = 150,
-        [Description("Traversal view: control (default) or raw. RawView includes otherwise hidden provider nodes.")] string view = "control") =>
+        [Description("Traversal view: control (default) or raw. RawView includes otherwise hidden provider nodes.")] string view = "control",
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null) => RouterLite.IsRemote(computer) ? RouterLite.CallStringAsync(computer!, "desktop.uia.tree", new { hwnd, max_depth, max_results, view }) :
         Run(new { operation = "tree", hwnd, max_depth, max_results, view });
 
     [McpServerTool(Name = "desktop.uia.find", Title = "Мультимедиа · Поиск элементов интерфейса")]
@@ -31,7 +32,8 @@ public static class UiAutomationTools
         [Description("Exact Win32 class name.")] string? class_name = null,
         [Description("Maximum nesting depth (0..20, default 10).")] int max_depth = 10,
         [Description("Maximum search results (1..100, default 30).")] int max_results = 30,
-        [Description("Traversal view: control or raw, default control.")] string view = "control") =>
+        [Description("Traversal view: control or raw, default control.")] string view = "control",
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null) => RouterLite.IsRemote(computer) ? RouterLite.CallStringAsync(computer!, "desktop.uia.find", new { hwnd, name, automation_id, control_type, class_name, max_depth, max_results, view }) :
         Run(new { operation = "find", hwnd, name, automation_id, control_type, class_name, max_depth, max_results, view });
 
     [McpServerTool(Name = "desktop.uia.get", Title = "Мультимедиа · Свойства и текст элемента")]
@@ -39,7 +41,8 @@ public static class UiAutomationTools
     public static Task<string> Get(
         [Description("Window handle from desktop.window.list.")] string hwnd,
         [Description("Element path from desktop.uia.tree or desktop.uia.find. Empty string means the window itself.")] string path,
-        [Description("View used when the path was discovered: control or raw (default control).")] string view = "control") =>
+        [Description("View used when the path was discovered: control or raw (default control).")] string view = "control",
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null) => RouterLite.IsRemote(computer) ? RouterLite.CallStringAsync(computer!, "desktop.uia.get", new { hwnd, path, view }) :
         Run(new { operation = "get", hwnd, path, view });
 
     [McpServerTool(Name = "desktop.uia.action", Title = "Мультимедиа · Действие над элементом")]
@@ -49,7 +52,8 @@ public static class UiAutomationTools
         [Description("Index path to element from desktop.uia.find/tree, empty string for the window itself.")] string path,
         [Description("Action: invoke, set_value, select, toggle, expand, collapse, focus, scroll_into_view.")] string action,
         [Description("Required text only when action=set_value.")] string? value = null,
-        [Description("View used to find the element path: control or raw (default control).")] string view = "control") =>
+        [Description("View used to find the element path: control or raw (default control).")] string view = "control",
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null) => RouterLite.IsRemote(computer) ? RouterLite.CallStringAsync(computer!, "desktop.uia.action", new { hwnd, path, action, value, view }) :
         Run(new { operation = "action", hwnd, path, action, value, view });
 
     private static async Task<string> Run(object request)

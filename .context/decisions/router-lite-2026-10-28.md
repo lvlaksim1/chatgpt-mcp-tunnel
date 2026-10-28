@@ -25,3 +25,7 @@ Stage 1 (28.10.2026) has passed local two-process build/E2E with 42 tools, remot
 - Docker MCP Gateway/IBM ContextForge: tool-name collisions and routing checks; keep a shared tool namespace instead of duplicating tools per computer.
 
 Source: Owner conversation, public GitHub source inspected and local code/tests. No dependency on these third-party projects is introduced.
+
+## Implementation verification (28.10.2026)
+
+Stages 2–3 have passed local tests on DOMKAT: all 23 Windows tools use the same optional target, text/PNG content stays intact, concurrent and serialized GUI execution, bad credentials/duplicate name and reconnection. Owner's original decision stays unchanged. Production cross-host release remains pending.

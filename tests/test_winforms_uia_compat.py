@@ -9,7 +9,7 @@ from pathlib import Path
 if os.name != "nt":
     raise SystemExit("UI Automation tests need interactive Windows.")
 root = Path(__file__).resolve().parents[1]
-dll = root / "src/ChatGptMcpTunnel/bin/Release/net8.0/ChatGptMcpTunnel.dll"
+dll = Path(os.environ.get("CHATGPT_MCP_TEST_DLL", str(root / "src/ChatGptMcpTunnel/bin/Release/net8.0/ChatGptMcpTunnel.dll")))
 server = subprocess.Popen(["dotnet", str(dll)], cwd=root, stdin=subprocess.PIPE,
                           stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf-8",text=True,bufsize=1)
 assert server.stdin and server.stdout

@@ -73,8 +73,10 @@ public static class ComputerTools
 
     [McpServerTool(Name = "fs.list")]
     [Description("List the files and subdirectories in a Windows folder, including file sizes and modification times.")]
-    public static string FsList([Description("Absolute or relative directory path.")] string path)
+    public static async Task<string> FsList([Description("Absolute or relative directory path.")] string path,
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "fs.list", new { path });
         var folder = Path.GetFullPath(path);
         var directory = new DirectoryInfo(folder);
         if (!directory.Exists) throw new DirectoryNotFoundException(folder);
@@ -102,10 +104,12 @@ public static class ComputerTools
 
     [McpServerTool(Name = "fs.read")]
     [Description("Read a local file. Returns UTF-8/Unicode text or base64 for binary files; output can be truncated to a selected length.")]
-    public static string FsRead(
+    public static async Task<string> FsRead(
         [Description("Path to the file.")] string path,
-        [Description("Maximum number of text characters or binary bytes to return (default 200000).")] int max_chars = 200000)
+        [Description("Maximum number of text characters or binary bytes to return (default 200000).")] int max_chars = 200000,
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "fs.read", new { path, max_chars });
         if (max_chars < 1 || max_chars > 2_000_000) throw new ArgumentOutOfRangeException(nameof(max_chars), "Use 1..2000000.");
         var file = Path.GetFullPath(path);
         using var input = File.OpenRead(file);
@@ -133,11 +137,13 @@ public static class ComputerTools
 
     [McpServerTool(Name = "fs.write")]
     [Description("Create or overwrite a text file on the Windows computer. Creates missing parent directories.")]
-    public static string FsWrite(
+    public static async Task<string> FsWrite(
         [Description("Path of file to create or overwrite.")] string path,
         [Description("Exact UTF-8 text to store.")] string content,
-        [Description("Whether overwriting an existing file is allowed (default true).")] bool overwrite = true)
+        [Description("Whether overwriting an existing file is allowed (default true).")] bool overwrite = true,
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "fs.write", new { path, content, overwrite });
         var file = Path.GetFullPath(path);
         var parent = Path.GetDirectoryName(file);
         if (!string.IsNullOrEmpty(parent)) Directory.CreateDirectory(parent);
@@ -149,12 +155,14 @@ public static class ComputerTools
 
     [McpServerTool(Name = "fs.search")]
     [Description("Search for Windows files and folders by name using wildcards like *.xlsx, recursively or only in one directory.")]
-    public static string FsSearch(
+    public static async Task<string> FsSearch(
         [Description("Starting directory.")] string path,
         [Description("File or folder name wildcard, such as *.txt or report*.xlsx.")] string pattern = "*",
         [Description("Include subdirectories (default true).")] bool recursive = true,
-        [Description("Maximum matching paths to return (default 200).")] int max_results = 200)
+        [Description("Maximum matching paths to return (default 200).")] int max_results = 200,
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "fs.search", new { path, pattern, recursive, max_results });
         if (max_results < 1 || max_results > 10000) throw new ArgumentOutOfRangeException(nameof(max_results), "Use 1..10000.");
         var root = Path.GetFullPath(path);
         if (!Directory.Exists(root)) throw new DirectoryNotFoundException(root);
@@ -200,8 +208,10 @@ public static class ComputerTools
         [Description("powershell (default) or cmd.")] string shell = "powershell",
         [Description("Working directory; defaults to the server's working directory.")] string? working_directory = null,
         [Description("Execution timeout in seconds (default 120).")] int timeout_seconds = 120,
-        [Description("Maximum characters per stdout/stderr stream included in the result.")] int max_output_chars = 100000)
+        [Description("Maximum characters per stdout/stderr stream included in the result.")] int max_output_chars = 100000,
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "shell.exec", new { command, shell, working_directory, timeout_seconds, max_output_chars });
         if (timeout_seconds < 1 || timeout_seconds > 3600) throw new ArgumentOutOfRangeException(nameof(timeout_seconds), "Use 1..3600.");
         if (max_output_chars < 1 || max_output_chars > 2_000_000) throw new ArgumentOutOfRangeException(nameof(max_output_chars), "Use 1..2000000.");
         var startInfo = new ProcessStartInfo
@@ -268,10 +278,12 @@ public static class ComputerTools
 
     [McpServerTool(Name = "process.list")]
     [Description("List running Windows processes with PID, name and memory consumption. Supports filtering by process name.")]
-    public static string ProcessList(
+    public static async Task<string> ProcessList(
         [Description("Optional process name substring, case-insensitive.")] string? name_filter = null,
-        [Description("Maximum number of processes to return (default 300).")] int max_results = 300)
+        [Description("Maximum number of processes to return (default 300).")] int max_results = 300,
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "process.list", new { name_filter, max_results });
         if (max_results < 1 || max_results > 20000) throw new ArgumentOutOfRangeException(nameof(max_results), "Use 1..20000.");
         var allProcesses = Process.GetProcesses();
         try
@@ -296,8 +308,10 @@ public static class ComputerTools
     [Description("Terminate a Windows process by PID and optionally terminate child processes as well.")]
     public static async Task<string> ProcessKill(
         [Description("Windows process ID to terminate.")] int pid,
-        [Description("Terminate child processes too (default true).")] bool entire_tree = true)
+        [Description("Terminate child processes too (default true).")] bool entire_tree = true,
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "process.kill", new { pid, entire_tree });
         using var process = Process.GetProcessById(pid);
         var name = process.ProcessName;
         process.Kill(entireProcessTree: entire_tree);

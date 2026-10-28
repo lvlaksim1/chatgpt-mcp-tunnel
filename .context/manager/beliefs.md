@@ -17,6 +17,6 @@
 - supersedes: previous idea of one tunnel per computer and enterprise-style architecture.
 
 ## B4 — Prototype scope, not production readiness
-- statement: Router Lite stage 1 has compiled and passed local E2E: one MCP router + one WebSocket agent, 42 advertised tools, list of computers, remote `system.info`, disconnection and unknown target handling. No physical second PC has yet been tested; 22 other computer-bound tools are not yet routed.
-- source: observed `dotnet build`, `tests/test_mcp_stdio.py`, `tests/test_router_lite.py` on DOMKAT 28.10.2026.
+statement: Router Lite stages 1-3 passed tests on DOMKAT: 42 tools, optional `computer` on all 23 Windows tools, remote files/shell/processes/GUI/UIA/PNG, concurrent requests, wrong key and duplicate name rejection, and reconnect after router restart; physical second PC not yet checked.
+source: isolated Release build; test_mcp_stdio.py, test_router_lite.py, test_router_reconnect.py, test_windows_tools.py, test_gui_input_tk.py, test_windows_uia.py, test_winforms_uia_compat.py, test_uia_real_apps.py (28.10.2026).
 - authority: verified-runtime.

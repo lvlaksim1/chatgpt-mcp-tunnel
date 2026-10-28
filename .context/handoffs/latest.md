@@ -1,16 +1,19 @@
 # Latest handoff
 
-Convenience summary only; manager identity and sealed BDI files are authoritative.
+This is a compact working view; sealed manager BDI state takes precedence.
 
-## Last completed verified work (28.10.2026)
-- Reinstated project-manager ID from `.context/ENTRYPOINT.md`, manifest, Contract, Protocol and identity.
-- Reconciled actual 41-tool original implementation with earlier stale project constraints.
-- Accepted Owner mandate for Router Lite: **one** tunnel, **one** plugin, minimal router built into ChatGPT MCP Tunnel, outgoing agents, local DOMKAT by default, no DB or extra project.
-- Implemented and built stage 1: `RouterLite.cs`, two modes, `computers.list` (42 tools), remote `system.info`.
-- Verified using `tests/test_mcp_stdio.py` and `tests/test_router_lite.py` on DOMKAT. All listed checks passed.
+## Completed and verified (28.10.2026)
 
-## Current open commitment
-Complete routing for remaining 22 Windows tools; then verify two physical PCs and deployment. The local test alone is not release acceptance.
+- Project Manager `project-manager` reinstated with stable v2.1.0 and previously published Router Lite decision.
+- Router Lite stages 1–3 implemented; all 23 Windows MCP tools now have optional `computer`, while 17 GitHub tools stay global.
+- One agent/one router mode in same .NET 8 binary; 42 MCP tools total. Preserved screenshot PNG blocks and original Windows behavior.
+- Local DOMKAT tests passed: MCP stdio, two-process remote files/shell/processes/GUI/UIA/PNG, 23 target schemas, parallel requests, bad key, duplicate ID, unknown name, disconnect and reconnect after router restart.
+- Passed original Windows, Tk GUI, WPF UIA, WinForms UIA and real-application read-only regressions using an isolated build. Live tunnel unchanged.
+
+## Open commitment
+
+Demonstrate and deploy a real second physical computer over protected network; add simple agent startup/credential handling, then release after full acceptance.
 
 ## Next operation
-Implement and test remote file/system commands with `computer` optional, then desktop/UIA and image content. See `.context/manager/intentions.md`, `.context/manager/plans.md` and `docs/router-lite.md`.
+
+Physical PC onboarding and cross-host tests; do not claim production-ready multi-PC operation based only on DOMKAT tests. See `docs/router-lite.md`.

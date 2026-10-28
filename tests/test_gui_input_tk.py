@@ -11,7 +11,7 @@ if os.name != "nt":
     raise SystemExit("This GUI test requires interactive Windows.")
 
 root = Path(__file__).resolve().parents[1]
-dll = root / "src/ChatGptMcpTunnel/bin/Release/net8.0/ChatGptMcpTunnel.dll"
+dll = Path(os.environ.get("CHATGPT_MCP_TEST_DLL", str(root / "src/ChatGptMcpTunnel/bin/Release/net8.0/ChatGptMcpTunnel.dll")))
 seq = 0
 mcp = subprocess.Popen(["dotnet", str(dll)], cwd=root, stdin=subprocess.PIPE,
                        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
