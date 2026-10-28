@@ -85,7 +85,7 @@ try:
         assert shell["exit_code"] == 0 and "MCP_SHELL_OK" in shell["stdout"], shell
         print("SHELL_EXEC_OK", flush=True)
 
-        listed_processes = call("process.list", name_filter="powershell", max_results=200)
+        listed_processes = call("process.list", name_filter="python", max_results=200)
         assert listed_processes["count"] >= 1, listed_processes
         print("PROCESS_LIST_OK", flush=True)
 
