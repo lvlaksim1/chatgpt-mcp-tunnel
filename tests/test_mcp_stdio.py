@@ -37,7 +37,9 @@ try:
     proc.stdin.flush()
     result = request({"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}})
     tools = [t["name"] for t in result["tools"]]
-    assert "bridge_ping" in tools, tools
+    expected = {"bridge_ping", "system.info", "fs.list", "fs.read", "fs.write",
+                "fs.search", "shell.exec", "process.list", "process.kill"}
+    assert set(tools) == expected, tools
     print("TOOLS", tools)
     result = request({"jsonrpc": "2.0", "id": 3, "method": "tools/call",
                       "params": {"name": "bridge_ping", "arguments": {}}})
