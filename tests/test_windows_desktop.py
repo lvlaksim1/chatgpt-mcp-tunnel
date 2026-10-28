@@ -180,15 +180,18 @@ try:
             assert click["clicks"] == 1, click
             print("MOUSE_CLICK_OK", flush=True)
             focus_info("after-click")
+            time.sleep(0.18)
             scroll = value("desktop.mouse.scroll", notches=-1, x=target_x, y=target_y)
             assert scroll["scrolled"], scroll
             print("MOUSE_SCROLL_OK", flush=True)
             hotkey = value("desktop.keyboard.hotkey", keys="CTRL+A")
             assert hotkey["sent"], hotkey
             print("KEYBOARD_HOTKEY_OK", flush=True)
+            time.sleep(0.15)
             typed = value("desktop.keyboard.type", text="Привет MCP 2026")
             assert typed["typed"] and typed["characters"] == len("Привет MCP 2026"), typed
             print("KEYBOARD_TYPE_SENT_OK", flush=True)
+            time.sleep(0.35)
             focus_info("after-typing")
         finally:
             value("desktop.mouse.move", x=original["x"], y=original["y"])
