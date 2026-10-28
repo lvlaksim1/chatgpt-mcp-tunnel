@@ -5,7 +5,8 @@ using ModelContextProtocol.Server;
 
 // Restricted stdio tool registration for local Goose experiments.
 // This is an MCP tool boundary, NOT an operating-system security sandbox.
-[McpServerToolType]
+// Deliberately NOT marked McpServerToolType: full mode uses WithToolsFromAssembly
+// and must not discover these shadow tool names. Goose mode registers this type explicitly.
 public static class GooseSafeTools
 {
     private const int MaxReadChars = 100_000;
