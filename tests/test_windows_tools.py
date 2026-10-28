@@ -73,7 +73,7 @@ try:
         print("FS_LIST_OK", flush=True)
 
         matches = call("fs.search", path=str(location), pattern="*.txt")
-        assert any(m["path"] == str(target) for m in matches["matches"]), matches
+        assert any(Path(m["path"]).samefile(target) for m in matches["matches"]), matches
         print("FS_SEARCH_OK", flush=True)
 
         info = call("system.info")
