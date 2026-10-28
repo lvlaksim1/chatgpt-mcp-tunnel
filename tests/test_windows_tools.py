@@ -62,6 +62,8 @@ try:
                  "desktop.mouse.scroll", "desktop.keyboard.type",
                  "desktop.keyboard.hotkey"}
     expected |= gui_tools
+    uia_tools = {"desktop.uia.tree", "desktop.uia.find", "desktop.uia.get", "desktop.uia.action"}
+    expected |= uia_tools
     assert {t["name"] for t in tools} == expected, tools
     print("TOOL_DISCOVERY_OK", sorted(expected), flush=True)
 
