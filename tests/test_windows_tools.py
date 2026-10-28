@@ -64,6 +64,9 @@ try:
     expected |= gui_tools
     uia_tools = {"desktop.uia.tree", "desktop.uia.find", "desktop.uia.get", "desktop.uia.action"}
     expected |= uia_tools
+    github_tools = {"github.auth", "github.api", "github.graphql", "github.repositories", "github.files", "github.branches", "github.commits", "github.batch_commit", "github.issues", "github.pulls", "github.actions", "github.jobs", "github.releases", "github.release_assets", "github.artifacts", "github.search", "github.git"}
+    expected |= github_tools
+    assert len(github_tools) == 17
     assert {t["name"] for t in tools} == expected, tools
     print("TOOL_DISCOVERY_OK", sorted(expected), flush=True)
 
