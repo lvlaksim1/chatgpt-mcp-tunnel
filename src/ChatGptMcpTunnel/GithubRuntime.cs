@@ -125,12 +125,15 @@ internal static class GithubRuntime
         if (!Path.IsPathFullyQualified(destination)) throw new ArgumentException("destination must be absolute");
         using var request = new HttpRequestMessage(HttpMethod.Get, ApiUri(endpoint));
         request.Headers.UserAgent.ParseAdd("ChatGptMcpTunnel-GitHub/1.0");
-        request.Headers.Accept.ParseAdd("application/octet-stream");
+        request.Headers.Accept.ParseAdd("application/vnd.github+json");
         request.Headers.Add("X-GitHub-Api-Version", "2022-11-28");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await Token());
         using var response = await Client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
         if (!response.IsSuccessStatusCode)
-            throw new InvalidOperationException("GitHub download HTTP " + (int)response.StatusCode);
+        {
+            var details = await response.Content.ReadAsStringAsync();
+            throw new InvalidOperationException("GitHub download HTTP " + (int)response.StatusCode + ": " + details[..Math.Min(details.Length, 900)]);
+        }
         if (response.Content.Headers.ContentLength > 300_000_000)
             throw new InvalidOperationException("Download exceeds 300 MB limit.");
         string? folder = Path.GetDirectoryName(destination);
