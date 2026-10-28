@@ -60,3 +60,8 @@ Physical PC onboarding and cross-host tests; do not claim production-ready multi
 - Inno setup returned exit 0, app version 0.2.2, one tunnel-client and MCP Runtime, Router Lite 192.168.0.3:55201, health/ready 200.
 - Original connector successfully calls bridge_ping and system.info; installed runtime local MCP test advertises 42 tools.
 - Next MKATUSHONOK real client test; no need to reinstall DOMKAT.
+
+## GUI status/Settings and icon in v0.2.3
+- Owner sees generic tray icon, false «Нет соединения» and an inert Settings menu.
+- Confirmed hidden Server Settings HWND. Corrected modal ShowDialog/guard to modeless reused Form, exposed named-event --settings, added async server readyz+Router TCP and custom native ICO with colored state dot.
+- Local source build and win-x64 --selftest, --test-icons, --probe-server pass. Windows Inno CI and actual installed UI verification pending. Existing DOMKAT tunnel retained.

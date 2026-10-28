@@ -113,6 +113,7 @@ internal sealed class UpdateWindow : Form
         MinimizeBox = false;
         MaximizeBox = false;
         Text = "Обновление ChatGPT MCP Agent";
+        Icon = TrayIcons.AppIcon();
         Font = new Font("Segoe UI", 10);
         Controls.AddRange([_phase, _progress, _close]);
         _close.Click += (_, _) => Close();

@@ -68,3 +68,11 @@
 - Confirm fixed native stderr launcher, healthz/readyz HTTP 200, 55201 listener, one tunnel-client, original plugin bridge_ping, system.info and 42 MCP registrations.
 - source: actual successful DOMKAT v0.2.2 in-place update 28.10.2026, run 40712500651.
 - authority: verified-runtime.
+
+## WinForms tray GUI and icon (28.10.2026)
+- Do not call blocking ShowDialog() during Application.Idle in Form-less ApplicationContext. It may leave a hidden modal Settings form and block later tray menu requests.
+- Use Form.Show(), hold one reference, restore and Activate an existing form, and free on FormClosed. The --settings local EventWaitHandle triggers the running tray instance, not a second tunnel.
+- Server health is readyz HTTP 200 plus Router Lite TCP 55201; Client stderr text must not override Server status.
+- Embed Windows ICO through csproj ApplicationIcon and Inno Setup SetupIconFile, verify WinExe --test-icons and extracted native icon; use explicit green/amber/red tray-dot variants.
+- source: DOMKAT invisible Settings HWND, original project source, Owner screenshot and win-x64 tests.
+- authority: verified-runtime, owner-directive.

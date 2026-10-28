@@ -39,3 +39,10 @@ GitHub Actions 40696034380 завершился успешно. В релизе 
 
 ## Existing OpenAI Tunnel ID only
 The server role never creates a new OpenAI cloud tunnel. It creates only a fresh local tunnel-client configuration pointing at the pre-existing Tunnel ID. After clean local reinstall the Owner enters a new runtime key into the UI. See docs/clean-domkat-reinstall.md.
+
+## Windows icon, server status and Settings repair in v0.2.3
+On DOMKAT v0.2.2 the tray displayed «Нет соединения» despite the original bridge ping, readyz HTTP 200, and router port 55201 all being healthy. The source had incorrectly applied client stderr status detection to the Server role. The new Server status uses bounded asynchronous HTTP readiness and local Router Lite TCP checks, while Client continues its separate logic.
+
+The Settings menu was unresponsive. Win32 enumeration found an already-created but invisible Server Settings Form. The old implementation opened a modal ShowDialog during Application.Idle with a guard that blocked reopening. New code opens a modeless persistent window, reuses and foregrounds it, and correctly releases it when closed. A --settings local named event directs the running tray process to open its window without starting a second tunnel.
+
+An original, high-contrast, multi-resolution Windows icon in Resources/App.ico is embedded in the application and used in both Inno installers and Settings forms. Connection-status dots are green when ready, amber while connecting, red on error. The build and icon tests are included in the Windows release workflow.

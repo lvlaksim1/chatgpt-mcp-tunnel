@@ -197,3 +197,8 @@ python tests/test_mcp_stdio.py
 
 ### Clean reinstall with the SAME existing OpenAI Tunnel ID
 No new OpenAI cloud tunnel or ChatGPT plugin will be created. The old local Windows runtime and cached credentials are replaced, while the existing logical Tunnel ID remains. See docs/clean-domkat-reinstall.md for safe preparation and independent cutover.
+
+## Windows tray icon and settings-window repair (v0.2.3)
+A custom multi-resolution native icon is now embedded into the Windows executable, both full and update installers, settings dialogs and the tray. Tray adds green/amber/red connection markers.
+
+The Server status uses an asynchronous bounded local readyz check and Router Lite TCP probe, not client-only stderr messages, fixing a false offline status. The previously hidden modal Settings Form no longer blocks opening from the tray: Settings is modeless, reusable and brought forward upon repeated selection. The read-only --probe-server and --test-icons CLI options support verification. The --settings option signals the existing tray process to open its settings without launching a second OpenAI tunnel.

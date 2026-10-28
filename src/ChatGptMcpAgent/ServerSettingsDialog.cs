@@ -16,6 +16,7 @@ internal sealed class ServerSettingsDialog : Form
     internal ServerSettingsDialog(AgentSettings settings)
     {
         Text = "ChatGPT MCP Tunnel — Сервер";
+        Icon = TrayIcons.AppIcon();
         ClientSize = new Size(520, 420);
         FormBorderStyle = FormBorderStyle.FixedDialog;
         StartPosition = FormStartPosition.CenterScreen;

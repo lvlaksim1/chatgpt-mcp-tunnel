@@ -25,3 +25,7 @@ The local routing, controls and reconnection tests passed; these risks do not in
 - Old native stderr failure resolved in published binary and installed DOMKAT. No remaining local outage.
 - Client MKATUSHONOK has not yet been validated against 192.168.0.3:55201 across the physical network.
 - ChatGPT connector may still cache 41 tool surface even though local MCP server advertises 42 (computers.list addition); plugin metadata refresh could be required.
+
+## Current UI state
+- Live installed DOMKAT remains v0.2.2; original OpenAI tunnel itself is healthy but tray status and Settings menu are faulty.
+- Source fixes in v0.2.3 are local-tested. Need Windows CI build and in-place upgrade before verifying actual GUI. No need to replace existing Tunnel ID or credentials.

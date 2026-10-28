@@ -19,7 +19,7 @@ internal sealed class SettingsDialog : Form
         MinimizeBox = false;
         StartPosition = FormStartPosition.CenterScreen;
         Font = new Font("Segoe UI", 10);
-        Icon = SystemIcons.Application;
+        Icon = TrayIcons.AppIcon();
         var intro = new Label
         {
             Text = "Клиент подключается к основному компьютеру с маршрутизатором",

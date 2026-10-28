@@ -34,3 +34,9 @@ Stages 1–3 were completed and locally verified on DOMKAT; do not repeat that w
 - Configure and test MKATUSHONOK as Client of existing DOMKAT Router Lite, endpoint ws://192.168.0.3:55201/agent on the trusted LAN, using the existing locally stored agent-specific connection key.
 - Check Windows Firewall trusted-network reachability and do not expose ws to public Internet.
 - Verify remote system.info, files, screenshot and UI Automation against MKATUSHONOK with no extra OpenAI tunnel. Preserve current DOMKAT release and working plugin.
+
+## v0.2.3 rollout
+- Commit source and original ICO, build/test full and update installers in Windows GitHub Actions, publish v0.2.3.
+- Update DOMKAT in-place using verified installer while retaining one original OpenAI Tunnel ID and protected keys.
+- Verify tray icon and green connected marker, correct «Сервер подключён» tooltip and Settings window via menu and --settings.
+- After UI acceptance return to physical MKATUSHONOK client tests.

@@ -227,6 +227,10 @@ internal static class AgentStorage
                     IsValidTunnelId("tunnel_invalid") ||
                     !IsValidTunnelId("tunnel_abcd_" + new string('9', 32)))
                     return 7;
+                if (ServerStatusProbe.Describe(ServerConnectivity.Ready) != "Сервер подключён" ||
+                    ServerStatusProbe.Describe(ServerConnectivity.RouterUnavailable) != "Маршрутизатор не готов" ||
+                    ServerStatusProbe.Describe(ServerConnectivity.TunnelUnavailable) != "Туннель не готов")
+                    return 8;
                 if (!ValidateRouter("ws://127.0.0.1:55201/agent", out _) ||
                     !ValidateRouter("ws://100.103.25.9:55201/agent", out _) ||
                     !ValidateRouter("wss://router.example/agent", out _) ||

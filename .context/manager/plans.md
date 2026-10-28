@@ -54,3 +54,12 @@ Source: accepted Owner scope, inspected repository code and verified eight test 
 - Next: physical MKATUSHONOK client onboarding and permissions check only.
 - source: verified GitHub release and live DOMKAT inspection 28.10.2026.
 - authority: verified-runtime.
+
+## v0.2.3 visible UI repair
+1. Verify actual original OpenAI tunnel despite false offline label and inspect hidden Server Settings window. [complete]
+2. Replace client stderr heuristics for server with independent bounded readyz and Router Lite check. [source complete]
+3. Replace blocking ShowDialog with one modeless reusable and focusable Settings window, plus named-event --settings. [source complete]
+4. Embed custom original Windows ICO and green/amber/red tray dot into application and both installers. [source complete]
+5. Run Windows Inno CI, publish v0.2.3 and update DOMKAT; verify actual visible settings window and status. [next]
+- source: Owner requests, observed live DOMKAT, local tests on 28.10.2026.
+- authority: owner-directive, verified-runtime.

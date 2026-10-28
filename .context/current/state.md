@@ -68,3 +68,13 @@
 - Old installation and metadata duplication not needed. Next separate step: physical second computer MKATUSHONOK not yet connected/tested.
 - source: GitHub Release v0.2.2, Actions 40712500651, verified installed runtime 28.10.2026.
 - authority: verified-runtime, verified-repository.
+
+## Source-complete GUI and icon v0.2.3 (28.10.2026 MSK)
+- Owner screenshot: generic tray icon and erroneous «Нет соединения», but original ChatGPT bridge ping and readyz HTTP 200 and Router Lite 192.168.0.3:55201 are healthy.
+- Owner reported Settings menu does nothing. Win32 window enumeration showed a hidden Server Settings HWND in the existing process. Original code used ShowDialog from Application.Idle with a guard preventing reopening.
+- Fixed source to use single modeless Settings Form with focus/restore, FormClosed cleanup and independent --settings named event to bring it up in existing tray.
+- Fixed server tray status to use bounded asynchronous local readyz/router TCP probing instead of client stderr.
+- Custom native icon has 16/24/32/48/64 Windows sizes, embedded in WinExe, both Inno scripts, forms, and green/amber/red tray state overlay.
+- Self-contained win-x64 publish succeeded; --selftest, --test-icons, --probe-server against live DOMKAT all exit 0. Actual GUI upgrade, Inno CI and publication pending.
+- source: owner reports, live DOMKAT inspection and local build.
+- authority: owner-directive, verified-runtime.

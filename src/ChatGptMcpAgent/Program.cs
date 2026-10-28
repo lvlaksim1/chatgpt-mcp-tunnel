@@ -7,12 +7,54 @@ namespace ChatGptMcpAgent;
 internal static class Program
 {
     private const string ShutdownEventName = @"Local\ChatGptMcpAgentShutdown";
+    private const string SettingsEventName = @"Local\ChatGptMcpAgentShowSettings";
     [STAThread]
     private static void Main(string[] args)
     {
         if (args.Contains("--selftest", StringComparer.OrdinalIgnoreCase))
         {
             Environment.ExitCode = AgentStorage.RunSelfTest();
+            return;
+        }
+        if (args.Length == 1 && args[0] == "--test-icons")
+        {
+            try
+            {
+                using var icons = new TrayIcons();
+                // Ensure all four actual Windows native icon handles can be
+                // created with the embedded branding asset, even on Windows CI.
+                if (icons.Base.Width < 16 ||
+                    icons.ForStatus("Сервер подключён").Handle == IntPtr.Zero ||
+                    icons.ForStatus("Подключение…").Handle == IntPtr.Zero ||
+                    icons.ForStatus("Нет соединения").Handle == IntPtr.Zero)
+                    Environment.ExitCode = 12;
+            }
+            catch { Environment.ExitCode = 13; }
+            return;
+        }
+        // Read-only diagnostic for the server role. Never launches a second
+        // tunnel, reads token plaintext, or modifies user configuration.
+        if (args.Length == 1 && args[0] == "--probe-server")
+        {
+            try
+            {
+                var settings = AgentStorage.Load();
+                if (settings.Role != "server")
+                {
+                    Environment.ExitCode = 11;
+                    return;
+                }
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4));
+                var result = ServerStatusProbe.CheckAsync(
+                    settings.ListenAddress, cts.Token).GetAwaiter().GetResult();
+                Environment.ExitCode = result switch
+                {
+                    ServerConnectivity.Ready => 0,
+                    ServerConnectivity.RouterUnavailable => 8,
+                    _ => 7
+                };
+            }
+            catch { Environment.ExitCode = 9; }
             return;
         }
         if (args.Length == 4 && args[0] == "--apply-update")
@@ -23,6 +65,18 @@ internal static class Program
                 args[3].Length is < 12 or > 100)
                 return;
             AgentUpdates.RunUpdateAsync(parentId, url, args[3]).GetAwaiter().GetResult();
+            return;
+        }
+        if (args.Length == 1 && args[0] == "--settings")
+        {
+            // Open the settings window in the existing tray instance; never
+            // start another OpenAI tunnel or duplicate this process.
+            try
+            {
+                using var existing = EventWaitHandle.OpenExisting(SettingsEventName);
+                existing.Set();
+            }
+            catch (WaitHandleCannotBeOpenedException) { Environment.ExitCode = 10; }
             return;
         }
         if (args.Length == 1 && args[0] == "--shutdown")
@@ -52,27 +106,34 @@ internal static class Program
         if (!first) return;
         ApplicationConfiguration.Initialize();
         using var stopEvent = new EventWaitHandle(false, EventResetMode.ManualReset, ShutdownEventName);
-        using var context = new TrayContext(stopEvent);
+        using var settingsEvent = new EventWaitHandle(false, EventResetMode.AutoReset, SettingsEventName);
+        using var context = new TrayContext(stopEvent, settingsEvent);
         Application.Run(context);
     }
 }
 
 internal sealed class TrayContext : ApplicationContext
 {
+    private readonly TrayIcons _icons = new();
     private readonly NotifyIcon _tray;
     private readonly System.Windows.Forms.Timer _timer = new() { Interval = 1500 };
     private readonly EventWaitHandle _shutdown;
+    private readonly EventWaitHandle _showSettings;
     private Process? _child;
     private string _connection = "Не настроен";
     private DateTime _nextStart = DateTime.MinValue;
     private bool _stopping;
     private bool _updating;
-    private bool _openingSettings;
+    private Form? _settingsWindow;
     private bool _checkedUpdates;
+    private bool _serverProbePending;
+    private DateTime _nextServerProbe = DateTime.MinValue;
+    private int _serverGeneration;
 
-    internal TrayContext(EventWaitHandle shutdown)
+    internal TrayContext(EventWaitHandle shutdown, EventWaitHandle settingsEvent)
     {
         _shutdown = shutdown;
+        _showSettings = settingsEvent;
         var menu = new ContextMenuStrip();
         menu.Items.Add("Настройки подключения", null, (_, _) => ShowSettings());
         menu.Items.Add("Переподключиться", null, (_, _) => RestartAgent());
@@ -81,7 +142,7 @@ internal sealed class TrayContext : ApplicationContext
         menu.Items.Add("Выход", null, (_, _) => ExitThread());
         _tray = new NotifyIcon
         {
-            Icon = SystemIcons.Application,
+            Icon = _icons.ForStatus(_connection),
             Text = "ChatGPT MCP Tunnel",
             Visible = true,
             ContextMenuStrip = menu
@@ -91,13 +152,11 @@ internal sealed class TrayContext : ApplicationContext
         {
             if (_shutdown.WaitOne(0))
             {
-                // A settings dialog can be in a nested modal message loop.
-                // Close it before releasing the tray application's mutex.
-                foreach (Form open in Application.OpenForms.Cast<Form>().ToArray())
-                    open.Close();
                 ExitThread();
                 return;
             }
+            if (_showSettings.WaitOne(0))
+                ShowSettings();
             if (!_stopping && !_updating && _child is { HasExited: true })
             {
                 // Record only the numeric exit code; never log CLI stderr verbatim
@@ -111,8 +170,15 @@ internal sealed class TrayContext : ApplicationContext
             if (!_stopping && !_updating && _child is null && DateTime.UtcNow >= _nextStart &&
                 File.Exists(AgentStorage.SettingsPath))
                 StartAgent();
+            if (!_stopping && !_updating && _child is { HasExited: false } &&
+                AgentStorage.SelectedRole == "server" &&
+                !_serverProbePending && DateTime.UtcNow >= _nextServerProbe)
+                _ = PollServerStatusAsync();
             var label = "ChatGPT MCP Tunnel — " + _connection;
             _tray.Text = label.Length > 63 ? label[..63] : label;
+            var displayIcon = _icons.ForStatus(_connection);
+            if (!ReferenceEquals(_tray.Icon, displayIcon))
+                _tray.Icon = displayIcon;
         };
         _timer.Start();
         Application.Idle += OnIdle;
@@ -133,17 +199,36 @@ internal sealed class TrayContext : ApplicationContext
 
     private void ShowSettings()
     {
-        if (_openingSettings || _updating || _stopping) return;
-        _openingSettings = true;
-        try
+        if (_updating || _stopping) return;
+        // A modeless window avoids the nested message loop created by
+        // Form.ShowDialog() from Application.Idle. That loop could leave
+        // _openingSettings=true with a hidden form and a dead menu command.
+        if (_settingsWindow is { IsDisposed: false } existing)
         {
-            using Form form = AgentStorage.SelectedRole == "server"
-                ? new ServerSettingsDialog(AgentStorage.Load())
-                : new SettingsDialog(AgentStorage.Load());
-            if (form.ShowDialog() == DialogResult.OK)
-                RestartAgent();
+            if (!existing.Visible) existing.Show();
+            if (existing.WindowState == FormWindowState.Minimized)
+                existing.WindowState = FormWindowState.Normal;
+            existing.BringToFront();
+            existing.Activate();
+            return;
         }
-        finally { _openingSettings = false; }
+        Form form = AgentStorage.SelectedRole == "server"
+            ? new ServerSettingsDialog(AgentStorage.Load())
+            : new SettingsDialog(AgentStorage.Load());
+        _settingsWindow = form;
+        form.FormClosed += (_, _) =>
+        {
+            var saved = form.DialogResult == DialogResult.OK;
+            if (ReferenceEquals(_settingsWindow, form))
+                _settingsWindow = null;
+            form.Dispose();
+            if (saved && !_stopping && !_updating)
+                RestartAgent();
+        };
+        form.Show();
+        form.BringToFront();
+        form.Activate();
+        AgentStorage.Log("Settings window opened.");
     }
 
     private void StartAgent()
@@ -221,21 +306,27 @@ internal sealed class TrayContext : ApplicationContext
             _child.ErrorDataReceived += (_, e) =>
             {
                 if (e.Data is null) return;
-                if (e.Data.Contains(" connected.", StringComparison.OrdinalIgnoreCase))
-                    _connection = "Подключён";
-                else if (e.Data.Contains("error", StringComparison.OrdinalIgnoreCase) ||
-                         e.Data.Contains("failed", StringComparison.OrdinalIgnoreCase) ||
-                         e.Data.Contains("refused", StringComparison.OrdinalIgnoreCase))
-                    _connection = "Нет соединения";
-                // No environment variable, authorization headers or secrets are logged.
+                // Only client agents expose their connection state through
+                // textual status messages. The server uses HTTP readiness and
+                // a local Router Lite TCP probe instead.
                 if (settings.Role == "client")
+                {
+                    if (e.Data.Contains(" connected.", StringComparison.OrdinalIgnoreCase))
+                        _connection = "Подключён";
+                    else if (e.Data.Contains("error", StringComparison.OrdinalIgnoreCase) ||
+                             e.Data.Contains("failed", StringComparison.OrdinalIgnoreCase) ||
+                             e.Data.Contains("refused", StringComparison.OrdinalIgnoreCase))
+                        _connection = "Нет соединения";
                     AgentStorage.Log(e.Data);
+                }
                 else if (e.Data.Contains("Router Lite", StringComparison.OrdinalIgnoreCase))
                     AgentStorage.Log("Server event: Router Lite");
+                // No authorization data or other native stderr is logged.
             };
             _child.Start();
             _child.BeginErrorReadLine();
-            _connection = "Подключение…";
+            _connection = settings.Role == "server" ? "Запуск сервера…" : "Подключение…";
+            _nextServerProbe = DateTime.MinValue;
             _nextStart = DateTime.UtcNow.AddSeconds(5);
             AgentStorage.Log("Agent process started.");
         }
@@ -249,8 +340,42 @@ internal sealed class TrayContext : ApplicationContext
         }
     }
 
+    private async Task PollServerStatusAsync()
+    {
+        _serverProbePending = true;
+        _nextServerProbe = DateTime.UtcNow.AddSeconds(5);
+        var generation = _serverGeneration;
+        try
+        {
+            // This is the Server role: do not interpret MCP informational
+            // stderr as "Нет соединения", and do not wait for an agent message.
+            var address = AgentStorage.Load().ListenAddress;
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+            var result = await ServerStatusProbe.CheckAsync(address, timeout.Token);
+            if (generation == _serverGeneration && !_stopping && !_updating &&
+                _child is { HasExited: false })
+                _connection = ServerStatusProbe.Describe(result);
+        }
+        catch (Exception error)
+        {
+            if (generation == _serverGeneration && !_stopping)
+            {
+                _connection = "Проверка сервера недоступна";
+                AgentStorage.Log("Server health check error: " + error.GetType().Name);
+            }
+        }
+        finally
+        {
+            _serverProbePending = false;
+        }
+    }
+
     private void StopAgent()
     {
+        // Prevent a previous readiness probe from changing a new server's
+        // status after reconnect or update.
+        _serverGeneration++;
+        _nextServerProbe = DateTime.MinValue;
         var child = _child;
         _child = null;
         if (child is null) return;
@@ -351,9 +476,12 @@ internal sealed class TrayContext : ApplicationContext
         if (_stopping) return;
         _stopping = true;
         _timer.Stop();
+        if (_settingsWindow is { IsDisposed: false } window)
+            window.Close();
         StopAgent();
         _tray.Visible = false;
         _tray.Dispose();
+        _icons.Dispose();
         base.ExitThreadCore();
     }
 

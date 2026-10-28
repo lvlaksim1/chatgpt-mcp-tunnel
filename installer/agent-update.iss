@@ -31,6 +31,7 @@ OutputBaseFilename=ChatGPT_MCP_Tunnel_Update_v{#AppVersion}
 Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern
+SetupIconFile={#SourcePath}..\src\ChatGptMcpAgent\Resources\App.ico
 PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible

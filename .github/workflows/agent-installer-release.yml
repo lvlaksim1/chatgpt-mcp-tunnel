@@ -6,7 +6,7 @@ on:
       version:
         description: 'Stable numeric release version (X.Y.Z)'
         required: true
-        default: '0.2.2'
+        default: '0.2.3'
         type: string
 
 permissions:
@@ -97,6 +97,12 @@ jobs:
           if ($self.ExitCode -ne 0) { throw "Tray DPAPI/config selftest failed: $($self.ExitCode)" }
           New-Item -ItemType Directory -Force -Path .tools | Out-Null
           $env:CHATGPT_MCP_SKIP_GUI_TESTS = '1'
+          $appIcon = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--test-icons' -Wait -PassThru
+          if ($appIcon.ExitCode -ne 0) { throw "Embedded Windows tray icon test failed: $($appIcon.ExitCode)" }
+          Add-Type -AssemblyName System.Drawing
+          $nativeIcon = [System.Drawing.Icon]::ExtractAssociatedIcon((Resolve-Path publish/ChatGptMcpAgent.exe))
+          if ($null -eq $nativeIcon -or $nativeIcon.Width -lt 16) { throw 'The new executable lacks a Windows application icon' }
+          $nativeIcon.Dispose()
           $env:CHATGPT_MCP_TEST_DLL = "$pwd\publish\Runtime\ChatGptMcpTunnel.dll"
           python tests/test_mcp_stdio.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

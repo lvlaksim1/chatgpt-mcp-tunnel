@@ -72,3 +72,12 @@ verified partial progress: stages 1-3 passed local E2E, all 23 Windows tools rem
 - authority: verified-runtime
 - verified outcome: signed-off installer CI, live update preserved existing Tunnel ID, one tunnel-client, Router Lite, DPAPI and local autostart; original connector ping, system tools and readyz successful.
 - remaining work outside this commitment: physical client MKATUSHONOK connection tests.
+
+## v0.2.3 Settings window, server status and icon
+- commitment_id: server-settings-tray-icon-2026-10-28
+- status: accepted/active
+- owner: project-manager
+- source: Owner reported false «Нет соединения», inert Settings menu and requested a new icon on 28.10.2026.
+- authority: owner-directive
+- verified partial progress: source now has modeless Settings, named-event --settings, independent Server readyz/router health and new native ICO with colored tray dot. Self-contained app build, --selftest, --test-icons, --probe-server all returned 0 on DOMKAT.
+- remaining: Windows Inno CI acceptance, publish v0.2.3, deploy to DOMKAT and verify visible Settings window and correct tooltip.
