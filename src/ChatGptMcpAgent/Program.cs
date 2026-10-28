@@ -12,6 +12,32 @@ internal static class Program
     [STAThread]
     private static void Main(string[] args)
     {
+        if (args.Length == 2 && args[0] == "--configure-lan-firewall")
+        {
+            Environment.ExitCode = LanFirewall.ConfigureElevated(args[1]);
+            return;
+        }
+        if (args.Length == 1 && args[0] == "--test-client-errors")
+        {
+            Environment.ExitCode =
+                TrayContext.ClientStatusFromLine("Router Lite agent 'CLIENT' connected.") == "Подключён" &&
+                TrayContext.ClientStatusFromLine("Router Lite agent: WebSocketException: server status code '401'") == "Ключ отклонён" &&
+                TrayContext.ClientStatusFromLine("Router Lite agent: WebSocketException: server status code '409'") == "Имя компьютера занято" &&
+                TrayContext.ClientStatusFromLine("Router Lite agent: WebSocketException: destination unavailable") == "Нет соединения" &&
+                TrayContext.ClientStatusFromLine("ordinary status") is null ? 0 : 35;
+            return;
+        }
+        if (args.Length == 1 && args[0] == "--test-lan-firewall")
+        {
+            Environment.ExitCode = LanFirewall.TestLocalNetwork() ? 0 : 34;
+            return;
+        }
+        if (args.Length == 1 && args[0] == "--test-updater-download")
+        {
+            Environment.ExitCode = AgentUpdates.TestDownloadStagingAsync()
+                .GetAwaiter().GetResult();
+            return;
+        }
         if (args.Contains("--selftest", StringComparer.OrdinalIgnoreCase))
         {
             Environment.ExitCode = AgentStorage.RunSelfTest();
@@ -180,6 +206,24 @@ internal sealed class TrayContext : ApplicationContext
         form.Activate();
         if (!IsWindowVisible(handle))
             AgentStorage.Log("Settings window native visibility check failed.");
+    }
+
+    internal static string? ClientStatusFromLine(string line)
+    {
+        if (line.Contains(" connected.", StringComparison.OrdinalIgnoreCase))
+            return "Подключён";
+        if (line.Contains("401", StringComparison.OrdinalIgnoreCase) &&
+            line.Contains("Router Lite agent:", StringComparison.OrdinalIgnoreCase))
+            return "Ключ отклонён";
+        if (line.Contains("409", StringComparison.OrdinalIgnoreCase) &&
+            line.Contains("Router Lite agent:", StringComparison.OrdinalIgnoreCase))
+            return "Имя компьютера занято";
+        if (line.Contains("Router Lite agent:", StringComparison.OrdinalIgnoreCase) ||
+            line.Contains("error", StringComparison.OrdinalIgnoreCase) ||
+            line.Contains("failed", StringComparison.OrdinalIgnoreCase) ||
+            line.Contains("refused", StringComparison.OrdinalIgnoreCase))
+            return "Нет соединения";
+        return null;
     }
 
     private bool _checkedUpdates;
@@ -363,12 +407,8 @@ internal sealed class TrayContext : ApplicationContext
                 // a local Router Lite TCP probe instead.
                 if (settings.Role == "client")
                 {
-                    if (e.Data.Contains(" connected.", StringComparison.OrdinalIgnoreCase))
-                        _connection = "Подключён";
-                    else if (e.Data.Contains("error", StringComparison.OrdinalIgnoreCase) ||
-                             e.Data.Contains("failed", StringComparison.OrdinalIgnoreCase) ||
-                             e.Data.Contains("refused", StringComparison.OrdinalIgnoreCase))
-                        _connection = "Нет соединения";
+                    var status = ClientStatusFromLine(e.Data);
+                    if (status is not null) _connection = status;
                     AgentStorage.Log(e.Data);
                 }
                 else if (e.Data.Contains("Router Lite", StringComparison.OrdinalIgnoreCase))

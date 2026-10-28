@@ -6,7 +6,7 @@ on:
       version:
         description: 'Stable numeric release version (X.Y.Z)'
         required: true
-        default: '0.2.5'
+        default: '0.2.6'
         type: string
 
 permissions:
@@ -97,6 +97,12 @@ jobs:
           if ($self.ExitCode -ne 0) { throw "Tray DPAPI/config selftest failed: $($self.ExitCode)" }
           New-Item -ItemType Directory -Force -Path .tools | Out-Null
           $env:CHATGPT_MCP_SKIP_GUI_TESTS = '1'
+          $clientErrorTest = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--test-client-errors' -Wait -PassThru
+          if ($clientErrorTest.ExitCode -ne 0) { throw "Client connection error classification test failed: $($clientErrorTest.ExitCode)" }
+          $lanFirewallTest = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--test-lan-firewall' -Wait -PassThru
+          if ($lanFirewallTest.ExitCode -ne 0) { throw "LAN firewall IP/prefix diagnostic test failed: $($lanFirewallTest.ExitCode)" }
+          $stagingTest = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--test-updater-download' -Wait -PassThru
+          if ($stagingTest.ExitCode -ne 0) { throw "Windows updater staging/rename test failed: $($stagingTest.ExitCode)" }
           $secretForms = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--test-secret-forms' -Wait -PassThru
           if ($secretForms.ExitCode -ne 0) { throw "Client/server secret field UX test failed: $($secretForms.ExitCode)" }
           $appIcon = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--test-icons' -Wait -PassThru

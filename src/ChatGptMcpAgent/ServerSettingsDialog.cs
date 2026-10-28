@@ -150,6 +150,31 @@ internal sealed class ServerSettingsDialog : Form
         Controls.Add(_autostart);
         y += 43;
 
+        var allowLan = MakeButton(20, y, 294, "Разрешить доступ клиентам в локальной сети");
+        allowLan.Click += async (_, _) =>
+        {
+            allowLan.Enabled = false;
+            try
+            {
+                await LanFirewall.RequestSetupAsync(this, _address.Text.Trim());
+            }
+            catch (System.ComponentModel.Win32Exception error)
+            {
+                MessageBox.Show(this,
+                    error.NativeErrorCode == 1223
+                        ? "Подтверждение администратора отменено."
+                        : "Не удалось запросить права администратора: " + error.Message,
+                    "Брандмауэр Windows", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(this, error.Message,
+                    "Брандмауэр Windows", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            finally { allowLan.Enabled = true; }
+        };
+        y += 44;
+
         var check = MakeButton(20, y, 120, "Проверить");
         check.Click += async (_, _) =>
         {

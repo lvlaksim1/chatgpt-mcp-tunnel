@@ -71,3 +71,13 @@ source: isolated Release build; test_mcp_stdio.py, test_router_lite.py, test_rou
 - statement: v0.2.5 source commit 533d4ecb088957d3074bdb6da6810ffebf66e10a produced two Windows Inno binaries, full ChatGPT_MCP_Tunnel_Setup_v0.2.5.exe SHA256 57b811467bf4a79a56ae8d8f99965ca36840745b853d357ece29a5a6e105f13a and Update ChatGPT_MCP_Tunnel_Update_v0.2.5.exe SHA256 278140cb9ee4ed7a1bfcaa500a3b38d27937520185645cc30b6dc75c40ff112b. Windows GitHub Actions run 40732281198 completed success, including install/update/preservation tests. Owner explicitly performs actual DOMKAT update personally; installed app remains untouched by manager.
 - source: GitHub Release v0.2.5, Actions 40732281198, owner directive 28.10.2026.
 - authority: verified-repository, owner-directive.
+
+## B16 — verified v0.2.5 updater IOException root cause
+- statement: Windows file-sharing conflict in v0.2.5 downloader occurs because File.Move on staged .part happens before disposing its FileStream. User screenshot shows 100% and file-in-use error; DOMKAT Logs/agent.log has Update failed IOException 20:11:39 and 20:13:21 on 28.10.2026. DOMKAT installed v0.2.5. Fix v0.2.6 releases writer before move and adds --test-updater-download, local tests success.
+- source: owner screenshot, read-only DOMKAT log/source inspection, local compilation/tests.
+- authority: owner-incident, verified-runtime.
+
+## B17 — Server LAN access likely blocked by Windows Firewall
+- statement: On DOMKAT at 20:20 MSK Router Lite listened on 192.168.0.3:55201 and OpenAI readyz returned 200, while Wi-Fi used Public firewall profile with BlockInbound and no app/port 55201 inbound allow rule. This is a plausible client connectivity blocker, but independent network/authorization test from MKATUSHONOK has NOT been performed. DPAPI server key file updated 20:17:08, so clients require latest shared key. v0.2.6 adds optional on-demand UAC firewall rule scoped to current LAN subnet and client error interpretation; local tests pass.
+- source: read-only DOMKAT network/firewall/process/log checks, verified code and local tests 28.10.2026.
+- authority: verified-runtime, owner-incident.

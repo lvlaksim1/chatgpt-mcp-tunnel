@@ -107,3 +107,11 @@ verified partial progress: stages 1-3 passed local E2E, all 23 Windows tools rem
 - source: GitHub Release v0.2.5 and successful Windows Actions 40732281198.
 - authority: verified-repository
 - verified outcome: full and update EXEs published with SHA256, release not draft or prerelease, install/update/uninstall checks passed. DOMKAT update deliberately not executed; owner will use built-in program updater.
+
+## v0.2.6 updater fix deliverable
+- commitment_id: repair-built-in-updater-ioexception-2026-10-28
+- status: accepted/active
+- source: owner supplied v0.2.5 updater failure screenshot; source and log identify unclosed staging stream.
+- authority: owner-incident, verified-runtime
+- completed: scoped file writer, verify complete length, protect existing install on failure; new Windows regression test, local tests.
+- remaining: stable GitHub full/update binary v0.2.6 with Windows CI; leave DOMKAT installed software untouched.

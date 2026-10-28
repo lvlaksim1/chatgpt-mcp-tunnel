@@ -105,3 +105,19 @@
 - DOMKAT installed program NOT updated at owner's explicit request. Current IP 192.168.0.3 preserved. Owner will install via built-in update controls.
 - source: GitHub CI and release verified 28.10.2026, owner instruction.
 - authority: verified-repository, owner-directive.
+
+## v0.2.6 updater lock fix prepared (28.10.2026)
+- DOMKAT installed v0.2.5; two updater IOException entries at 20:11:39 and 20:13:21. At 100% transfer the staging .part FileStream remained open while File.Move tried to rename it to .exe; Windows correctly denied rename.
+- Fixed AgentUpdates.cs: await using scope closes FileStream before File.Move, check complete ContentLength, clean .part safely; new --test-updater-download code and Windows CI gate.
+- Local Windows x64 tests: --test-updater-download 0; --selftest 0; --test-icons 0; --test-secret-forms 0; --probe-server 0. Fix does not modify installed app or running tunnel.
+- Explicit user directive: do not install on DOMKAT. Owner requires full+update artifacts and manual launch of v0.2.6 Update EXE once because v0.2.5 automatic downloader is broken. Retain IP 192.168.0.3, existing OpenAI Tunnel ID and DPAPI secrets.
+- source: owner screenshot, source, agent.log, local tests.
+- authority: owner-incident, verified-runtime.
+
+## DOMKAT LAN client diagnostic (28.10.2026)
+- Server active: local IP 192.168.0.3, listener TCP 55201, OpenAI readyz 200.
+- Windows Wi-Fi profile Public with inbound Block; no allow rule found for port 55201 or ChatGptMcpTunnel program. This can block MKATUSHONOK; direct MKATUSHONOK-side probe has not been run because only DOMKAT remote device is available.
+- Server client secret DPAPI file timestamp 20:17:08; copies later at 20:18:45 logged without actual key. Previous client secret may be stale. RouterLite returns 401 for invalid secret, 409 for duplicate machine ID.
+- Source v0.2.6 adds an explicit LAN-restricted Windows Firewall UAC button on server and descriptive client WebSocket error indicators; all local tests pass.
+- User controls update; do not remotely install or change live firewall without their separate approval through UI.
+- authority: verified-runtime, owner-incident.

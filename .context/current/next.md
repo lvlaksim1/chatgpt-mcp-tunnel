@@ -56,3 +56,13 @@ Stages 1–3 were completed and locally verified on DOMKAT; do not repeat that w
 - Provide links for full Setup and Update v0.2.5 and report successful CI.
 - Do not install on DOMKAT. Owner updates existing app themselves using built-in updater.
 - Upon owner confirmation, inspect updated app and follow up only with requested UI fixes; keep existing OpenAI Tunnel ID, DPAPI secrets, IP 192.168.0.3.
+
+## Deliver v0.2.6 repair binaries
+- Commit source+manager capsule, dispatch Windows installer workflow for v0.2.6, verify all tests, 2 Release EXEs and SHA256.
+- Explain one-time manual update necessary from installed v0.2.5; subsequent in-app updates repaired.
+- Leave installed DOMKAT version, keys, tunnel, IP 192.168.0.3 untouched.
+
+## v0.2.6 client connectivity follow-up
+- Publish both full/update installers with Windows tests for staging, firewall subnet calculation and client WebSocket error states.
+- User self-installs v0.2.6, uses Server Settings «Разрешить доступ клиентам в локальной сети» then Windows UAC confirmation; client's IP/hostname and shared key are entered separately, save/connect.
+- Confirm connectivity from physical client. If still failing, gather its on-machine agent.log/error (network vs 401 vs 409), do not speculate.

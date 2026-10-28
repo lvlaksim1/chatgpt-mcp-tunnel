@@ -55,28 +55,45 @@ internal static class AgentUpdates
 
     internal static async Task DownloadAsync(Uri source, string dest, Action<int> progress)
     {
+        using var response = await Client.GetAsync(source, HttpCompletionOption.ResponseHeadersRead);
+        response.EnsureSuccessStatusCode();
+        await using var input = await response.Content.ReadAsStreamAsync();
+        await StageInstallerAsync(input, dest, response.Content.Headers.ContentLength, progress);
+    }
+
+    // The staging FileStream MUST be fully disposed before moving .part to .exe.
+    // Windows denies rename while our own FileShare.None writer still holds it.
+    internal static async Task StageInstallerAsync(
+        Stream input, string dest, long? expected, Action<int> progress)
+    {
+        const long limit = 300L * 1024 * 1024;
+        if (expected is > limit)
+            throw new InvalidDataException("Размер обновления превышает 300 МиБ.");
         Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
         var partial = dest + ".part";
         try
         {
-            using var response = await Client.GetAsync(source, HttpCompletionOption.ResponseHeadersRead);
-            response.EnsureSuccessStatusCode();
-            var expected = response.Content.Headers.ContentLength;
-            const long limit = 300L * 1024 * 1024;
-            if (expected is > limit) throw new InvalidDataException("Размер обновления превышает 300 МиБ.");
-            await using var input = await response.Content.ReadAsStreamAsync();
-            await using var output = File.Create(partial);
-            var buffer = new byte[65536];
             long received = 0;
-            int count;
-            while ((count = await input.ReadAsync(buffer)) > 0)
+            await using (var output = new FileStream(
+                partial, FileMode.Create, FileAccess.Write, FileShare.None,
+                bufferSize: 65536, useAsync: true))
             {
-                received += count;
-                if (received > limit) throw new InvalidDataException("Размер обновления превышает 300 МиБ.");
-                await output.WriteAsync(buffer.AsMemory(0, count));
-                if (expected > 0) progress((int)Math.Min(100, received * 100 / expected.Value));
-            }
-            await output.FlushAsync();
+                var buffer = new byte[65536];
+                int count;
+                while ((count = await input.ReadAsync(buffer.AsMemory())) > 0)
+                {
+                    received += count;
+                    if (received > limit)
+                        throw new InvalidDataException("Размер обновления превышает 300 МиБ.");
+                    await output.WriteAsync(buffer.AsMemory(0, count));
+                    if (expected > 0)
+                        progress((int)Math.Min(100, received * 100 / expected.Value));
+                }
+                await output.FlushAsync();
+            } // FileStream disposed: ONLY NOW is rename safe on Windows.
+
+            if (expected is not null && received != expected.Value)
+                throw new InvalidDataException("Обновление загружено не полностью.");
             File.Move(partial, dest, overwrite: true);
         }
         finally
@@ -84,6 +101,47 @@ internal static class AgentUpdates
             if (File.Exists(partial)) File.Delete(partial);
         }
     }
+
+    internal static async Task<int> TestDownloadStagingAsync()
+    {
+        var folder = Path.Combine(Path.GetTempPath(),
+            "ChatGPTMCPAgent-Staging-Test-" + Guid.NewGuid().ToString("N"));
+        var target = Path.Combine(folder, "update.exe");
+        try
+        {
+            byte[] first = System.Security.Cryptography.RandomNumberGenerator.GetBytes(120003);
+            await using (var stream = new MemoryStream(first, writable: false))
+                await StageInstallerAsync(stream, target, first.Length, _ => { });
+            if (!File.ReadAllBytes(target).SequenceEqual(first) ||
+                File.Exists(target + ".part")) return 21;
+            byte[] second = System.Security.Cryptography.RandomNumberGenerator.GetBytes(65545);
+            await using (var stream = new MemoryStream(second, writable: false))
+                await StageInstallerAsync(stream, target, second.Length, _ => { });
+            if (!File.ReadAllBytes(target).SequenceEqual(second) ||
+                File.Exists(target + ".part")) return 22;
+            // Incomplete response must not corrupt a valid existing installer.
+            try
+            {
+                await using var broken = new MemoryStream(new byte[5], writable: false);
+                await StageInstallerAsync(broken, target, 10, _ => { });
+                return 23;
+            }
+            catch (InvalidDataException) { }
+            if (!File.ReadAllBytes(target).SequenceEqual(second) ||
+                File.Exists(target + ".part")) return 24;
+            // Ensure no stream leaked: exclusive read-write open must work.
+            using (var unlocked = new FileStream(
+                target, FileMode.Open, FileAccess.ReadWrite, FileShare.None)) { }
+            return 0;
+        }
+        catch { return 25; }
+        finally
+        {
+            if (Directory.Exists(folder))
+                Directory.Delete(folder, recursive: true);
+        }
+    }
+
 }
 
 internal sealed class UpdateWindow : Form

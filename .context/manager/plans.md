@@ -89,3 +89,19 @@ Source: accepted Owner scope, inspected repository code and verified eight test 
 5. Await owner installation results for visual acceptance; retain 192.168.0.3. [future]
 - source: verified GitHub release and owner directive 28.10.2026.
 - authority: verified-repository, owner-directive.
+
+## Corrective v0.2.6 plan
+1. Root cause user screenshot and runtime log, identify FileStream lock. [done]
+2. Dispose download output before rename; fail safely on incomplete download. [done]
+3. Local --test-updater-download, --selftest, --test-icons, --test-secret-forms, --probe-server pass. [done]
+4. Context validate, commit, Windows installer CI, publish both installers and verify SHA256. [next]
+5. Owner manually launches v0.2.6 update EXE once; do not remote-install. [owner-controlled]
+- source: owner incident, verified-runtime 28.10.2026.
+
+## Physical client connectivity acceptance
+1. Verify server readiness, bound interface, firewall profile and rule [done: 192.168.0.3:55201, readyz 200, Public inbound blocked, no allow rule].
+2. Add explicit user-confirmed UAC action to permit inbound TCP 55201 only for Router Lite executable from same local subnet [code/test done in v0.2.6].
+3. Add visible client state for HTTP 401 wrong key, 409 duplicate name, other errors [code/test done].
+4. Publish v0.2.6 with updater staging fix and these diagnostics [pending Windows CI].
+5. User manually installs v0.2.6, opens server Settings, clicks LAN access button/accepts UAC, copies latest server client key and saves it in client Settings, verifies connection from MKATUSHONOK [user-controlled; not yet verified].
+- authority: owner-incident, verified-runtime.

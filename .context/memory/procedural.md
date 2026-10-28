@@ -97,3 +97,20 @@
 - v0.2.5 Windows Actions 40732281198 verified both installer assets, update preservation, full installation and uninstall. Legacy alias ChatGPT_MCP_Agent_Update_v0.2.5.exe is retained for existing auto-updater.
 - source: owner directive and successful GitHub release on 28.10.2026.
 - authority: owner-directive, verified-repository.
+
+## Owner restriction on installed upgrades (2026-10-28)
+- source: user explicitly controls update installation; remote installed DOMKAT must not be changed by project manager.
+- authority: owner-directive
+- action: publish verified full/update binaries only; never run remote installer or shutdown running server without specific new authorization.
+
+## Windows update stream lifecycle
+- Never rename downloaded .part while FileStream remains open; use bounded await using scope around all writes, then File.Move only after DisposeAsync. Validate actual bytes against ContentLength before replacement, preserve previous download on failure.
+- --test-updater-download exercises overwrite, interrupted download cleanup, and exclusive file access. v0.2.5 existing built-in updater needs one-time manual v0.2.6 Update EXE, user explicitly disallows remote update.
+- source: owner incident and runtime log 28.10.2026.
+- authority: owner-directive, verified-runtime.
+
+## LAN-only client access security and diagnosis (28.10.2026)
+- When server Router Lite listens on LAN but client cannot connect, check Windows Firewall inbound profile, permitted rule for TCP 55201, latest server DPAPI key timestamp, and client WebSocket error, separating HTTP 401 auth, 409 duplicate name and network failures. A readyz 200 on localhost does NOT prove external LAN reachability.
+- Permit firewall only by explicit server Settings button and Windows UAC approval; bound to Router Lite runtime exe, local address, TCP 55201 and current LAN subnet. Never open port to entire Internet nor change global firewall profile.
+- source: DOMKAT read-only network/Windows Firewall diagnostics and source tests, 28.10.2026.
+- authority: verified-runtime, owner-incident.

@@ -82,3 +82,14 @@ Physical PC onboarding and cross-host tests; do not claim production-ready multi
 - Full Setup SHA256 57b811467bf4a79a56ae8d8f99965ca36840745b853d357ece29a5a6e105f13a; Update SHA256 278140cb9ee4ed7a1bfcaa500a3b38d27937520185645cc30b6dc75c40ff112b. Release includes third legacy-named update alias to support existing update mechanism.
 - Contains accepted server/client secret-free Settings UX; inline buttons open temporary secret popup. Client key has no reveal/copy. IP still 192.168.0.3, port 55201 automatic.
 - Crucial: owner requested no remote update; DOMKAT existing installation was left unchanged. Wait for owner self-update acceptance.
+
+## v0.2.6 Windows downloader bug
+- User screenshot showed 100% and file-in-use error. Cause: await using var output lasted through File.Move; .part still locked on Windows. Log has Update failed IOException twice; installed DOMKAT v0.2.5.
+- v0.2.6 closes stream before rename, validates full length, tests overwriting/partial cleanup/exclusive open, --test-updater-download success.
+- Owner self-updates: deliver full and update installers; must manually run v0.2.6 update installer once. Do not execute local install remotely. IP 192.168.0.3 and credentials remain.
+
+## MKATUSHONOK connectivity regression and v0.2.6 fix
+- Owner reported «клиент не подключается». Server DOMKAT works: 192.168.0.3:55201 listens, OpenAI readyz 200. Public Wi-Fi Windows Firewall inbound Block, no inbound allow rule. No direct MKATUSHONOK test available; likely firewall but not conclusively proven.
+- Server key file updated 20:17:08, so client must use latest copied key; Router Lite returns HTTP 401 wrong key, 409 duplicate machine name.
+- v0.2.6 adds server LAN-only firewall permission button with Windows UAC, scope specific runtime, IP, TCP 55201, local subnet. Client shows appropriate WebSocket failures. This and updater file-lock fix tested locally.
+- Owner must self-update; remote installed DOMKAT app and firewall remain unchanged.

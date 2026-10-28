@@ -41,3 +41,7 @@ The local routing, controls and reconnection tests passed; these risks do not in
 ## v0.2.5 owner acceptance
 - No release/build blocker; v0.2.5 binaries published and CI success.
 - User will self-update DOMKAT via built-in updater. Actual post-install UI/connection acceptance remains unverified and should only be performed after owner reports update; do not remote-upgrade.
+
+## v0.2.6 release and migration
+- Source fix tested; Windows installer CI and release pending.
+- v0.2.5 built-in updater is itself defective; user must manually launch v0.2.6 update installer once, no remote install.
