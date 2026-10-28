@@ -1,5 +1,13 @@
 # Current blockers and open risks
 
+## Latest blocker assessment — 28.10.2026 22:20 MSK
+- DOMKAT v0.2.6 is already installed and running: older installation-pending notes below are historical and superseded.
+- Real MKATUSHONOK-to-DOMKAT Router Lite connection remains NOT PROVEN. No established remote client socket was present at observation; this is not conclusive evidence of a firewall issue.
+- Authorized LAN-only firewall allowance and client-key synchronization have not been verified. 41 chat-visible connector tools vs 42 locally advertised remain an exposure/metadata check.
+- Maintain existing OpenAI Tunnel ID, IP 192.168.0.3 and credentials. Do not perform remote upgrades or unilateral firewall changes.
+- source: verified runtime observations 28.10.2026.
+
+
 1. No second physical PC tested: cross-network operation, real remote Windows sessions and deployment remain **not proven**.
 2. Router Lite is not activated in the live DOMKAT tunnel; isolated test build only. Deployment and safe agent configuration/autostart remain open.
 3. Agent authentication currently uses one shared secret supplied through environment variables. Next phase should support protected per-agent credentials and straightforward onboarding without added database/infrastructure.

@@ -1,5 +1,13 @@
 # Manager intentions and commitments
 
+## Post-install physical client acceptance (28.10.2026 22:20 MSK)
+- commitment_id: physical-client-acceptance-after-v026
+- status: active; installed v0.2.6 verified on DOMKAT, cross-machine acceptance NOT PROVEN.
+- remaining: check authorized LAN firewall exception and current client key, then demonstrate MKATUSHONOK connection, remote Windows tools/UIA/screenshot and reconnect; reconcile 41 visible/42 advertised tools.
+- source: live read-only process/version/TCP checks and original Router Lite owner commitment; authority: verified-runtime, owner-directive.
+- Do not re-install remotely, change Tunnel ID/IP/credentials, or expose keys.
+
+
 ## Router Lite implementation
 - commitment_id: `router-lite-2026-10-28`
 - status: accepted/active

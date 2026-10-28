@@ -1,5 +1,14 @@
 # Next actions
 
+## Current execution priority — 28.10.2026 22:20 MSK
+1. Do not re-install v0.2.6: installed and running agent FileVersion 0.2.6.0 is verified.
+2. Check server LAN firewall permission and current client key through approved UI/secure procedure; owner authorizes any UAC firewall operation; do not disclose secrets.
+3. Connect real MKATUSHONOK client to 192.168.0.3:55201; inspect state/logs and distinguish network, 401 authorization and 409 duplicate-name errors.
+4. On verified connection, exercise machine-targeted remote Windows file, shell, screenshot, UI Automation and reconnect; check 41 vs 42 tool exposure.
+5. Persist cross-host evidence and conclude acceptance only after positive tests; preserve original cloud tunnel identity, current IP and live installed application.
+- source: verified live DOMKAT and published v0.2.6 28.10.2026.
+
+
 1. Prepare and test installation of Router Lite agent on a **second physical Windows computer**, using a protected private network (or WSS/TLS). Do not expose plain WebSocket with secret to the internet.
 2. Verify physical PC identification, 23 tools, remote screenshots, UIA, machine-specific paths, reconnect and errors; run full regression on DOMKAT again before live replacement.
 3. Add simple agent provisioning, protected local secret storage and Windows sign-in autostart, while retaining one binary/repository/plugin and avoiding a database.

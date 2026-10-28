@@ -1,5 +1,13 @@
 # Latest handoff
 
+## Reinstantiation reconciliation — 28.10.2026 22:20 MSK
+- Project Manager project-manager restored from generation 16, all 8 coupled Git blob digests matched. PM 2.1.0 and Capsule 1.3.1; both authority branches main.
+- Original bridge_ping responded CHATGPT_MCP_TUNNEL_PING_OK. DOMKAT is now running agent FileVersion 0.2.6.0 (PID 30196, started 20:38:25 MSK), so the older v0.2.6 manual-install pending state is superseded.
+- Router Lite listens at 192.168.0.3:55201. At this snapshot no established physical client connection was observed; 41 tools visible in ChatGPT against previously advertised 42. Stable release v0.2.6 and CI 40736310056 verified.
+- Physical MKATUSHONOK acceptance still NOT PROVEN. Next: approved LAN firewall/key verification followed by real second-PC connection, remote Windows/GUI tests and reconnect. No deployment, secret, IP, tunnel identity or firewall change occurred.
+- source: original MCP Tunnel runtime/GitHub tools 28.10.2026; authority: verified-runtime, verified-repository, owner-directive.
+
+
 This is a compact working view; sealed manager BDI state takes precedence.
 
 ## Completed and verified (28.10.2026)

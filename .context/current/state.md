@@ -1,5 +1,15 @@
 # Current state
 
+## Reconciled live status — 28.10.2026 22:20 MSK
+- Original ChatGPT MCP Tunnel bridge_ping succeeds; current chat exposes 41 tools.
+- Running DOMKAT ChatGptMcpAgent.exe PID 30196: FileVersion 0.2.6.0, started 20:38:25 MSK; tunnel-client.exe is running. The 192.168.0.3:55201 router TCP socket listens and showed no established remote clients during the observation.
+- Current stable GitHub release v0.2.6 and Windows CI 40736310056 success verified.
+- This supersedes the previous pending v0.2.6 installation instruction. It does NOT prove the real MKATUSHONOK connection, firewall permission or Settings UX.
+- The listener is LAN-bound: 127.0.0.1:55201/readyz cannot be reached and 192.168.0.3:55201/readyz returns 404; these checks do not by themselves indicate a router outage.
+- No software installations, secret modifications, firewall changes or remote client operations were performed.
+- source: direct original MCP Tunnel read-only process/version/TCP checks, bridge ping, GitHub Release/Actions 28.10.2026; authority: verified-runtime, verified-repository.
+
+
 - Date: 28.10.2026 MSK; Project Manager `project-manager`, stable version 2.1.0; state/product authority branch `main`.
 - Router Lite stages 1–3 implemented and locally verified in a separate Release build on DOMKAT. The working OpenAI Secure MCP Tunnel process was not restarted/replaced.
 - 42 MCP tools advertised: original 41 plus `computers.list`. All 23 Windows tools support optional `computer`; if omitted, existing local behavior remains unchanged.

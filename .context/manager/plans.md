@@ -1,5 +1,13 @@
 # Manager plans
 
+## Active plan after verified v0.2.6 installation (28.10.2026 22:20 MSK)
+1. Treat DOMKAT v0.2.6 installation as already observed complete: running PID 30196, FileVersion 0.2.6.0. Do not install again.
+2. Check current server Settings, authorized LAN-only firewall rule and client-key coordination without revealing secrets.
+3. Verify actual physical MKATUSHONOK connection; distinguish network timeout, 401 incorrect key and 409 duplicate name.
+4. Test physical remote file/shell/screenshot/UIA and reconnect, check 42nd tool metadata visibility, then record evidence and close acceptance only after success.
+- source: original MCP Tunnel live runtime observation and verified GitHub v0.2.6 release. Preserve current DOMKAT tunnel identity, IP and program files.
+
+
 ## Router Lite — active implementation plan
 1. Preserve 41 existing tools and live tunnel; `computers.list` is tool 42. All 23 Windows tools have `computer` parameter. [complete, locally verified]
 2. One executable with router/agent mode, outgoing WebSocket agents and request IDs without database. [complete, locally verified]
