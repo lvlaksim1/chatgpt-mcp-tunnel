@@ -3,6 +3,7 @@
 Only temporary files and a dedicated test process are changed.
 """
 import json
+import base64
 import os
 import subprocess
 import tempfile
@@ -74,6 +75,19 @@ try:
         read = call("fs.read", path=str(target))
         assert read["format"] == "text" and read["text"] == "Привет, MCP!\nстрока 2", read
         print("FS_READ_OK", flush=True)
+
+        shortened = call("fs.read", path=str(target), max_chars=6)
+        assert shortened["format"] == "text" and shortened["truncated"] is True, shortened
+        assert shortened["text"] == "Привет", shortened
+        print("FS_READ_TRUNCATE_OK", flush=True)
+
+        binary_file = location / "test-data.bin"
+        binary_bytes = bytes([0, 1, 2, 255, 127])
+        binary_file.write_bytes(binary_bytes)
+        binary_result = call("fs.read", path=str(binary_file))
+        assert binary_result["format"] == "base64", binary_result
+        assert base64.b64decode(binary_result["base64"]) == binary_bytes, binary_result
+        print("FS_READ_BINARY_OK", flush=True)
 
         listed = call("fs.list", path=str(target.parent))
         assert any(e["name"] == target.name for e in listed["entries"]), listed
