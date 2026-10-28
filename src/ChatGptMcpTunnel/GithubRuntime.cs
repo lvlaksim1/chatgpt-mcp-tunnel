@@ -183,10 +183,14 @@ internal static class GithubRuntime
         using var proc = new Process { StartInfo = new ProcessStartInfo
         {
             FileName = "git", WorkingDirectory = cwd, UseShellExecute = false,
+            RedirectStandardInput = true,
             RedirectStandardOutput = true, RedirectStandardError = true, CreateNoWindow = true
         }};
         foreach (string arg in args) proc.StartInfo.ArgumentList.Add(arg);
+        proc.StartInfo.Environment["GIT_TERMINAL_PROMPT"] = "0";
+        proc.StartInfo.Environment["GIT_PAGER"] = "cat";
         if (!proc.Start()) throw new InvalidOperationException("Git did not start");
+        proc.StandardInput.Close();
         var output = proc.StandardOutput.ReadToEndAsync();
         var error = proc.StandardError.ReadToEndAsync();
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(120));
