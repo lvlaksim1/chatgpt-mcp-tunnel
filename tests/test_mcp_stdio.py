@@ -48,6 +48,9 @@ try:
     expected |= gui_tools
     uia_tools = {"desktop.uia.tree", "desktop.uia.find", "desktop.uia.get", "desktop.uia.action"}
     expected |= uia_tools
+    github_tools = {"github.auth", "github.api", "github.graphql", "github.repositories", "github.files", "github.branches", "github.commits", "github.batch_commit", "github.issues", "github.pulls", "github.actions", "github.jobs", "github.releases", "github.release_assets", "github.artifacts", "github.search", "github.git"}
+    expected |= github_tools
+    assert len(github_tools) == 17
     assert set(tools) == expected, tools
     # Logical category alias: keep existing tool IDs, add Russian user-facing titles
     # and descriptions so "используй мультимедиа" selects this family of 11 tools.
@@ -58,6 +61,11 @@ try:
         else:
             assert not tool.get("title", "").startswith("Мультимедиа · "), tool
     print("MULTIMEDIA_CATEGORY_OK", len(gui_tools | uia_tools))
+    for tool in result["tools"]:
+        if tool["name"] in github_tools:
+            assert tool.get("title","").startswith("GitHub · "), tool
+            assert "Категория «GitHub»" in tool.get("description",""), tool
+    print("GITHUB_CATEGORY_OK",len(github_tools))
     print("TOOLS", tools)
     result = request({"jsonrpc": "2.0", "id": 3, "method": "tools/call",
                       "params": {"name": "bridge_ping", "arguments": {}}})
