@@ -1,11 +1,5 @@
-# Семантическая память менеджера
+# Semantic memory
 
-## Независимый сервер MCP
-- Собственный GitHub-модуль из 17 инструментов работает в том же .NET-сервере, что и 24 инструмента Windows. Штатный GitHub-коннектор не является технической зависимостью локального модуля, но его отключение относится к отдельному решению после сравнительных испытаний.
-  - source: README.md; src/ChatGptMcpTunnel/GithubTools.cs; src/ChatGptMcpTunnel/GithubRuntime.cs
-  - authority: verified-repository
+Record reusable durable knowledge and lessons that are broader than the current working state.
 
-## Отличие локального сервера от каталога ChatGPT
-- Работоспособность локального MCP, успешно завершённый процесс GitHub Actions и появление инструментов в закэшированном каталоге ChatGPT — разные проверяемые факты. Для каждого нужна собственная проверка.
-  - source: README.md, раздел об обновлении инструментов; docs/E2E-2026-10-28.md
-  - authority: verified-repository
+Treat observed information as a candidate first. Admit it only when it has durable future value. Preserve source and authority when the memory could influence future decisions, revalidate it when freshness or risk matters, and revise it with confirm/supersede/conflict semantics rather than silent overwrite.

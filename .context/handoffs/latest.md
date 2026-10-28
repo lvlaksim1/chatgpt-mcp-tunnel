@@ -1,16 +1,15 @@
-# Последняя передача состояния
+# Latest handoff
 
-## Проверенная основа
+This is a convenience/emergency summary, not the primary manager continuity mechanism.
 
-- На 28.10.2026 исходный код main ревизии 1e9582a7e7e9316d822c3efa5143611eecc13d7a содержит 41 инструмент MCP: 24 для Windows и 17 для GitHub.
-- Два запуска CI на указанной ревизии завершились успешно; сервер dotnet и клиент туннеля наблюдались на DOMKAT, но это измерение не гарантирует их последующее состояние.
+## Last completed work
 
-## Активные задачи
+No handoff recorded yet.
 
-- Проверить самостоятельный GitHub-коннектор в актуальном каталоге ChatGPT и сравнить со штатным.
-- Не допускать ухудшения прежних возможностей Windows UI Automation.
-- Сохранять постоянный manager_id и публиковать только согласованное поколение капсулы.
+## Verified current state
 
-## Первое действие
+Not yet captured.
 
-Сверить GitHub main и CI, затем проверить чтение и контролируемую запись через 17 GitHub-инструментов в новом сеансе ChatGPT. Подробности полномочий и обязательств — в manager/mandate.md и manager/intentions.md.
+## Next operation
+
+Perform initial manager/project capture from the target repository.
