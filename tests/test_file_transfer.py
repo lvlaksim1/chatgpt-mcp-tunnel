@@ -10,7 +10,7 @@ import tempfile
 import time
 
 ROOT = Path(__file__).resolve().parents[1]
-DLL = ROOT / "src/ChatGptMcpTunnel/bin/Release/net8.0/ChatGptMcpTunnel.dll"
+DLL = Path(os.environ.get("CHATGPT_MCP_TEST_DLL", str(ROOT / "src/ChatGptMcpTunnel/bin/Release/net8.0/ChatGptMcpTunnel.dll")))
 assert DLL.is_file(), DLL
 
 def request(proc, req_id, method, params):
