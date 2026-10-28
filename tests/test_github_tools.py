@@ -91,7 +91,7 @@ try:
             print("GITHUB_READ_OK",name,args.get("action",""),flush=True)
         status=tool("github.git",action="status",local_path=str(root))
         if os.name=="nt":
-            assert json.loads(status)["exit_code"]==0,status
+            assert status["exit_code"]==0,status
         print("GITHUB_LOCAL_GIT_STATUS_OK",flush=True)
 
         if writes:
