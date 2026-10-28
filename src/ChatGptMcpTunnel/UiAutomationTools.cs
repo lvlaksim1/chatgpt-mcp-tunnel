@@ -17,8 +17,9 @@ public static class UiAutomationTools
     public static Task<string> Tree(
         [Description("Window handle from desktop.window.list (0x... format).")] string hwnd,
         [Description("Traversal depth: 0..12, default 5.")] int max_depth = 5,
-        [Description("Maximum controls to return: 1..500, default 150.")] int max_results = 150) =>
-        Run(new { operation = "tree", hwnd, max_depth, max_results });
+        [Description("Maximum controls to return: 1..500, default 150.")] int max_results = 150,
+        [Description("Traversal view: control (default) or raw. RawView includes otherwise hidden provider nodes.")] string view = "control") =>
+        Run(new { operation = "tree", hwnd, max_depth, max_results, view });
 
     [McpServerTool(Name = "desktop.uia.find", Title = "Мультимедиа · Поиск элементов интерфейса")]
     [Description("Категория «Мультимедиа»: find UI elements inside a selected window by accessible name, AutomationId, control type (Button, Edit, CheckBox, etc.) or class. Returns stable-ish index paths to use in desktop.uia.get and desktop.uia.action. Paths may change when the UI changes.")]
@@ -29,15 +30,17 @@ public static class UiAutomationTools
         [Description("UI Automation type such as Button, Edit, Text, CheckBox, ComboBox, ListItem.")] string? control_type = null,
         [Description("Exact Win32 class name.")] string? class_name = null,
         [Description("Maximum nesting depth (0..20, default 10).")] int max_depth = 10,
-        [Description("Maximum search results (1..100, default 30).")] int max_results = 30) =>
-        Run(new { operation = "find", hwnd, name, automation_id, control_type, class_name, max_depth, max_results });
+        [Description("Maximum search results (1..100, default 30).")] int max_results = 30,
+        [Description("Traversal view: control or raw, default control.")] string view = "control") =>
+        Run(new { operation = "find", hwnd, name, automation_id, control_type, class_name, max_depth, max_results, view });
 
     [McpServerTool(Name = "desktop.uia.get", Title = "Мультимедиа · Свойства и текст элемента")]
     [Description("Категория «Мультимедиа»: read UI Automation properties, supported interaction patterns, values, available text, selection, toggle and expand states for one element identified by a path from desktop.uia.tree or desktop.uia.find.")]
     public static Task<string> Get(
         [Description("Window handle from desktop.window.list.")] string hwnd,
-        [Description("Element path from desktop.uia.tree or desktop.uia.find. Empty string means the window itself.")] string path) =>
-        Run(new { operation = "get", hwnd, path });
+        [Description("Element path from desktop.uia.tree or desktop.uia.find. Empty string means the window itself.")] string path,
+        [Description("View used when the path was discovered: control or raw (default control).")] string view = "control") =>
+        Run(new { operation = "get", hwnd, path, view });
 
     [McpServerTool(Name = "desktop.uia.action", Title = "Мультимедиа · Действие над элементом")]
     [Description("Категория «Мультимедиа»: perform a UI Automation action directly on a window element without mouse coordinates: invoke (press button), set_value (enter text), select, toggle, expand, collapse, focus or scroll_into_view. Use desktop.uia.get to see supported patterns; fall back to existing desktop.mouse and desktop.keyboard for unsupported UI elements.")]
@@ -45,8 +48,9 @@ public static class UiAutomationTools
         [Description("Window handle from desktop.window.list.")] string hwnd,
         [Description("Index path to element from desktop.uia.find/tree, empty string for the window itself.")] string path,
         [Description("Action: invoke, set_value, select, toggle, expand, collapse, focus, scroll_into_view.")] string action,
-        [Description("Required text only when action=set_value.")] string? value = null) =>
-        Run(new { operation = "action", hwnd, path, action, value });
+        [Description("Required text only when action=set_value.")] string? value = null,
+        [Description("View used to find the element path: control or raw (default control).")] string view = "control") =>
+        Run(new { operation = "action", hwnd, path, action, value, view });
 
     private static async Task<string> Run(object request)
     {
