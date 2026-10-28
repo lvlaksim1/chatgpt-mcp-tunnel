@@ -98,6 +98,7 @@ try {
         }
         if ($full) {
             $d.framework_id = Read-Property $node 'framework_id'
+            $d.client_side_providers = $providers
             $d.view = $view
             $hwnd = Read-Property $node 'native_hwnd'
             $d.native_hwnd = $hwnd
