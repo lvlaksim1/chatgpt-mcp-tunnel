@@ -1,7 +1,12 @@
-# Manager intentions and commitments
+# Намерения и обязательства менеджера
 
-Record commitments using the Contract lifecycle:
+## Активные обязательства
 
-`proposed → accepted/active → completed | cancelled | invalidated | superseded`
+1. accepted/active — самостоятельно проверить и довести собственный GitHub-коннектор до пригодности для повседневной работы; сопоставить функции со штатным коннектором, отдельно проверить чтение, изменения через временную ветку и реальный обновлённый каталог ChatGPT. Решение об отказе от штатного коннектора принимать после подтверждения достаточности собственного.
+   - source: поручение владельца о замене штатного GitHub-коннектора; README.md, GithubTools.cs
+   - authority: owner-directive; verified-repository
+2. accepted/active — сохранять работоспособность прежних 24 инструментов Windows, включая RawView, MSAA, WPF/Windows Forms и диагностику приложений, не изменяя рабочие пользовательские документы во время испытаний.
+   - source: README.md; tests/test_windows_tools.py; tests/test_winforms_uia_compat.py; история проверок проекта
+   - authority: owner-directive; verified-repository
 
-Only accepted/active items are continuing manager responsibility. Record the verification basis for completion and the reason for cancellation, invalidation, or supersession when significant. An explicit statement that there are no active commitments is valid state once verified.
+Отдельная задача по заполнению исходной капсулы считается завершённой только после публикации одного согласованного поколения и проверок validate, ready и recover. Успешный запуск CI сам по себе не завершает активные обязательства.
