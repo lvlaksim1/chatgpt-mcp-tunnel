@@ -17,3 +17,10 @@ Demonstrate and deploy a real second physical computer over protected network; a
 ## Next operation
 
 Physical PC onboarding and cross-host tests; do not claim production-ready multi-PC operation based only on DOMKAT tests. See `docs/router-lite.md`.
+
+
+## Agent installer handoff (28.10.2026)
+- Owner accepted MailRu Desktop conventions: full + update Inno Setup, no elevation, data/DPAPI under LocalAppData, tray/autostart, upgrade preserving state and GitHub release updates.
+- Added `src/ChatGptMcpAgent` Windows Forms tray host, `installer/agent-full.iss`, `installer/agent-update.iss`, `.github/workflows/agent-installer-release.yml`, `docs/agent-installer.md`.
+- Self-contained publish and DPAPI/URL selftest passed on DOMKAT. 42-tool MCP, router and reconnect tests passed on self-contained runtime.
+- Next: GitHub Actions Inno Setup build and install/update/uninstall acceptance; publish numeric v0.1.0; second physical Windows PC remains not checked. Do not modify live tunnel before acceptance.

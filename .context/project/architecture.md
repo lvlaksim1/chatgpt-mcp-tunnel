@@ -31,3 +31,9 @@ A Release build isolated from the live runtime and local two-process tests of 42
 All 23 Windows tools now accept the optional `computer` parameter. Reflection-based local execution of registered Windows MCP methods avoids duplicating application logic. Remote calls return strings or MCP text/image blocks through one WebSocket transport. Screenshots preserve raw PNG content. On-agent concurrent system commands and serialized GUI actions are implemented; duplicate computer names and wrong tokens fail; agent reconnects after test-router restart.
 
 Evidence: isolated Release build, `test_router_lite.py`, `test_router_reconnect.py`, and existing `test_windows_tools.py`, `test_gui_input_tk.py`, `test_windows_uia.py`, `test_winforms_uia_compat.py`, `test_uia_real_apps.py`, all passed on DOMKAT. No second physical PC tested yet and existing tunnel not restarted. See `docs/router-lite.md`.
+
+
+## Windows per-user agent packaging (28.10.2026)
+A lightweight WinForms `ChatGptMcpAgent.exe` tray process manages the existing self-contained `Runtime/ChatGptMcpTunnel.exe --agent` child. It does not introduce another OpenAI tunnel, repo or MCP tool implementation. DPAPI CurrentUser protects credentials; HKCU Run autostart; settings and logs use LocalAppData; a copied single-file EXE runs updater mode outside the installed directory and waits for app shutdown via named pipe before launching the silent Inno update. Full/update installers and Release automation mirror MailRu Desktop.
+- source: Owner-approved design and observed successful local Windows publish/selftest 28.10.2026.
+- authority: owner-directive, verified-runtime.

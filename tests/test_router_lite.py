@@ -126,17 +126,18 @@ try:
                 sleeper.wait(timeout=5)
         print("REMOTE_PROCESS_KILL_OK", flush=True)
 
-    screen = payload(call(57, "desktop.screen.info", {"computer":"TEST-AGENT"}))
-    virtual = screen["virtual_screen"]
-    shot = call(58, "desktop.screen.capture", {
-        "computer":"TEST-AGENT",
-        "x":virtual["x"],"y":virtual["y"],"width":96,"height":96,"max_width":320})
-    assert not shot.get("isError"), shot
-    images = [b for b in shot["content"] if b["type"] == "image"]
-    assert len(images) == 1, shot
-    image_data = base64.b64decode(images[0]["data"])
-    assert image_data[:8] == b"\x89PNG\r\n\x1a\n", image_data[:16]
-    print("REMOTE_MCP_PNG_OK",len(image_data),flush=True)
+    if not os.getenv('CHATGPT_MCP_SKIP_GUI_TESTS'):
+        screen = payload(call(57, "desktop.screen.info", {"computer":"TEST-AGENT"}))
+        virtual = screen["virtual_screen"]
+        shot = call(58, "desktop.screen.capture", {
+            "computer":"TEST-AGENT",
+            "x":virtual["x"],"y":virtual["y"],"width":96,"height":96,"max_width":320})
+        assert not shot.get("isError"), shot
+        images = [b for b in shot["content"] if b["type"] == "image"]
+        assert len(images) == 1, shot
+        image_data = base64.b64decode(images[0]["data"])
+        assert image_data[:8] == b"\x89PNG\r\n\x1a\n", image_data[:16]
+        print("REMOTE_MCP_PNG_OK",len(image_data),flush=True)
 
     # Submit two calls without waiting; responses may arrive in either order.
     two = [
@@ -184,93 +185,94 @@ try:
             wrong_agent.wait(timeout=5)
     print("INVALID_AGENT_TOKEN_REJECTED_OK",flush=True)
 
-    # Real GUI/UIA operations on an isolated WPF window only.
-    source = ast.parse((root / "tests" / "test_windows_uia.py").read_text(encoding="utf-8"))
-    fixture = next(ast.literal_eval(node.value) for node in source.body
-                   if isinstance(node, ast.Assign) and any(
-                       isinstance(t, ast.Name) and t.id == "fixture" for t in node.targets))
-    with tempfile.TemporaryDirectory(prefix="mcp-router-wpf-",dir=root / ".tools") as temp:
-        script = Path(temp) / "fixture.ps1"
-        script.write_text(fixture,encoding="utf-8-sig")
-        marker = Path(temp) / "clicked.txt"
-        gui = subprocess.Popen([
-            "powershell.exe","-NoProfile","-STA","-ExecutionPolicy","Bypass",
-            "-File",str(script),str(marker)], creationflags=subprocess.CREATE_NO_WINDOW)
-        try:
-            window = None
-            for _ in range(70):
-                windows = payload(call(62, "desktop.window.list", {
-                    "computer":"TEST-AGENT", "title_filter":"ChatGPT MCP UIA TEST WINDOW"}))["windows"]
-                window=next((w for w in windows if w["pid"] == gui.pid),None)
-                if window: break
-                if gui.poll() is not None: raise RuntimeError("WPF fixture exited")
-                time.sleep(.15)
-            assert window, "Temporary WPF window not found through remote agent"
-            hwnd = window["hwnd"]
-            activated = payload(call(63,"desktop.window.activate",{"computer":"TEST-AGENT","hwnd":hwnd}))
-            assert activated["foreground"],activated
-            tree = payload(call(64,"desktop.uia.tree",{
-                "computer":"TEST-AGENT","hwnd":hwnd,"max_depth":5}))
-            assert tree["count"]>=3,tree
-            found = payload(call(65,"desktop.uia.find",{
-                "computer":"TEST-AGENT","hwnd":hwnd,"name":"Apply MCP"}))
-            assert found["count"]>0,found
-            button_path=found["matches"][0]["path"]
-            detail = payload(call(66,"desktop.uia.get",{
-                "computer":"TEST-AGENT","hwnd":hwnd,"path":button_path}))
-            assert "invoke" in detail["patterns"],detail
-            pressed = payload(call(67,"desktop.uia.action",{
-                "computer":"TEST-AGENT","hwnd":hwnd,"path":button_path,"action":"invoke"}))
-            assert pressed["success"],pressed
-            for _ in range(25):
-                if marker.exists(): break
-                time.sleep(.1)
-            assert marker.exists(), "UIA button action not delivered to temporary WPF window"
-            edits = payload(call(68,"desktop.uia.find",{
-                "computer":"TEST-AGENT","hwnd":hwnd,"control_type":"Edit"}))
-            edit_path=edits["matches"][0]["path"]
-            updated = payload(call(69,"desktop.uia.action",{
-                "computer":"TEST-AGENT","hwnd":hwnd,"path":edit_path,
-                "action":"set_value","value":"REMOTE UIA ТЕСТ"}))
-            assert updated["success"],updated
-            value = payload(call(70,"desktop.uia.get",{
-                "computer":"TEST-AGENT","hwnd":hwnd,"path":edit_path}))
-            assert value["value"]=="REMOTE UIA ТЕСТ",value
-            moved = payload(call(71,"desktop.window.move",{
-                "computer":"TEST-AGENT","hwnd":hwnd,"x":135,"y":135,"width":600,"height":310}))
-            assert abs(moved["bounds"]["x"]-135)<15,moved
-
-            # Mouse moves and click strictly inside the disposable fixture.
-            cursor_before=screen["cursor"]
+    if not os.getenv('CHATGPT_MCP_SKIP_GUI_TESTS'):
+        # Real GUI/UIA operations on an isolated WPF window only.
+        source = ast.parse((root / "tests" / "test_windows_uia.py").read_text(encoding="utf-8"))
+        fixture = next(ast.literal_eval(node.value) for node in source.body
+                       if isinstance(node, ast.Assign) and any(
+                           isinstance(t, ast.Name) and t.id == "fixture" for t in node.targets))
+        with tempfile.TemporaryDirectory(prefix="mcp-router-wpf-",dir=root / ".tools") as temp:
+            script = Path(temp) / "fixture.ps1"
+            script.write_text(fixture,encoding="utf-8-sig")
+            marker = Path(temp) / "clicked.txt"
+            gui = subprocess.Popen([
+                "powershell.exe","-NoProfile","-STA","-ExecutionPolicy","Bypass",
+                "-File",str(script),str(marker)], creationflags=subprocess.CREATE_NO_WINDOW)
             try:
-                target_x=moved["bounds"]["x"]+100
-                target_y=moved["bounds"]["y"]+85
-                payload(call(72,"desktop.mouse.move",{
-                    "computer":"TEST-AGENT","x":target_x,"y":target_y}))
-                payload(call(73,"desktop.mouse.click",{
-                    "computer":"TEST-AGENT","x":target_x,"y":target_y}))
-                payload(call(74,"desktop.mouse.scroll",{
-                    "computer":"TEST-AGENT","notches":1,"x":target_x,"y":target_y}))
-                payload(call(79,"desktop.uia.action",{
-                    "computer":"TEST-AGENT","hwnd":hwnd,"path":edit_path,"action":"focus"}))
-                payload(call(75,"desktop.keyboard.hotkey",{
-                    "computer":"TEST-AGENT","keys":"END"}))
-                payload(call(76,"desktop.keyboard.type",{
-                    "computer":"TEST-AGENT","text":" REMOTE"}))
-                typed = payload(call(82,"desktop.uia.get",{
+                window = None
+                for _ in range(70):
+                    windows = payload(call(62, "desktop.window.list", {
+                        "computer":"TEST-AGENT", "title_filter":"ChatGPT MCP UIA TEST WINDOW"}))["windows"]
+                    window=next((w for w in windows if w["pid"] == gui.pid),None)
+                    if window: break
+                    if gui.poll() is not None: raise RuntimeError("WPF fixture exited")
+                    time.sleep(.15)
+                assert window, "Temporary WPF window not found through remote agent"
+                hwnd = window["hwnd"]
+                activated = payload(call(63,"desktop.window.activate",{"computer":"TEST-AGENT","hwnd":hwnd}))
+                assert activated["foreground"],activated
+                tree = payload(call(64,"desktop.uia.tree",{
+                    "computer":"TEST-AGENT","hwnd":hwnd,"max_depth":5}))
+                assert tree["count"]>=3,tree
+                found = payload(call(65,"desktop.uia.find",{
+                    "computer":"TEST-AGENT","hwnd":hwnd,"name":"Apply MCP"}))
+                assert found["count"]>0,found
+                button_path=found["matches"][0]["path"]
+                detail = payload(call(66,"desktop.uia.get",{
+                    "computer":"TEST-AGENT","hwnd":hwnd,"path":button_path}))
+                assert "invoke" in detail["patterns"],detail
+                pressed = payload(call(67,"desktop.uia.action",{
+                    "computer":"TEST-AGENT","hwnd":hwnd,"path":button_path,"action":"invoke"}))
+                assert pressed["success"],pressed
+                for _ in range(25):
+                    if marker.exists(): break
+                    time.sleep(.1)
+                assert marker.exists(), "UIA button action not delivered to temporary WPF window"
+                edits = payload(call(68,"desktop.uia.find",{
+                    "computer":"TEST-AGENT","hwnd":hwnd,"control_type":"Edit"}))
+                edit_path=edits["matches"][0]["path"]
+                updated = payload(call(69,"desktop.uia.action",{
+                    "computer":"TEST-AGENT","hwnd":hwnd,"path":edit_path,
+                    "action":"set_value","value":"REMOTE UIA ТЕСТ"}))
+                assert updated["success"],updated
+                value = payload(call(70,"desktop.uia.get",{
                     "computer":"TEST-AGENT","hwnd":hwnd,"path":edit_path}))
-                assert "REMOTE" in typed["value"] and len(typed["value"]) > len("REMOTE UIA ТЕСТ"),typed
+                assert value["value"]=="REMOTE UIA ТЕСТ",value
+                moved = payload(call(71,"desktop.window.move",{
+                    "computer":"TEST-AGENT","hwnd":hwnd,"x":135,"y":135,"width":600,"height":310}))
+                assert abs(moved["bounds"]["x"]-135)<15,moved
+
+                # Mouse moves and click strictly inside the disposable fixture.
+                cursor_before=screen["cursor"]
+                try:
+                    target_x=moved["bounds"]["x"]+100
+                    target_y=moved["bounds"]["y"]+85
+                    payload(call(72,"desktop.mouse.move",{
+                        "computer":"TEST-AGENT","x":target_x,"y":target_y}))
+                    payload(call(73,"desktop.mouse.click",{
+                        "computer":"TEST-AGENT","x":target_x,"y":target_y}))
+                    payload(call(74,"desktop.mouse.scroll",{
+                        "computer":"TEST-AGENT","notches":1,"x":target_x,"y":target_y}))
+                    payload(call(79,"desktop.uia.action",{
+                        "computer":"TEST-AGENT","hwnd":hwnd,"path":edit_path,"action":"focus"}))
+                    payload(call(75,"desktop.keyboard.hotkey",{
+                        "computer":"TEST-AGENT","keys":"END"}))
+                    payload(call(76,"desktop.keyboard.type",{
+                        "computer":"TEST-AGENT","text":" REMOTE"}))
+                    typed = payload(call(82,"desktop.uia.get",{
+                        "computer":"TEST-AGENT","hwnd":hwnd,"path":edit_path}))
+                    assert "REMOTE" in typed["value"] and len(typed["value"]) > len("REMOTE UIA ТЕСТ"),typed
+                finally:
+                    payload(call(77,"desktop.mouse.move",{
+                        "computer":"TEST-AGENT","x":cursor_before["x"],"y":cursor_before["y"]}))
+                print("REMOTE_GUI_UIA_ACTIONS_OK",flush=True)
+                payload(call(78,"desktop.window.close",{"computer":"TEST-AGENT","hwnd":hwnd}))
+                gui.wait(timeout=8)
+                print("REMOTE_WINDOW_CLOSE_OK",flush=True)
             finally:
-                payload(call(77,"desktop.mouse.move",{
-                    "computer":"TEST-AGENT","x":cursor_before["x"],"y":cursor_before["y"]}))
-            print("REMOTE_GUI_UIA_ACTIONS_OK",flush=True)
-            payload(call(78,"desktop.window.close",{"computer":"TEST-AGENT","hwnd":hwnd}))
-            gui.wait(timeout=8)
-            print("REMOTE_WINDOW_CLOSE_OK",flush=True)
-        finally:
-            if gui.poll() is None:
-                gui.kill()
-                gui.wait(timeout=5)
+                if gui.poll() is None:
+                    gui.kill()
+                    gui.wait(timeout=5)
 
     agent.terminate()
     agent.wait(timeout=5)

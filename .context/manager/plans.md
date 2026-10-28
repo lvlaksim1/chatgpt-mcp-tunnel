@@ -11,3 +11,13 @@
 Implementation references reviewed: MeshCentral agent networking, Supergateway process/JSON-RPC forwarding, Docker MCP Gateway collision and security rules. They are design references, not dependencies.
 
 Source: accepted Owner scope, inspected repository code and verified eight test suites on DOMKAT 28.10.2026.
+
+
+## Agent packaging — active implementation plan
+1. Inspect MailRu Desktop Inno Setup, release automation and updater (completed 28.10.2026).
+2. Create standalone Windows tray agent hosting `ChatGptMcpTunnel.exe --agent`, with DPAPI settings, autostart, reconnect and update helper (source and local build completed).
+3. Create first-install and silent-update Inno scripts and Windows GitHub Actions release workflow; do not track binaries (source completed, CI verification next).
+4. Verify on clean Windows CI: self-contained publish, agent selftest, MCP smoke, first install, settings survival under update, uninstall hygiene. Publish stable numeric v0.1.0 on successful run.
+5. Connect a second physical computer over protected private networking to DOMKAT's one-tunnel router and verify real GUI/shell and recovery (next after installer release).
+- source: direct Owner mandate 28.10.2026, examined MailRu Desktop repository, local build and smoke evidence.
+- authority: owner-directive, verified-runtime.

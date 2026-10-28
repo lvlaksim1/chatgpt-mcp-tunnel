@@ -147,6 +147,18 @@ python tests/test_mcp_stdio.py
 
 > Штатный GitHub-коннектор ChatGPT не отключается автоматически. Отключать его следует после независимого подтверждения 41 инструмента в новом чате; он пока оставлен как резервный способ доступа.
 
+## Windows agent installer
+
+Агент для второго Windows-компьютера поставляется по той же схеме, что MailRu Desktop:
+
+- `ChatGPT_MCP_Agent_Setup_vX.Y.Z.exe` — полная установка без прав администратора, настройка и трей.
+- `ChatGPT_MCP_Agent_Update_vX.Y.Z.exe` — обновление с сохранением DPAPI-ключа, настроек и ярлыков.
+- Каталог программы `%LOCALAPPDATA%\\Programs\\ChatGPTMCPAgent`, пользовательские данные `%LOCALAPPDATA%\\ChatGPTMCPAgent`; по желанию — автозапуск при входе пользователя.
+- Проверка обновлений через GitHub Releases и установка с отдельным помощником без диалогов PowerShell/Inno Setup; старые агентские бинарные релизы удаляются после публикации нового, исходные теги сохраняются.
+- Комплект `.NET 8` self-contained x64; один OpenAI MCP Tunnel остаётся на DOMKAT.
+
+Сборка выполняется из `src/ChatGptMcpAgent` и `src/ChatGptMcpTunnel`, сценарии Inno Setup — в `installer/`, workflow релиза — `.github/workflows/agent-installer-release.yml`. Подробности: [docs/agent-installer.md](docs/agent-installer.md).
+
 ## Router Lite — несколько компьютеров через один туннель
 
 Один MCP-туннель на DOMKAT обслуживает локальные команды и подключаемые Windows-агенты. Все 23 инструмента Windows поддерживают необязательный `computer` (по умолчанию DOMKAT), новый `computers.list` расширяет прежние 41 инструмент до 42. Все 17 инструментов GitHub продолжают обслуживаться основным узлом.

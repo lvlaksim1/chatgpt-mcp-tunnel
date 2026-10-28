@@ -14,3 +14,12 @@
 - Use disposable WPF/Tk/WinForms windows for remote mouse, keyboard and UI Automation regression. Never operate on working documents in these tests.
 - source: verified runtime error and corrected E2E/GUI tests on DOMKAT, 28.10.2026.
 - authority: verified-runtime.
+
+
+## Agent installer build and acceptance procedure (28.10.2026)
+- Build WinForms tray host with `dotnet publish ... -r win-x64 --self-contained true -p:PublishSingleFile=true`, Runtime under `publish/Runtime`; keep script `AutomationWorker.ps1` with runtime.
+- Use `ChatGptMcpAgent.exe --selftest` for DPAPI/URL checks without modifying installed user settings.
+- CI runners can lack interactive graphical sessions; use `CHATGPT_MCP_SKIP_GUI_TESTS=1` for router integration in Actions, while DOMKAT's interactive GUI regression remains authoritative for visual operations.
+- Inno Setup does not exist on DOMKAT; GitHub Actions Windows must verify Setup/Update/uninstall actual binaries before release.
+- source: observed .NET self-contained publish and test on DOMKAT 28.10.2026 and the owner-approved MailRu Desktop installer pattern.
+- authority: verified-runtime, owner-directive.

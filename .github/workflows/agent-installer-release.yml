@@ -1,0 +1,129 @@
+name: Build ChatGPT MCP Agent installers
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Stable numeric release version (X.Y.Z)'
+        required: true
+        default: '0.1.0'
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  agent-release:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate version
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $v = '${{ inputs.version }}'
+          if ($v -notmatch '^\d+\.\d+\.\d+$') { throw 'version must match X.Y.Z' }
+          "VERSION=$v" >> $env:GITHUB_ENV
+          "TAG=v$v" >> $env:GITHUB_ENV
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Build self-contained tray application
+        shell: pwsh
+        run: |
+          dotnet publish src/ChatGptMcpAgent/ChatGptMcpAgent.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:DebugSymbols=false -p:Version=$env:VERSION -o publish
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Build self-contained Windows execution runtime
+        shell: pwsh
+        run: |
+          dotnet publish src/ChatGptMcpTunnel/ChatGptMcpTunnel.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -p:DebugType=None -p:DebugSymbols=false -p:Version=$env:VERSION -o publish/Runtime
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (-not (Test-Path publish/Runtime/AutomationWorker.ps1)) { throw 'UI Automation worker missing' }
+
+      - name: Verify application and runtime without installation
+        shell: pwsh
+        run: |
+          & .\publish\ChatGptMcpAgent.exe --selftest
+          if ($LASTEXITCODE -ne 0) { throw "Tray DPAPI/config selftest failed: $LASTEXITCODE" }
+          New-Item -ItemType Directory -Force -Path .tools | Out-Null
+          $env:CHATGPT_MCP_SKIP_GUI_TESTS = '1'
+          $env:CHATGPT_MCP_TEST_DLL = "$pwd\publish\Runtime\ChatGptMcpTunnel.dll"
+          python tests/test_mcp_stdio.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tests/test_router_lite.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tests/test_router_reconnect.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup -y --no-progress
+
+      - name: Build full and update installers
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          $iscc = Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe'
+          if (-not (Test-Path $iscc)) { $iscc = Join-Path $env:ProgramFiles 'Inno Setup 6\ISCC.exe' }
+          if (-not (Test-Path $iscc)) { throw 'ISCC.exe not found' }
+          & $iscc installer/agent-full.iss "/DAppVersion=$env:VERSION" "/DPublishDir=$pwd\publish" "/DOutputDir=$pwd\dist"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & $iscc installer/agent-update.iss "/DAppVersion=$env:VERSION" "/DPublishDir=$pwd\publish" "/DOutputDir=$pwd\dist"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Test first install, update preservation and uninstall
+        shell: pwsh
+        run: |
+          $exe = Join-Path $env:LOCALAPPDATA 'Programs\ChatGPTMCPAgent\ChatGptMcpAgent.exe'
+          $runtime = Join-Path $env:LOCALAPPDATA 'Programs\ChatGPTMCPAgent\Runtime\ChatGptMcpTunnel.exe'
+          $data = Join-Path $env:LOCALAPPDATA 'ChatGPTMCPAgent'
+          $setup = "dist\ChatGPT_MCP_Agent_Setup_v$env:VERSION.exe"
+          $update = "dist\ChatGPT_MCP_Agent_Update_v$env:VERSION.exe"
+          if (-not (Test-Path $setup) -or -not (Test-Path $update)) { throw 'Installer missing' }
+          $first = Start-Process -FilePath (Resolve-Path $setup) -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -Wait -PassThru
+          if ($first.ExitCode -ne 0) { throw "First install failed: $($first.ExitCode)" }
+          if (-not (Test-Path $exe) -or -not (Test-Path $runtime)) { throw 'Installed files missing' }
+          & $exe --selftest
+          if ($LASTEXITCODE -ne 0) { throw 'Installed agent selftest failed' }
+          New-Item -ItemType Directory -Force -Path $data | Out-Null
+          Set-Content -Path (Join-Path $data 'preserve.test') -Value 'KEEP'
+          $second = Start-Process -FilePath (Resolve-Path $update) -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -Wait -PassThru
+          if ($second.ExitCode -ne 0) { throw "Update failed: $($second.ExitCode)" }
+          if ((Get-Content (Join-Path $data 'preserve.test')) -ne 'KEEP') { throw 'Update removed runtime settings' }
+          & $exe --selftest
+          if ($LASTEXITCODE -ne 0) { throw 'Updated agent selftest failed' }
+          & $exe --shutdown
+          $uninstall = Join-Path $env:LOCALAPPDATA 'Programs\ChatGPTMCPAgent\unins000.exe'
+          $last = Start-Process -FilePath $uninstall -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -Wait -PassThru
+          if ($last.ExitCode -ne 0) { throw "Uninstall failed: $($last.ExitCode)" }
+          if (Test-Path $data) { throw 'Uninstall left application-owned data' }
+          if (Test-Path $exe) { throw 'Uninstall left installed executable' }
+          Write-Host "INSTALL_UPDATE_UNINSTALL_OK"
+
+      - name: Publish stable GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $setup = "dist\ChatGPT_MCP_Agent_Setup_v$env:VERSION.exe"
+          $update = "dist\ChatGPT_MCP_Agent_Update_v$env:VERSION.exe"
+          gh release create $env:TAG $setup $update --target "${{ github.sha }}" --title "ChatGPT MCP Agent v$env:VERSION" --notes "Первоначальная установка: Setup. Обновление установленного агента: Update. Один MCP-туннель, агент Windows x64. Маршрутизация проверена локально; проверка между двумя физическими компьютерами ожидается."
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Prune older agent binary releases
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $list = gh release list --limit 100 --json tagName,name | ConvertFrom-Json
+          foreach ($release in $list) {
+            if ($release.tagName -ne $env:TAG -and $release.name -like 'ChatGPT MCP Agent v*') {
+              gh release delete $release.tagName --yes
+              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            }
+          }
