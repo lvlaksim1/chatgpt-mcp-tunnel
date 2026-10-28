@@ -6,8 +6,7 @@ using ModelContextProtocol.Server;
 // Restricted stdio tool registration for local Goose experiments.
 // This is an MCP tool boundary, NOT an operating-system security sandbox.
 // The full profile registers an explicit legacy type set and excludes this class.
-[McpServerToolType]
-public static class GooseSafeTools
+public sealed class GooseSafeTools
 {
     private const int MaxReadChars = 100_000;
     private const int MaxWriteBytes = 64 * 1024;

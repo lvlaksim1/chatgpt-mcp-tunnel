@@ -44,17 +44,12 @@ if (gooseProfile)
 {
     // Explicit allowlist: excludes shell, GitHub, UI automation, router and
     // all other unrestricted tools by construction, not by prompt instructions.
-    mcp.WithTools(new[] { typeof(GooseSafeTools) });
+    mcp.WithTools<GooseSafeTools>();
 }
 else
 {
     // Preserve existing ChatGPT MCP tool contracts and Router Lite behavior.
-    mcp.WithTools(new[]
-    {
-        typeof(TunnelTools), typeof(ComputerTools), typeof(DesktopTools),
-        typeof(UiAutomationTools), typeof(GithubTools),
-        typeof(GithubBatchTools), typeof(RouterLiteTools)
-    });
+    mcp.WithToolsFromAssembly();
     builder.Services.AddHostedService<RouterLiteHost>();
 }
 await builder.Build().RunAsync();
