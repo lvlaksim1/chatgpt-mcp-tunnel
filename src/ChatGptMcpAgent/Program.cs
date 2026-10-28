@@ -12,6 +12,16 @@ internal static class Program
     [STAThread]
     private static void Main(string[] args)
     {
+        if (args.Length == 3 && args[0] == "--configure-tailnet-firewall")
+        {
+            Environment.ExitCode = LanFirewall.ConfigureElevatedTailnet(args[1], args[2]);
+            return;
+        }
+        if (args.Length == 1 && args[0] == "--test-tailnet-firewall")
+        {
+            Environment.ExitCode = LanFirewall.TestTailnetRanges() ? 0 : 44;
+            return;
+        }
         if (args.Length == 2 && args[0] == "--configure-lan-firewall")
         {
             Environment.ExitCode = LanFirewall.ConfigureElevated(args[1]);

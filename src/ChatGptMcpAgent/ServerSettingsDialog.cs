@@ -151,12 +151,27 @@ internal sealed class ServerSettingsDialog : Form
         y += 43;
 
         var allowLan = MakeButton(20, y, 294, "Разрешить доступ клиентам в локальной сети");
+        void UpdateFirewallLabel() =>
+            allowLan.Text = LanFirewall.IsTailnetIpv4(_address.Text.Trim())
+                ? "Разрешить доступ клиенту Tailscale"
+                : "Разрешить доступ клиентам в локальной сети";
+        _address.TextChanged += (_, _) => UpdateFirewallLabel();
+        UpdateFirewallLabel();
         allowLan.Click += async (_, _) =>
         {
             allowLan.Enabled = false;
             try
             {
-                await LanFirewall.RequestSetupAsync(this, _address.Text.Trim());
+                var addr = _address.Text.Trim();
+                if (LanFirewall.IsTailnetIpv4(addr))
+                {
+                    if (addr != _original.ListenAddress)
+                        throw new InvalidOperationException(
+                            "Сначала сохраните адрес Tailscale и откройте настройки снова.");
+                    await LanFirewall.RequestTailnetSetupAsync(this, addr);
+                }
+                else
+                    await LanFirewall.RequestSetupAsync(this, addr);
             }
             catch (System.ComponentModel.Win32Exception error)
             {

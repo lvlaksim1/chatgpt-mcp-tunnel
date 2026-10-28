@@ -6,7 +6,7 @@ on:
       version:
         description: 'Stable numeric release version (X.Y.Z)'
         required: true
-        default: '0.2.6'
+        default: '0.2.7'
         type: string
 
 permissions:
@@ -101,6 +101,8 @@ jobs:
           if ($clientErrorTest.ExitCode -ne 0) { throw "Client connection error classification test failed: $($clientErrorTest.ExitCode)" }
           $lanFirewallTest = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--test-lan-firewall' -Wait -PassThru
           if ($lanFirewallTest.ExitCode -ne 0) { throw "LAN firewall IP/prefix diagnostic test failed: $($lanFirewallTest.ExitCode)" }
+          $tailnetFirewallTest = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--test-tailnet-firewall' -Wait -PassThru
+          if ($tailnetFirewallTest.ExitCode -ne 0) { throw "Tailnet-specific firewall rule/address test failed: $($tailnetFirewallTest.ExitCode)" }
           $stagingTest = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--test-updater-download' -Wait -PassThru
           if ($stagingTest.ExitCode -ne 0) { throw "Windows updater staging/rename test failed: $($stagingTest.ExitCode)" }
           $secretForms = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--test-secret-forms' -Wait -PassThru
