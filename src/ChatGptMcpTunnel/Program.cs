@@ -44,7 +44,7 @@ if (gooseProfile)
 {
     // Explicit allowlist: excludes shell, GitHub, UI automation, router and
     // all other unrestricted tools by construction, not by prompt instructions.
-    mcp.WithTools<GooseSafeTools>();
+    mcp.WithTools(new[] { typeof(GooseSafeTools) });
 }
 else
 {
