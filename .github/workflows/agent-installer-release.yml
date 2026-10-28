@@ -48,8 +48,8 @@ jobs:
       - name: Verify application and runtime without installation
         shell: pwsh
         run: |
-          & .\publish\ChatGptMcpAgent.exe --selftest
-          if ($LASTEXITCODE -ne 0) { throw "Tray DPAPI/config selftest failed: $LASTEXITCODE" }
+          $self = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--selftest' -Wait -PassThru
+          if ($self.ExitCode -ne 0) { throw "Tray DPAPI/config selftest failed: $($self.ExitCode)" }
           New-Item -ItemType Directory -Force -Path .tools | Out-Null
           $env:CHATGPT_MCP_SKIP_GUI_TESTS = '1'
           $env:CHATGPT_MCP_TEST_DLL = "$pwd\publish\Runtime\ChatGptMcpTunnel.dll"
@@ -88,15 +88,15 @@ jobs:
           $first = Start-Process -FilePath (Resolve-Path $setup) -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -Wait -PassThru
           if ($first.ExitCode -ne 0) { throw "First install failed: $($first.ExitCode)" }
           if (-not (Test-Path $exe) -or -not (Test-Path $runtime)) { throw 'Installed files missing' }
-          & $exe --selftest
-          if ($LASTEXITCODE -ne 0) { throw 'Installed agent selftest failed' }
+          $check = Start-Process -FilePath $exe -ArgumentList '--selftest' -Wait -PassThru
+          if ($check.ExitCode -ne 0) { throw 'Installed agent selftest failed' }
           New-Item -ItemType Directory -Force -Path $data | Out-Null
           Set-Content -Path (Join-Path $data 'preserve.test') -Value 'KEEP'
           $second = Start-Process -FilePath (Resolve-Path $update) -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -Wait -PassThru
           if ($second.ExitCode -ne 0) { throw "Update failed: $($second.ExitCode)" }
           if ((Get-Content (Join-Path $data 'preserve.test')) -ne 'KEEP') { throw 'Update removed runtime settings' }
-          & $exe --selftest
-          if ($LASTEXITCODE -ne 0) { throw 'Updated agent selftest failed' }
+          $check = Start-Process -FilePath $exe -ArgumentList '--selftest' -Wait -PassThru
+          if ($check.ExitCode -ne 0) { throw 'Updated agent selftest failed' }
           & $exe --shutdown
           $uninstall = Join-Path $env:LOCALAPPDATA 'Programs\ChatGPTMCPAgent\unins000.exe'
           $last = Start-Process -FilePath $uninstall -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -Wait -PassThru
