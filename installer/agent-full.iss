@@ -54,7 +54,7 @@ Name: "{userdesktop}\ChatGPT MCP Agent"; Filename: "{app}\{#AppExeName}"; Workin
 Root: HKCU; Subkey: "Software\ChatGPTMCPAgent"; Flags: uninsdeletekey
 
 [UninstallRun]
-Filename: "{app}\{#AppExeName}"; Parameters: "--shutdown"; Flags: runhidden waituntilterminated
+Filename: "{app}\{#AppExeName}"; Parameters: "--shutdown"; Flags: runhidden waituntilterminated; RunOnceId: "ChatGptMcpAgentShutdown"
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{localappdata}\ChatGPTMCPAgent"

@@ -32,7 +32,19 @@ internal static class Program
                 using var evt = EventWaitHandle.OpenExisting(ShutdownEventName);
                 evt.Set();
             }
-            catch (WaitHandleCannotBeOpenedException) { }
+            catch (WaitHandleCannotBeOpenedException) { /* No active tray yet. */ }
+            // Inno Setup needs the executable released BEFORE attempting to
+            // delete or replace it. Merely sending an event causes a race.
+            try
+            {
+                using var running = Mutex.OpenExisting(@"Local\ChatGptMcpAgent");
+                bool finished;
+                try { finished = running.WaitOne(TimeSpan.FromSeconds(25)); }
+                catch (AbandonedMutexException) { finished = true; }
+                if (!finished) { Environment.ExitCode = 6; return; }
+                running.ReleaseMutex();
+            }
+            catch (WaitHandleCannotBeOpenedException) { /* No running agent. */ }
             return;
         }
 
@@ -77,7 +89,15 @@ internal sealed class TrayContext : ApplicationContext
         _tray.DoubleClick += (_, _) => ShowSettings();
         _timer.Tick += (_, _) =>
         {
-            if (_shutdown.WaitOne(0)) { ExitThread(); return; }
+            if (_shutdown.WaitOne(0))
+            {
+                // A settings dialog can be in a nested modal message loop.
+                // Close it before releasing the tray application's mutex.
+                foreach (Form open in Application.OpenForms.Cast<Form>().ToArray())
+                    open.Close();
+                ExitThread();
+                return;
+            }
             if (!_stopping && !_updating && _child is { HasExited: true })
             {
                 _child.Dispose();
