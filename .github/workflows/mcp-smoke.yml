@@ -21,6 +21,8 @@ jobs:
         run: dotnet build src/ChatGptMcpTunnel/ChatGptMcpTunnel.csproj -c Release --nologo
       - name: Verify MCP initialize, tools/list and tools/call
         run: python3 tests/test_mcp_stdio.py
+      - name: Verify own GitHub MCP tool registration without credentials
+        run: python3 tests/test_github_tools.py
 
   windows-tools:
     runs-on: windows-latest
