@@ -85,6 +85,16 @@ internal static class Program
             Application.Run(preview);
             return;
         }
+        if (args.Length == 1 && args[0] == "--test-overlay-tray")
+        {
+            Environment.ExitCode = ControlTests.TestTrayIntegration();
+            return;
+        }
+        if (args.Length == 1 && args[0] == "--test-overlay-auto")
+        {
+            Environment.ExitCode = ControlTests.TestAutomaticOverlay();
+            return;
+        }
         if (args.Length == 1 && args[0] == "--test-control")
         {
             Environment.ExitCode = ControlTests.Run();
@@ -258,6 +268,11 @@ internal sealed class TrayContext : ApplicationContext
     private readonly NotifyIcon _tray;
     private readonly System.Windows.Forms.Timer _timer = new() { Interval = 1500 };
     private readonly ChatHostActivator _hostActivator = new();
+    private readonly bool _diagnosticMode;
+    private readonly ControlOverlay _controlOverlay = new();
+    internal bool ControlOverlayVisible => _controlOverlay.NativeVisible;
+    internal void ShowControlOverlay() => _controlOverlay.ShowStatus();
+
     private readonly EventWaitHandle _shutdown;
     private readonly EventWaitHandle _showSettings;
     private Process? _child;
@@ -315,16 +330,19 @@ internal sealed class TrayContext : ApplicationContext
     private DateTime _nextServerProbe = DateTime.MinValue;
     private int _serverGeneration;
 
-    internal TrayContext(EventWaitHandle shutdown, EventWaitHandle settingsEvent)
+    internal TrayContext(EventWaitHandle shutdown, EventWaitHandle settingsEvent, bool diagnosticMode = false)
     {
         _shutdown = shutdown;
         _showSettings = settingsEvent;
+        _diagnosticMode = diagnosticMode;
+        if (_diagnosticMode) _controlOverlay.DisableOwnTimerForIntegrationTest();
         var menu = new ContextMenuStrip();
         menu.Items.Add("Настройки подключения", null, (_, _) => ShowSettings());
         menu.Items.Add("Переподключиться", null, (_, _) => RestartAgent());
         menu.Items.Add("Проверить обновления", null, async (_, _) => await CheckUpdatesAsync(true));
         menu.Items.Add("Чат", null, (_, _) => ShowChat());
         menu.Items.Add("Передача файлов", null, (_, _) => ShowTransfers());
+        menu.Items.Add("????????? ?????????? / ????", null, (_, _) => ShowControlOverlay());
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("Выход", null, (_, _) => { AgentWatchdog.PauseForManualExit(); ExitThread(); });
         _tray = new NotifyIcon
@@ -337,6 +355,8 @@ internal sealed class TrayContext : ApplicationContext
         _tray.DoubleClick += (_, _) => ShowChat();
         _timer.Tick += (_, _) =>
         {
+            // The actual tray message loop drives overlay discovery.
+            _controlOverlay.Poll();
             if (_shutdown.WaitOne(0))
             {
                 ExitThread();
@@ -344,7 +364,7 @@ internal sealed class TrayContext : ApplicationContext
             }
             if (_showSettings.WaitOne(0))
                 ShowSettings();
-            if (!_stopping && !_updating && _child is { HasExited: true })
+            if (!_diagnosticMode && !_stopping && !_updating && _child is { HasExited: true })
             {
                 // Record only the numeric exit code; never log CLI stderr verbatim
                 // because it may contain sensitive diagnostic fields.
@@ -354,14 +374,14 @@ internal sealed class TrayContext : ApplicationContext
                 _connection = "Переподключение…";
                 _nextStart = DateTime.UtcNow.AddSeconds(5);
             }
-            if (!_stopping && !_updating && _child is null && DateTime.UtcNow >= _nextStart &&
+            if (!_diagnosticMode && !_stopping && !_updating && _child is null && DateTime.UtcNow >= _nextStart &&
                 File.Exists(AgentStorage.SettingsPath))
                 StartAgent();
-            if (!_stopping && !_updating && _child is { HasExited: false } &&
+            if (!_diagnosticMode && !_stopping && !_updating && _child is { HasExited: false } &&
                 AgentStorage.SelectedRole == "server" &&
                 !_serverProbePending && DateTime.UtcNow >= _nextServerProbe)
                 _ = PollServerStatusAsync();
-            if (!_stopping && !_updating && AgentStorage.SelectedRole == "server" &&
+            if (!_diagnosticMode && !_stopping && !_updating && AgentStorage.SelectedRole == "server" &&
                 !ControlState.IsStopped)
                 _hostActivator.Tick(_child is { HasExited: false });
             var label = "ChatGPT MCP Tunnel — " + _connection;
@@ -371,7 +391,7 @@ internal sealed class TrayContext : ApplicationContext
                 _tray.Icon = displayIcon;
         };
         _timer.Start();
-        Application.Idle += OnIdle;
+        if (!_diagnosticMode) Application.Idle += OnIdle;
     }
 
     private void OnIdle(object? sender, EventArgs e)
@@ -705,6 +725,7 @@ internal sealed class TrayContext : ApplicationContext
             window.Close();
         if (_transferWindow is { IsDisposed: false } transfers) transfers.Close();
         StopAgent();
+        _controlOverlay.Dispose();
         _tray.Visible = false;
         _tray.Dispose();
         _icons.Dispose();

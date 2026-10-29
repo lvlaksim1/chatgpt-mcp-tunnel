@@ -6,7 +6,7 @@ on:
       version:
         description: 'Stable numeric release version (X.Y.Z)'
         required: true
-        default: '0.2.25'
+        default: '0.2.26'
         type: string
 
 permissions:
@@ -74,6 +74,10 @@ jobs:
         run: |
           $controlTest = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--test-control' -Wait -PassThru
           if ($controlTest.ExitCode -ne 0) { throw "STOP and GUI pacing self-test failed: $($controlTest.ExitCode)" }
+          foreach ($flag in @('--test-overlay-auto', '--test-overlay-tray')) {
+            $overlayTest = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList $flag -Wait -PassThru
+            if ($overlayTest.ExitCode -ne 0) { throw "Overlay native visibility selftest $flag failed: $($overlayTest.ExitCode)" }
+          }
 
 
       - name: Bundle verified official OpenAI tunnel-client v0.0.18

@@ -5,6 +5,73 @@ namespace ChatGptMcpAgent;
 
 internal static class ControlTests
 {
+    internal static int TestTrayIntegration()
+    {
+        var original = Environment.GetEnvironmentVariable("CHATGPT_MCP_CONTROL_TEST_ROOT");
+        var root = Path.Combine(Path.GetTempPath(), "mcp-tray-overlay-" + Guid.NewGuid().ToString("N"));
+        Environment.SetEnvironmentVariable("CHATGPT_MCP_CONTROL_TEST_ROOT", root);
+        try
+        {
+            ApplicationConfiguration.Initialize();
+            using var shutdown = new EventWaitHandle(false, EventResetMode.ManualReset);
+            using var settings = new EventWaitHandle(false, EventResetMode.AutoReset);
+            using var ctx = new TrayContext(shutdown, settings, diagnosticMode: true);
+            using var activity = ControlState.Begin("shell.exec");
+            var visible = false;
+            using var timer = new System.Windows.Forms.Timer { Interval = 2600 };
+            timer.Tick += (_, _) =>
+            {
+                timer.Stop();
+                visible = ctx.ControlOverlayVisible;
+                ctx.ExitThread();
+            };
+            timer.Start();
+            Application.Run(ctx);
+            return visible ? 0 : 72;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine("TRAY_OVERLAY_TEST_ERROR " + ex.GetType().Name);
+            return 73;
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("CHATGPT_MCP_CONTROL_TEST_ROOT", original);
+            try { if (Directory.Exists(root)) Directory.Delete(root, true); }
+            catch (IOException) { }
+        }
+    }
+
+    internal static int TestAutomaticOverlay()
+    {
+        var original = Environment.GetEnvironmentVariable("CHATGPT_MCP_CONTROL_TEST_ROOT");
+        var temp = Path.Combine(Path.GetTempPath(), "mcp-overlay-auto-" + Guid.NewGuid().ToString("N"));
+        Environment.SetEnvironmentVariable("CHATGPT_MCP_CONTROL_TEST_ROOT", temp);
+        try
+        {
+            ApplicationConfiguration.Initialize();
+            using var activity = ControlState.Begin("shell.exec");
+            using var ctx = new ApplicationContext();
+            using var overlay = new ControlOverlay();
+            var visible = false;
+            using var stopCheck = new System.Windows.Forms.Timer { Interval = 2200 };
+            stopCheck.Tick += (_, _) =>
+            {
+                stopCheck.Stop();
+                visible = overlay.NativeVisible;
+                ctx.ExitThread();
+            };
+            stopCheck.Start();
+            Application.Run(ctx);
+            return visible ? 0 : 71;
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("CHATGPT_MCP_CONTROL_TEST_ROOT", original);
+            try { if (Directory.Exists(temp)) Directory.Delete(temp, true); }
+            catch (IOException) { }
+        }
+    }
     internal static int Run()
     {
         var original = Environment.GetEnvironmentVariable("CHATGPT_MCP_CONTROL_TEST_ROOT");

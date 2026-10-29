@@ -1,5 +1,6 @@
 using System.Drawing;
 using System.Windows.Forms;
+using System.Runtime.InteropServices;
 
 namespace ChatGptMcpAgent;
 
@@ -15,6 +16,15 @@ internal sealed class ControlOverlay : Form
     private string _lastState = "";
     private DateTime _lastVisible = DateTime.MinValue;
 
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool IsWindowVisible(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool ShowWindow(IntPtr hWnd, int command);
+
+    internal bool NativeVisible => IsHandleCreated && IsWindowVisible(Handle);
     protected override bool ShowWithoutActivation => true;
 
     internal ControlOverlay()
@@ -80,6 +90,12 @@ internal sealed class ControlOverlay : Form
         return DateTimeOffset.TryParse(snap.Recent[0].FinishedUtc, out var last)
             && DateTimeOffset.UtcNow - last < TimeSpan.FromSeconds(12);
     }
+    // Called from the tray's already-running message loop as well as our own timer.
+    // Do not rely on a not-yet-shown Form's timer to bootstrap visibility.
+    internal void Poll() => RefreshFromControl();
+    internal void DisableOwnTimerForIntegrationTest() => _refresh.Stop();
+
+
     private void RefreshFromControl()
     {
         try
@@ -103,11 +119,15 @@ internal sealed class ControlOverlay : Form
             _stop.Text = s.Stopped ? "ВОЗОБНОВИТЬ УПРАВЛЕНИЕ" : "СТОП — ПРЕКРАТИТЬ УПРАВЛЕНИЕ";
             _stop.BackColor = s.Stopped ? Color.FromArgb(48, 119, 89) :
                 Color.FromArgb(174, 48, 54);
-            if (!Visible)
+            if (!NativeVisible)
             {
                 var area = (Screen.PrimaryScreen ?? Screen.FromPoint(Cursor.Position)).WorkingArea;
                 Location = new Point(area.Right - Width - 12, area.Bottom - Height - 12);
-                Show();
+                if (!Visible) Show();
+                // Win10 tray-only ApplicationContext can create a hidden HWND
+                // while Form.Visible incorrectly reports true. Confirm native visibility.
+                if (!IsWindowVisible(Handle))
+                    ShowWindow(Handle, 4); // SW_SHOWNOACTIVATE
             }
             _lastVisible = DateTime.UtcNow;
             _lastState = status;
