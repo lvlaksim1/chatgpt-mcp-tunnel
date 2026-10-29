@@ -1,5 +1,10 @@
 # Latest handoff
 
+## Handoff: verified v0.2.15 release, real host experiment remains
+- Source commit 59fea96 published; official Windows release v0.2.15 built successfully by GitHub Actions 40904368593. Installer Setup/Update and preservation tests passed; download update is https://github.com/lvlaksim1/chatgpt-mcp-tunnel/releases/download/v0.2.15/ChatGPT_MCP_Tunnel_Update_v0.2.15.exe. New chat.ui.open/pending/ack and MCP Apps HTML ui/message relay registered; simulated host positive/negative tests passed.
+- No production program updated; DOMKAT observed v0.2.13. To prove the intended feature, refresh ChatGPT plugin, open component in ordinary ChatGPT, enable, send local message and confirm host starts turn and chat.reply.
+- Keep unrelated untracked files untouched; no independent API, Codex, Work, browser automation or scheduler introduced.
+
 ## Handoff — ui/message experiment v0.2.15 source tested, 29.10.2026
 - Owner requested a real release based on MCP Apps ui/message, independent of Codex/Work/API/browser automation/scheduler. Code implemented, in main after commit.
 - New chat.ui.open MCP tool with MCP Apps resource/entrypoints and UI button «Начать передачу»; chat.ui.pending returns oldest queued message and attached metadata, iframe calls ui/message, chat.ui.ack saves a separate durable acknowledgment only after success.

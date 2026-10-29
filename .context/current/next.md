@@ -1,5 +1,11 @@
 # Next actions
 
+## Immediate next: actual ui/message acceptance
+1. Owner installs v0.2.15 update on DOMKAT and refreshes ChatGPT MCP connector actions.
+2. Open chat.ui.open in ordinary ChatGPT, enable relay, send a test message through existing local chat.
+3. Confirm new model turn, chat.reply and reply visible in local chat; test widget lifecycle and rejection path. Explicitly distinguish confirmed vs hypothetical.
+4. Keep existing router/Tunnel ID intact; do not deploy to MKATUSHONOK without approval.
+
 ## Next for MCP Apps ui/message v0.2.15
 1. Commit source/test/docs with sealed manager generation and run official Windows GitHub Actions installer release; check setup/update/uninstall preservation and status.
 2. Provide Windows update link only after release succeeded; do not auto-restart production DOMKAT or remote MKATUSHONOK without explicit instruction.

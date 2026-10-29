@@ -1,5 +1,8 @@
 # Manager intentions and commitments
 
+## v0.2.15 release completed — real host acceptance still active
+- Source, simulation, Windows installation and release checks completed. Main commitment remains active until real ordinary ChatGPT host accepts the timer-initiated ui/message and sends reply via chat.reply. Do not confuse successful GitHub Actions with real ChatGPT behavior.
+
 ## MCP Apps ui/message experiment accepted 29.10.2026
 - commitment_id: direct-chat-ui-message-2026-10-29. Owner authority: explicitly implement MCP-only ui/message.
 - status: active; prototype and local simulated-host verification done, stable CI release and LIVE ChatGPT host acceptance remain.

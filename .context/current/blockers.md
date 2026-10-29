@@ -1,5 +1,9 @@
 # Current blockers and open risks
 
+## Experimental host gate persists after successful v0.2.15 CI
+- Stable installer publication DOES NOT prove ChatGPT permits automatic ui/message from a timer or that it keeps iframe alive after a new turn. Need actual connector refresh and manual ChatGPT host test.
+- DOMKAT / MKATUSHONOK installed apps are not yet updated. User receives update installers; no autonomous install was performed.
+
 ## ui/message experimental acceptance gates 29.10.2026
 - Protocol states ui/message originates in a live MCP Apps iframe; the server cannot guarantee sending to fully closed ChatGPT. Host may require interaction or reject asynchronous messages. Only live ChatGPT integration can answer.
 - ChatGPT plugin schema may remain stale and hide chat.ui.open/52 tools until refreshed; existing tools in the active chat may not include new entrypoint.

@@ -1,5 +1,10 @@
 # Manager plans
 
+## v0.2.15 passed Windows CI — next host experiment
+1. Stable v0.2.15 verified with Setup/Update installer and SHA-256; no production installation during development.
+2. Refresh the ChatGPT MCP connector catalog (now 52 runtime tools), open chat.ui.open, enable relay in the embedded component, send message from local GUI.
+3. Record whether ui/message starts a model turn in ordinary ChatGPT, whether chat.reply sends answer to desktop window, and whether iframe remains alive. If host rejects, record concrete error and keep queued message.
+
 ## Plan: ui/message experiment v0.2.15
 1. DONE: MCP ui resource, global/thread entrypoints, chat.ui.open/pending/ack, user opt-in, window-side pending messages, ui/message request and durable ack.
 2. DONE: .NET build (zero warnings/errors), MCP 52 tools/resource tests, simulated host positive/denial, all 23 remotely routable tools and reconnect.

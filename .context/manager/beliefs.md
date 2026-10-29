@@ -1,5 +1,8 @@
 # Manager beliefs
 
+## B26 — v0.2.15 Windows release verified 29.10.2026
+- GitHub Actions run 40904368593 SUCCESS; published stable v0.2.15 from commit 59fea9657732ae500a1834c40437471459f7b0cf. Full Windows Setup/Update/selftest/installer preservation acceptance complete. Update SHA-256 2d4b44f88fcefb4560c750d09148b2795fcdd2dba12b7d44afc83babd60f94bd; Setup SHA-256 be1ce88211544aec8447034e5ba92a1b0bd573c8b9a73c762e71c7485ee61f03. Live ChatGPT host ui/message acceptance remains unverified; installed DOMKAT is still v0.2.13.
+
 ## B25 — MCP Apps ui/message prototype source-tested 29.10.2026
 - Owner explicitly instructed implementing ui/message without API, Codex, Work, browser automation or scheduler.
 - Official MCP Apps specification establishes ui/message as a request FROM A CURRENTLY RUNNING MCP APP VIEW to its host; openai/message metadata supports target=active, send=true. It is NOT a server-originated trigger for closed ChatGPT.
