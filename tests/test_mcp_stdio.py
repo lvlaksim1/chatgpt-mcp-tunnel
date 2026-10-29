@@ -9,8 +9,14 @@ dll = Path(os.environ.get("CHATGPT_MCP_TEST_DLL", str(root / "src" / "ChatGptMcp
 if not dll.is_file():
     raise SystemExit(f"Build first: {dll}")
 
+import tempfile
+import shutil
+cycle_sandbox = Path(tempfile.mkdtemp(prefix="chatgpt-mcp-cycle-test-"))
+proc_env = os.environ.copy()
+proc_env["CHATGPT_MCP_CYCLE_TEST_CHAT_ROOT"] = str(cycle_sandbox)
+
 proc = subprocess.Popen(
-    ["dotnet", str(dll)], cwd=root,
+    ["dotnet", str(dll)], cwd=root, env=proc_env,
     stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     text=True, encoding="utf-8", bufsize=1,
 )
@@ -51,7 +57,7 @@ try:
     expected |= uia_tools
     github_tools = {"github.auth", "github.api", "github.graphql", "github.repositories", "github.files", "github.branches", "github.commits", "github.batch_commit", "github.issues", "github.pulls", "github.actions", "github.jobs", "github.releases", "github.release_assets", "github.artifacts", "github.search", "github.git"}
     expected |= github_tools
-    expected.update({"chat.receive", "chat.reply"})
+    expected.update({"chat.receive", "chat.reply", "chat.cycle"})
     expected.add("computers.list")
     expected.update({"file.transfer.start", "file.transfer.status", "file.transfer.cancel"})
     assert len(github_tools) == 17
@@ -100,6 +106,56 @@ try:
         content = json.loads(message_file.read_text(encoding="utf-8"))
         assert content["Status"] == "answered" and content["Reply"] == "CHAT_E2E_REPLY", content
         print("CHAT_RECEIVE_REPLY_OK")
+        # Five-minute protocol: hello -> step -> status; early completion is rejected.
+        def cycle(number, **kwargs):
+            data = request({"jsonrpc": "2.0", "id": number, "method": "tools/call",
+                "params": {"name": "chat.cycle", "arguments": kwargs}})
+            return json.loads(data["content"][0]["text"])
+
+        hello = cycle(30, action="hello", signal="я тут")
+        assert hello["ok"] and hello["duration_seconds"] == 300, hello
+        keys = {"session_id": hello["session_id"], "task_id": hello["task_id"]}
+        tick = cycle(31, action="step", wait_seconds=0, **keys)
+        assert tick["cycle"]["ok"] and tick["cycle"]["seconds_remaining"] > 0, tick
+        assert tick["cycle"]["sample"]["ProcessCount"] > 0, tick
+        status = cycle(32, action="status")
+        assert status["online"] and status["cycle_number"] == 1, status
+        early = cycle(33, action="complete", report="Not yet", **keys)
+        assert early["error"] == "cycle_not_finished", early
+        print("CHAT_CYCLE_START_STEP_STATUS_EARLY_COMPLETE_OK")
+
+        # Fast-forward only the isolated sandbox and verify report + next task.
+        cycle_status = cycle_sandbox / "cycle-status.json"
+        saved = json.loads(cycle_status.read_text(encoding="utf-8"))
+        from datetime import timedelta
+        saved["ExpiresUtc"] = (datetime.now(timezone.utc) - timedelta(seconds=1)).isoformat()
+        cycle_status.write_text(json.dumps(saved), encoding="utf-8")
+        finished = cycle(34, action="complete",
+            report="MCP diagnostic cycle finished.", **keys)
+        assert finished["ok"] and finished["completed_cycle_number"] == 1, finished
+        assert finished["next_task"]["cycle_number"] == 2, finished
+        reported = list((cycle_sandbox / "messages").glob("*.json"))
+        assert len(reported) == 1, reported
+        message = json.loads(reported[0].read_text(encoding="utf-8"))
+        assert message["Source"] == "system" and message["Reply"] == "MCP diagnostic cycle finished.", message
+        new_keys = {"session_id": finished["next_task"]["session_id"],
+                    "task_id": finished["next_task"]["task_id"]}
+        stale = cycle(35, action="step", wait_seconds=0, **keys)
+        assert stale["error"] == "stale_session_or_task", stale
+        fresh = cycle(36, action="step", wait_seconds=0, **new_keys)
+        assert fresh["cycle"]["ok"], fresh
+        print("CHAT_CYCLE_REPORT_AND_NEXT_TASK_OK")
+
+        saved = json.loads(cycle_status.read_text(encoding="utf-8"))
+        saved["LastSeenUtc"] = (datetime.now(timezone.utc) - timedelta(seconds=125)).isoformat()
+        cycle_status.write_text(json.dumps(saved), encoding="utf-8")
+        expired = cycle(37, action="status")
+        assert expired["state"] == "offline" and not expired["online"], expired
+        resumed = cycle(38, action="hello", signal="я тут")
+        assert resumed["ok"] and resumed["session_id"] != hello["session_id"], resumed
+        print("CHAT_CYCLE_OFFLINE_AND_HOURLY_RECOVERY_OK")
+
+
     finally:
         message_file.unlink(missing_ok=True)
 
@@ -110,3 +166,4 @@ finally:
     except subprocess.TimeoutExpired:
         proc.kill()
         proc.wait(timeout=5)
+    shutil.rmtree(cycle_sandbox, ignore_errors=True)

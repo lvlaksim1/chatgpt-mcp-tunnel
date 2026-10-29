@@ -30,11 +30,13 @@ internal sealed class ChatWindow : Form
     {
         Text = "Сообщения передаются через подключённый MCP-плагин при проверке очереди.",
         Dock = DockStyle.Bottom,
-        Height = 28,
+        Height = 43,
         ForeColor = Color.DimGray
     };
     private readonly System.Windows.Forms.Timer _refresh = new() { Interval = 1000 };
     private string _snapshot = "";
+    private string _messageStatus = "Сообщений в очереди нет.";
+    private static string CycleStatusPath => Path.Combine(AgentStorage.DataFolder, "Chat", "cycle-status.json");
 
     private static string ChatFolder => Path.Combine(AgentStorage.DataFolder, "Chat", "messages");
 
@@ -53,7 +55,7 @@ internal sealed class ChatWindow : Form
             Text = "Чат с ChatGPT  ·  обычный режим, через MCP Tunnel",
             Font = new Font("Segoe UI Semibold", 11)
         };
-        var entry = new Panel { Dock = DockStyle.Bottom, Height = 113, Padding = new Padding(12, 6, 12, 7) };
+        var entry = new Panel { Dock = DockStyle.Bottom, Height = 142, Padding = new Padding(12, 6, 12, 7) };
         var inputAndButton = new Panel { Dock = DockStyle.Fill };
         inputAndButton.Controls.Add(_input);
         inputAndButton.Controls.Add(_send);
@@ -113,6 +115,7 @@ internal sealed class ChatWindow : Form
 
     private void RefreshMessages()
     {
+        UpdateCycleStatus();
         try
         {
             var rows = Directory.Exists(ChatFolder)
@@ -138,6 +141,13 @@ internal sealed class ChatWindow : Form
             foreach (var row in rows)
             {
                 if (row is null) continue;
+                if (row.Source == "system")
+                {
+                    Append("ChatGPT · " + row.Text + " · " + row.CreatedUtc.ToLocalTime().ToString("HH:mm"), Color.FromArgb(24, 125, 86), true);
+                    Append(row.Reply ?? "", Color.Black, false);
+                    Append("", Color.Gray, false);
+                    continue;
+                }
                 Append("Вы  ·  " + row.CreatedUtc.ToLocalTime().ToString("dd.MM HH:mm"), Color.FromArgb(24, 95, 160), true);
                 Append(row.Text, Color.Black, false);
                 if (row.Status == "answered" && row.Reply is not null)
@@ -153,14 +163,36 @@ internal sealed class ChatWindow : Form
             _history.ScrollToCaret();
             _history.ResumeLayout();
             var waiting = rows.Count(m => m is { Status: "pending" });
-            _status.Text = waiting > 0
+            _messageStatus = waiting > 0
                 ? $"В очереди: {waiting}. ChatGPT заберёт сообщения при следующей проверке."
                 : "Все сообщения обработаны. Для нового сообщения нажмите Enter.";
+            UpdateCycleStatus();
         }
         catch (Exception e)
         {
             _status.Text = "Ошибка чтения очереди: " + e.GetType().Name;
         }
+    }
+
+    private void UpdateCycleStatus()
+    {
+        var cycle = "Планировщик запускает проверку каждый час.";
+        try
+        {
+            if (File.Exists(CycleStatusPath))
+            {
+                using var doc = JsonDocument.Parse(File.ReadAllText(CycleStatusPath));
+                var state = doc.RootElement;
+                var lastSeen = state.GetProperty("LastSeenUtc").GetDateTimeOffset();
+                var number = state.GetProperty("CycleNumber").GetInt32();
+                var age = DateTimeOffset.UtcNow - lastSeen;
+                cycle = age <= TimeSpan.FromSeconds(120)
+                    ? $"Диагностика №{number}: модель отвечает, последнее обращение {age.TotalSeconds:F0} сек. назад."
+                    : $"Нет ответа от модели {age.TotalMinutes:F0} мин. Ожидается следующий почасовой запуск.";
+            }
+        }
+        catch (Exception ex) when (ex is IOException or JsonException or InvalidOperationException or KeyNotFoundException) { }
+        _status.Text = _messageStatus + Environment.NewLine + cycle;
     }
 
     private void Append(string text, Color color, bool bold)
@@ -175,6 +207,7 @@ internal sealed class ChatWindow : Form
         public string Id { get; set; } = "";
         public DateTimeOffset CreatedUtc { get; set; }
         public string Text { get; set; } = "";
+        public string Source { get; set; } = "user";
         public string Status { get; set; } = "pending";
         public string? Reply { get; set; }
         public DateTimeOffset? RepliedUtc { get; set; }

@@ -1,4 +1,4 @@
-# Chat in ChatGPT MCP Tunnel (v0.2.12)
+# Chat in ChatGPT MCP Tunnel (v0.2.13)
 
 ## Scope
 The tray application has a new **Чат** command (and tray double click).
@@ -39,3 +39,27 @@ secrets in the chat window. No browser sign-in is copied or reused.
 - `dotnet build src/ChatGptMcpTunnel/ChatGptMcpTunnel.csproj -c Release`
 - `ChatGptMcpAgent.exe --test-chat-window`
 - `python tests/test_mcp_stdio.py` (includes queued-message exchange)
+
+## Cyclic five-minute activity (v0.2.13)
+
+The hourly ChatGPT automation starts with chat.cycle(action="hello", signal="я тут").
+It receives a unique session_id and task_id, plus a 300-second diagnostic assignment.
+The model repeatedly calls chat.cycle(action="step", session_id, task_id, wait_seconds=35).
+Each step samples total CPU utilization, memory pressure, process count, and critical
+executables. Pending user messages are returned by step; the assistant responds
+with chat.reply before continuing the cycle.
+
+After 300 seconds, chat.cycle(action="complete", session_id, task_id, report="...")
+saves the assistant's diagnostic report in the chat history and issues the next
+five-minute assignment in the same MCP result.
+
+Session state is persisted at
+%LOCALAPPDATA%/ChatGPTMCPAgent/Chat/cycle-status.json.
+When 120 seconds elapse without a step, the app marks the session offline.
+The server cannot initiate a new ChatGPT turn; the hourly automation starts
+the next run. A new hello replaces the previous session token.
+
+Calls wait at most 40 seconds; the monitor is a sequence of bounded samples.
+The test fast-forwards expiration only in an isolated temporary folder,
+never in the production data directory. ChatGPT execution remains subject
+to independent platform limits, so an hour of continuous uptime is not guaranteed.
