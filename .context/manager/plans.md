@@ -1,5 +1,11 @@
 # Manager plans
 
+## 29.10.2026: normative MCP 2026-07-28, MCP Apps and OpenAI extensions re-analysis
+1. DONE: primary 2026-07-28 MCP + MCP Apps 2026-01-26 + OpenAI extension normative research, with three direct read-only protocol probes on DOMKAT; 52 modern tools, subscription ack, MCP Apps resource metadata and HTML verified.
+2. NEXT: test Global entrypoint and Thread entrypoint independently in ordinary ChatGPT; record exact ui/initialize hostCapabilities/hostContext and static args {}. Preserve v0.2.18.
+3. NEXT: test app-side ui/update-model-context context capsule and target:new bootstrap, then deep-link route and Host autostart after reboot using the existing Windows Messenger GUI only.
+4. ARCH: persistent local chat DB/context, explicit server chat handles, events/notifications and per-chat iframe lease; no second MCP Tunnel, hourly planner, Work/Codex/API.
+
 ## 2026-10-29: Deep MCP Apps autonomy research, external GitHub implementations
 1. DOCUMENTATION DONE: deep review of official MCP Apps/OpenAI extensions + 6 real GitHub designs/issues; report in docs/mcp-apps-autonomy-deep-research-2026-10-29.md; no production changes.
 2. NEXT: isolated tests of Global/Thread entrypoints and deep links in ordinary ChatGPT/Yandex on DOMKAT; record hostContext, actual tools/call and whether global has its own chat.

@@ -1,5 +1,8 @@
 # Next actions
 
+## 29.10.2026: normative MCP 2026-07-28, MCP Apps and OpenAI extensions re-analysis
+- First: open Global/Thread entrypoints in ordinary ChatGPT (read-only) and instrument UI initialization/host capabilities. Then develop context bootstrap via ui/update-model-context and resources/read; test deep links and OS-level Host activation. Start with source docs/mcp-2026-core-apps-openai-protocol-review-2026-10-29.md. No production changes made during this research.
+
 ## 2026-10-29: Deep MCP Apps autonomy research, external GitHub implementations
 1. Read full docs/mcp-apps-autonomy-deep-research-2026-10-29.md; validate source citations and record protocols.
 2. On DOMKAT perform observation-only global entrypoint and thread entrypoint launch tests in ordinary ChatGPT. Capture tool arguments {}, tool invocation and ui/initialize and host capabilities; don't alter working app release.
