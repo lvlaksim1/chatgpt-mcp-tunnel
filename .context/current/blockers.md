@@ -1,5 +1,8 @@
 # Current blockers and open risks
 
+## 2026-10-29: v0.2.19 Global/Thread lifecycle diagnostic implementation
+- No code blocker to diagnostic Global/Thread experiment. Actual host behavior and browser-closed start not yet proven; next step deploy verified v0.2.19 and inspect live lifecycle event log. User browser currently runs many tabs/processes; do not abruptly terminate and lose unsaved work.
+
 ## 2026-10-29: Deep MCP Apps autonomy research, external GitHub implementations
 - Full reboot/no-browser model response remains an unproven acceptance criterion. No verified transport has yet been shown to generate ordinary ChatGPT answers after all ChatGPT host processes are gone. The proposed Global/Thread/deep-link bootstrapping experiment should establish exactly which host process exists and how it is activated, instead of assuming a deep link guarantees generation.
 - MCP iframe localStorage is not adequate source of truth; #417 leaves cross-host View persistence unspecified. Existing legacy UI/queue works; future multi-iframe duplicate claim protection required (#54).

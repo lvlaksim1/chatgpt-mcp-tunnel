@@ -1,5 +1,12 @@
 # Manager plans
 
+## 2026-10-29: v0.2.19 Global/Thread lifecycle diagnostic implementation
+1. DONE: implement lifecycle probe Global-only + Thread-only tools, isolated HTML, technical event journal, tests. Build and old protocol tests pass.
+2. NEXT: Windows CI v0.2.19 full/update installers, data preservation, controlled deployment to DOMKAT and refresh plugin tool catalog.
+3. NEXT: manually activate Global from navigation and Thread from chat tab; verify real events and host capabilities, no model prompts.
+4. NEXT: deep link route test with authentic plugin ID; controlled browser-closed Host Activator test. Avoid force-killing user's browser unsaved sessions.
+5. NEXT: only after host actual response prove controlled reboot, local chat state recovery, then implement persistent context snapshots/leases.
+
 ## 29.10.2026: normative MCP 2026-07-28, MCP Apps and OpenAI extensions re-analysis
 1. DONE: primary 2026-07-28 MCP + MCP Apps 2026-01-26 + OpenAI extension normative research, with three direct read-only protocol probes on DOMKAT; 52 modern tools, subscription ack, MCP Apps resource metadata and HTML verified.
 2. NEXT: test Global entrypoint and Thread entrypoint independently in ordinary ChatGPT; record exact ui/initialize hostCapabilities/hostContext and static args {}. Preserve v0.2.18.

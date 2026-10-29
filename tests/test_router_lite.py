@@ -59,7 +59,7 @@ try:
     router.stdin.flush()
     listing = request(2, "tools/list", {})["result"]["tools"]
     names = {t["name"] for t in listing}
-    assert len(names) == 52, (len(names), names)
+    assert len(names) == 56, (len(names), names)
     assert "computers.list" in names
     sysinfo = next(t for t in listing if t["name"] == "system.info")
     assert "computer" in sysinfo["inputSchema"]["properties"], sysinfo

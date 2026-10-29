@@ -1,5 +1,8 @@
 # Latest handoff
 
+## 2026-10-29: v0.2.19 Global/Thread lifecycle diagnostic implementation
+- v0.2.19 lifecycle instrumentation written and locally tested but not yet committed/released/installed. Two separate app-only entrypoints with distinct UI resources and synthetic iframe diagnostics; existing user message relay remains unchanged. All local tests pass; production v0.2.18. Need CI, deployment, browser Global/Thread and deep-link test.
+
 ## 29.10.2026: normative MCP 2026-07-28, MCP Apps and OpenAI extensions re-analysis
 - Investigation re-centered on primary technical specifications (not third-party failures). MCP 2026-07-28 stateless server/client differs from MCP Apps iframe 2026-01-26: former has server/discover and per-request _meta, latter still requires ui/initialize/initialized. OpenAI extension adds global/thread entrypoints, deep-link hostContext and ui/message target:new/active. Full technical report: docs/mcp-2026-core-apps-openai-protocol-review-2026-10-29.md.
 - Direct, isolated on DOMKAT current server v0.2.18 ModelContextProtocol NuGet 2.2.0: server/discover returned supportedVersions=[2026-07-28], capabilities tools.listChanged=true, resources.listChanged=true, logging; tools/list returned 52 tools using modern protocol. subscriptions/listen for toolsListChanged/resourcesListChanged returned notifications/subscriptions/acknowledged with both filters and subscriptionId=7. Modern resources/read for ui://chatgpt-mcp-tunnel/relay-v0218 returned resultType=complete, mime=text/html;profile=mcp-app and 13803 HTML bytes. Tool chat.ui.open lists global+thread entrypoints, model+app visibility, chat_id schema.

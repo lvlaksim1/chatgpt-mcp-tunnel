@@ -58,6 +58,7 @@ try:
     github_tools = {"github.auth", "github.api", "github.graphql", "github.repositories", "github.files", "github.branches", "github.commits", "github.batch_commit", "github.issues", "github.pulls", "github.actions", "github.jobs", "github.releases", "github.release_assets", "github.artifacts", "github.search", "github.git"}
     expected |= github_tools
     expected.update({"chat.receive", "chat.reply", "chat.cycle", "chat.attachment.read", "chat.ui.open", "chat.ui.pending", "chat.ui.ack"})
+    expected.update({"chat.hub.open","chat.thread.open","chat.lifecycle.event","chat.lifecycle.status"})
     expected.add("computers.list")
     expected.update({"file.transfer.start", "file.transfer.status", "file.transfer.cancel"})
     assert len(github_tools) == 17

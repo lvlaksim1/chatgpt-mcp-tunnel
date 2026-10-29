@@ -1,5 +1,11 @@
 # Next actions
 
+## 2026-10-29: v0.2.19 Global/Thread lifecycle diagnostic implementation
+1. Commit and release v0.2.19 (4 new diagnostic tools; 56 total). CI builds and installer preservation tests.
+2. Controlled update DOMKAT, refresh ChatGPT MCP Tunnel plugin tool catalogue; use Global navigation and Thread tab with real ChatGPT, inspect sanitized event records.
+3. Probe deep link with real plugin ID; test closed-browser OS URI activation and real model reply, then reboot if ready.
+4. Ensure existing v0.2.18 messaging still works and user data remains untouched.
+
 ## 29.10.2026: normative MCP 2026-07-28, MCP Apps and OpenAI extensions re-analysis
 - First: open Global/Thread entrypoints in ordinary ChatGPT (read-only) and instrument UI initialization/host capabilities. Then develop context bootstrap via ui/update-model-context and resources/read; test deep links and OS-level Host activation. Start with source docs/mcp-2026-core-apps-openai-protocol-review-2026-10-29.md. No production changes made during this research.
 
