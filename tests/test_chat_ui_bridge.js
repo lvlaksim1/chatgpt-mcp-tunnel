@@ -9,7 +9,7 @@ const script = html.match(/<script>([\s\S]*?)<\/script>/)[1];
 async function scenario(denyMessage) {
   const pendingId = "c".repeat(32);
   const listeners = {};
-  const elements = new Map(["start","stop","check","status","details"].map(id=>[id,{
+  const elements = new Map(["start","stop","check","probe","status","details"].map(id=>[id,{
     id,disabled:false,textContent:"",handlers:{},addEventListener(type,handler){this.handlers[type]=handler;},
     click(){return this.handlers.click?.();}
   }]));
@@ -37,7 +37,8 @@ async function scenario(denyMessage) {
         }else if(request.method==="ui/message"){
           assert.equal(request.params.role,"user");
           assert.equal(request.params._meta["openai/message"].send,true);
-          assert.ok(request.params.content[0].text.includes(pendingId));
+          assert.ok(request.params.content[0].text.includes(pendingId) ||
+                    request.params.content[0].text.includes("Контрольный сигнал"));
           if(denyMessage){
             listeners.message({source:mock.window.parent,data:{jsonrpc:"2.0",id:request.id,error:{code:-32000,message:"Blocked by host"}}});
             return;
@@ -54,6 +55,14 @@ async function scenario(denyMessage) {
   await Promise.resolve();await Promise.resolve();
   assert.ok(posted.some(x=>x.method==="ui/initialize"),"initialize missing");
   assert.ok(posted.some(x=>x.method==="ui/notifications/initialized"),"initialized notify missing");
+  assert.equal(elements.get("probe").disabled,false,"probe should enable after initialize");
+  await elements.get("probe").click();
+  for(let i=0;i<12;i++)await Promise.resolve();
+  assert.equal(posted.filter(x=>x.method==="ui/message").length,1,"manual message not requested");
+  assert.equal(posted.filter(x=>x.method==="tools/call" && x.params.name==="chat.ui.ack").length,0,
+    "probe must not acknowledge any queued message");
+  if(denyMessage) assert.ok(elements.get("status").textContent.includes("отклонён"));
+  else assert.ok(elements.get("status").textContent.includes("хост принял"));
   elements.get("start").click();
   const advance=async until=>{
     while(true){

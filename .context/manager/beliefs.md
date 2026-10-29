@@ -1,5 +1,8 @@
 # Manager beliefs
 
+## B26 — 29.10.2026: Independent ui/message diagnostic probe added
+- Source prototype v0.2.15 CI/release PASS, but installed DOMKAT still v0.2.13 and ChatGPT tool list 45. Added a separate explicit-click ui/message probe to differentiate host-level send support from timer-driven forwarding, plus host capability reporting. Local mocked host tests and 52-tool MCP protocol tests pass; real ChatGPT acceptance pending.
+
 ## B26 — v0.2.15 Windows release verified 29.10.2026
 - GitHub Actions run 40904368593 SUCCESS; published stable v0.2.15 from commit 59fea9657732ae500a1834c40437471459f7b0cf. Full Windows Setup/Update/selftest/installer preservation acceptance complete. Update SHA-256 2d4b44f88fcefb4560c750d09148b2795fcdd2dba12b7d44afc83babd60f94bd; Setup SHA-256 be1ce88211544aec8447034e5ba92a1b0bd573c8b9a73c762e71c7485ee61f03. Live ChatGPT host ui/message acceptance remains unverified; installed DOMKAT is still v0.2.13.
 

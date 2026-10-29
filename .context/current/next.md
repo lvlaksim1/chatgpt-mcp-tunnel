@@ -1,5 +1,11 @@
 # Next actions
 
+## Next: v0.2.16 diagnostic release and owner UI check
+1. Publish stable v0.2.16 with two-case diagnostic and verify Windows GitHub Actions.
+2. Owner installs/update DOMKAT and refreshes action catalogue; preserve connection identity and user data.
+3. In ordinary ChatGPT invoke chat.ui.open, click «Тест ui/message» and observe a model turn. Then click «Начать передачу», send message in local window; verify auto ui/message + chat.reply. Record whether UI remains active across turns.
+4. Until real host test passes, do not promise no scheduler, or unattended availability while UI is closed.
+
 ## Immediate next: actual ui/message acceptance
 1. Owner installs v0.2.15 update on DOMKAT and refreshes ChatGPT MCP connector actions.
 2. Open chat.ui.open in ordinary ChatGPT, enable relay, send a test message through existing local chat.

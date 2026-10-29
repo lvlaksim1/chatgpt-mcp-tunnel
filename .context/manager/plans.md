@@ -1,5 +1,11 @@
 # Manager plans
 
+## v0.2.16 diagnostic two-case MCP acceptance
+1. Done: add explicit-click ui/message test which does not touch the local queue; show hostCapabilities message.text/openai/message. Simulator validates click success/failure with no queue ack.
+2. Done: local .NET builds zero warnings/errors; MCP resource and tool metadata tests pass.
+3. Next: publish stable Windows installer v0.2.16, verify CI and hashes.
+4. Next: owner-controlled update on DOMKAT, plugin tool refresh; test click and timer separately, then real chat.reply. Neither mode requires paid API, browser automation, Work, Codex or ChatGPT chat scheduler.
+
 ## v0.2.15 passed Windows CI — next host experiment
 1. Stable v0.2.15 verified with Setup/Update installer and SHA-256; no production installation during development.
 2. Refresh the ChatGPT MCP connector catalog (now 52 runtime tools), open chat.ui.open, enable relay in the embedded component, send message from local GUI.

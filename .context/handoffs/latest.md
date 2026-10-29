@@ -1,5 +1,10 @@
 # Latest handoff
 
+## Handoff: ui/message two-case diagnostic (v0.2.16 source)
+- Prior 0.2.15 stable Windows build and MCP Apps relay published; working DOMKAT still 0.2.13 and visible plugin catalogue 45 tools. Owner requested continuation after stall.
+- Additional v0.2.16 source: direct-click «Тест ui/message» emits test user message, no ack to local queue; existing «Начать передачу» tests automatic timer forwarding. Host capability readout differentiates support claims. JS simulator and .NET MCP tests pass; real ChatGPT iframe behavior not verified, and installed hosts not changed.
+- Next stage release/owner update/refresh and real click-versus-timer test. Untracked user TXT files untouched.
+
 ## Handoff: verified v0.2.15 release, real host experiment remains
 - Source commit 59fea96 published; official Windows release v0.2.15 built successfully by GitHub Actions 40904368593. Installer Setup/Update and preservation tests passed; download update is https://github.com/lvlaksim1/chatgpt-mcp-tunnel/releases/download/v0.2.15/ChatGPT_MCP_Tunnel_Update_v0.2.15.exe. New chat.ui.open/pending/ack and MCP Apps HTML ui/message relay registered; simulated host positive/negative tests passed.
 - No production program updated; DOMKAT observed v0.2.13. To prove the intended feature, refresh ChatGPT plugin, open component in ordinary ChatGPT, enable, send local message and confirm host starts turn and chat.reply.

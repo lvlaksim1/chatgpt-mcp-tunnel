@@ -1,5 +1,8 @@
 # Manager intentions and commitments
 
+## ui/message v0.2.16 diagnostic version pending production acceptance
+- commitment: ui-message-2026-10-29, active. Build/release extended probe, require physical owner update and refresh ChatGPT MCP actions, then test explicit-click message and timer-based queue forwarding separately. Do not claim either real behavior tested yet; preserve existing one-tunnel network.
+
 ## v0.2.15 release completed — real host acceptance still active
 - Source, simulation, Windows installation and release checks completed. Main commitment remains active until real ordinary ChatGPT host accepts the timer-initiated ui/message and sends reply via chat.reply. Do not confuse successful GitHub Actions with real ChatGPT behavior.
 

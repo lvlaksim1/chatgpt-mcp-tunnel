@@ -1,5 +1,10 @@
 # Current state
 
+## 29.10.2026: ui/message two-case diagnostic source tested (v0.2.16)
+- 0.2.15 source + stable GitHub release confirmed; installed DOMKAT still v0.2.13, current ChatGPT exposed tool catalogue 45 not 52. Could not test real ChatGPT host with stale catalogue.
+- Added ui/message test button for direct user-click probing (no queue ack), capability advertisement display and independent automatic polling comparison. JS simulated-host tests verify both success/rejection. .NET builds 0 errors/warnings and MCP stdio 52 tools / HTML resources PASS.
+- Pending v0.2.16 CI installer release, owner-controlled deployment, refresh new MCP actions, real ChatGPT click and automatic timer verification.
+
 ## 29.10.2026: v0.2.15 released successfully; real ChatGPT behavior pending
 - GitHub Actions 40904368593 SUCCESS (including Windows Inno Setup full/update and preservation); stable release https://github.com/lvlaksim1/chatgpt-mcp-tunnel/releases/tag/v0.2.15. Update SHA-256 2d4b44f88fcefb4560c750d09148b2795fcdd2dba12b7d44afc83babd60f94bd; Setup SHA-256 be1ce88211544aec8447034e5ba92a1b0bd573c8b9a73c762e71c7485ee61f03.
 - Source implements MCP Apps ui/message 52 tools and server UI resources. Simulated host tests succeeded. No actual ChatGPT iframe host test and no installed DOMKAT update; still observed v0.2.13. Existing WSS tunnel healthy.

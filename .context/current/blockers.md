@@ -1,5 +1,9 @@
 # Current blockers and open risks
 
+## 29.10.2026: actual ui/message acceptance still gated by host
+- ChatGPT runtime tool snapshot exposes 45 legacy tools; new chat.ui.open in runtime 52-tool manifest is not callable from this turn until plugin action refresh. Installed DOMKAT remains 0.2.13. Actual ChatGPT iframe ui/message click and timer acceptance are untested.
+- No server-only mechanism can prove host allows autonomous ui/message; simulated iframe confirms only protocol implementation. Owner must open UI in ordinary ChatGPT and inspect real outcome.
+
 ## Experimental host gate persists after successful v0.2.15 CI
 - Stable installer publication DOES NOT prove ChatGPT permits automatic ui/message from a timer or that it keeps iframe alive after a new turn. Need actual connector refresh and manual ChatGPT host test.
 - DOMKAT / MKATUSHONOK installed apps are not yet updated. User receives update installers; no autonomous install was performed.

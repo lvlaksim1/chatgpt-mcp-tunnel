@@ -28,8 +28,10 @@ pre { font-size:11px; overflow-wrap:anywhere; white-space:pre-wrap; }
 <button id="start" type="button">Начать передачу</button>
 <button class="secondary" id="stop" type="button" disabled>Остановить</button>
 <button class="secondary" id="check" type="button">Проверить очередь</button>
+<button class="secondary" id="probe" type="button" disabled>Тест ui/message</button>
 </div>
 <div role="status" aria-live="polite" class="status" id="status">Подключение к MCP Apps…</div>
+<p class="detail">Кнопка «Тест ui/message» отправляет отдельное диагностическое сообщение непосредственно из компонента по вашему нажатию. «Начать передачу» проверяет автоматическую отправку из локальной очереди. Сравнение покажет, разрешает ли ChatGPT передачу без нажатия именно в момент отправки.</p>
 <p class="detail">Эксперимент: компонент должен оставаться открытым в ChatGPT. Если ChatGPT приостановит или закроет его, передача сообщений остановится. Неотправленные сообщения сохранятся в локальной очереди.</p>
 <pre id="details"></pre>
 </main>
@@ -41,6 +43,7 @@ pre { font-size:11px; overflow-wrap:anywhere; white-space:pre-wrap; }
   const start = document.getElementById("start");
   const stop = document.getElementById("stop");
   const check = document.getElementById("check");
+  const probe = document.getElementById("probe");
   let serial = 0;
   const calls = new Map();
   let initialized = false, running = false, busy = false, disposed = false;
@@ -143,6 +146,25 @@ pre { font-size:11px; overflow-wrap:anywhere; white-space:pre-wrap; }
     if (timer !== null) clearTimeout(timer);
     timer = null; tell("Передача остановлена.");
   });
+  probe.addEventListener("click", async () => {
+    if (!initialized || disposed || busy) return;
+    probe.disabled = true;
+    const nonce = Math.random().toString(36).slice(2,10);
+    tell("Проверка ui/message по нажатию пользователя…");
+    try {
+      const result = await request("ui/message", {
+        role:"user",
+        content:[{type:"text",text:"Контрольный сигнал MCP Apps ui/message, код "+nonce+". Ответь кратко: «Сигнал получен, код "+nonce+"». Это проверка связи, не сообщение локальной очереди."}],
+        _meta:{"openai/message":{target:"active",send:true}}
+      });
+      if (result?.isError) throw new Error("Хост отклонил тест ui/message");
+      tell("Проверка ui/message: хост принял запрос. Код "+nonce+". Проверьте появление нового сообщения.");
+      report("Ручной тест принят хостом. Это ещё не подтверждает автоматическую пересылку.");
+    } catch(e) {
+      tell("Пробный ui/message отклонён: "+e.message);
+      report("Снимите текст ошибки. Ни одно сообщение локальной очереди не помечено отправленным.");
+    } finally { if (!disposed) probe.disabled = false; }
+  });
   check.addEventListener("click", async () => {
     try {
       const next = await tool("chat.ui.pending");
@@ -155,11 +177,14 @@ pre { font-size:11px; overflow-wrap:anywhere; white-space:pre-wrap; }
     appCapabilities:{availableDisplayModes:["inline","fullscreen"]}
   }).then((response) => {
     initialized = true;
+    probe.disabled = false;
     window.parent.postMessage({jsonrpc:"2.0",method:"ui/notifications/initialized"}, "*");
     const caps = response?.hostCapabilities || {};
     report("Хост: " + (response?.hostInfo?.name || "неизвестен") +
         "\nВозможности: " + JSON.stringify(caps));
-    tell("MCP подключён. Нажмите «Начать передачу», чтобы проверить ui/message.");
+    const standard = !!caps.message?.text;
+    const extension = !!caps.experimental?.["openai/message"];
+    tell("MCP подключён. Отправка текста: "+(standard?"объявлена":"не объявлена")+"; расширение OpenAI: "+(extension?"объявлено":"не объявлено")+". Сначала проверьте «Тест ui/message», затем «Начать передачу».");
   }).catch((err) => { tell("Хост не поддерживает MCP Apps: " + err.message); start.disabled = true; });
 })();
 </script>
