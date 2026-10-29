@@ -1,5 +1,9 @@
 # Current state
 
+## 2026-10-30: v0.2.23 automatic Windows Global Hub activation
+- 30.10.2026 on DOMKAT user-authorized full Yandex shutdown (browser.exe=0), Windows Start-Process Global ChatGPT URI cold-start confirmed ui-initialize and fresh hub instance. New local message 30OCT-9D41 was delivered via Global Hub and received reply ХОЛОДНЫЙ-УСПЕХ with status answered. Second follow-up forwarded but pending as of inspection. Source v0.2.22 context recovery was concurrently added and preserved.
+- Added v0.2.23 source Windows ChatHostActivator: server-tray monitor pending unforwarded messages, global event heartbeat TTL, auto launch already validated Global URI from per-user configuration, rate limit 2m. Private plugin identifier not checked into repo. Agent/MCP .NET builds and selftest PASS. Installed DOMKAT still v0.2.21 pending CI/install. Details docs/mcp-hub-host-activator-v0.2.23.md.
+
 ## 2026-10-29: v0.2.22 local chat context recovery after Global cold start
 - DOMKAT installed v0.2.21. Successfully closed all Yandex processes, cold-started Global from OS URI, then used local GUI to send test; hidden browser host produced real ChatGPT reply АВТОЗАПУСК-21 via chat.reply in matching chat. Follow-up into new cloud conversation lacked previous context and no chat.reply; pending ACK retained. v0.2.22 source context-restoring Global prepared/tested, not deployed yet. Report docs/mcp-global-hub-context-recovery-v0.2.22.md.
 

@@ -1,5 +1,9 @@
 # Current blockers and open risks
 
+## 2026-10-30: v0.2.23 automatic Windows Global Hub activation
+- Core cold-start now works after OS launch of URL, and first message gets real model reply. Remaining step: automatic OS URI launch when message sent without any manual link, currently v0.2.23 source pending release. Follow-up message can be forwarded but remain un-answered if model does not call chat.reply; v0.2.22 context transfer source is not yet installed.
+- Browser engine remains required as ChatGPT Host in this architecture, even if started by Windows invisibly. Never claim no browser process. MKATUSHONOK local chats not yet connected to server-side Hub queue.
+
 ## 2026-10-29: v0.2.22 local chat context recovery after Global cold start
 - v0.2.21 second cloud thread forgotten previous answer and omitted mandatory chat.reply, leaving one pending forwarded message bdbfca780e364437bd8624eda5d1fa56. v0.2.22 sends bounded local history but live success not yet proven. Need host-only callback repair eventually (retries/reconciliation), plus multiple Global instance ownership to avoid duplicates. Browser process still required technically, though window can be entirely hidden.
 

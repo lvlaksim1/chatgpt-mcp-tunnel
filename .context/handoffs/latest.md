@@ -1,5 +1,9 @@
 # Latest handoff
 
+## 2026-10-30: v0.2.23 automatic Windows Global Hub activation
+- User authorized full Yandex Browser close and no special retention of old tunnel chats. DOMKAT v0.2.21 currently installed. Repeated test: browser.exe 0 -> OS deep link -> fresh Global Hub init -> new local message 30OCT-9D41 -> answer ХОЛОДНЫЙ-УСПЕХ in local chat. New follow-up forwarded but remained pending when checked.
+- v0.2.22 source added local context restoration; our new v0.2.23 source adds Windows tray ChatHostActivator with per-user URL file, heartbeat/queue monitoring, strict URL validate, 2min cooldown. C# builds, --test-host-activator PASS. Need CI release+install, activate private URL, no-manual-browser send acceptance; then follow-up and reboot.
+
 ## 2026-10-29: v0.2.22 local chat context recovery after Global cold start
 - v0.2.21 deployed and first fully automated answer proven (browser.exe initially 0; Windows URI starts host, browser hidden; new local chat message eb875... answered АВТОЗАПУСК-21). Second follow-up bdbf... was forwarded by Global into a fresh cloud thread but ChatGPT responded it lacked prior context and did not invoke chat.reply. Local pending/ACK.
 - v0.2.22 source prepends bounded local history from answered JSON messages on Global target:new, requires model chat.reply before text. Isolated tests PASS, GitHub CI/release/deploy pending. Next retry second message by deleting only its ui-forwarded ACK with user approval to discard old test chat data, verify continuity. User explicitly authorized closing Yandex and no old history backups.

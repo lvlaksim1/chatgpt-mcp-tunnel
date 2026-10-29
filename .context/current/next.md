@@ -1,5 +1,11 @@
 # Next actions
 
+## 2026-10-30: v0.2.23 automatic Windows Global Hub activation
+1. Commit/publish v0.2.23 Windows Global Host Activator, verify build/test and SHA-256. Keep v0.2.22 context recovery.
+2. DOMKAT controlled update; private hub-entrypoint.url with validated installed Global URL.
+3. Close all Yandex Browser; send local message from WinForms without manually opening URL, verify Start-Process by tray, hub ui-initialize, chat.ui.open and chat.reply in correct chat.
+4. Check second message context and reply. Follow-up if model fails chat.reply: add server status + one bounded model reminder with dedupe, then retest. Reboot Windows only after basic scenario PASS.
+
 ## 2026-10-29: v0.2.22 local chat context recovery after Global cold start
 1. Commit/release v0.2.22 context-enhanced Global resource, run CI, controlled install and plugin refresh.
 2. Close all Yandex, cold start via Windows Global app URI; remove ACK only for existing failed bdbfca780e364437bd8624eda5d1fa56 so it reenters queue with stored prior answered turn. Observe real reply and status.

@@ -1,5 +1,10 @@
 # Manager beliefs
 
+## 2026-10-30: v0.2.23 automatic Windows Global Hub activation
+- DOMKAT live: all browser.exe stopped, MCP readyz=200, Windows deep link cold-started Global Hub and created fresh iframe; new local message 30OCT-9D41 was ui/message target:new forwarded and ultimately replied ХОЛОДНЫЙ-УСПЕХ to matching chat_id using chat.reply. Follow-up forwarded but stalled pending; v0.2.22 introduces local-context snapshot for new cloud threads; full continuity acceptance remains.
+- v0.2.23 Windows ChatHostActivator detects pending unforwarded messages and absence of fresh Global Hub heartbeat and automatically launches per-user ChatGPT Global URL via OS, with URL allowlist and 120-second cooldown. Integrated into existing tray instance only for server role. No hard-coded account plugin ID, no second tunnel or hourly ChatGPT planner. Source and tests docs/mcp-hub-host-activator-v0.2.23.md.
+- User explicitly allows closing all Yandex Browser windows and says old tunnel chats have no value. Avoid special preservation mechanisms; do not delete unrelated user files. Installed production remains v0.2.21 until verified release/upgrade.
+
 ## 2026-10-29: v0.2.22 local chat context recovery after Global cold start
 - Owner allowed closing all Yandex Browser windows/processes and does not value old tunnel test chats. v0.2.21 is INSTALLED and cold-started from Windows URI with browser.exe=0 before activation. Hide via ShowWindow SW_HIDE; user only used local WinForms chat. Real new local message eb8754a07f7841e9be2abd51a36bf55b / chat_id 810e129d5501471c9927630b033cf301 forwarded by Global Hub, ChatGPT answered АВТОЗАПУСК-21 via chat.reply, Status=answered. This PROVES full first-turn model loop with hidden browser host, NOT a no-browser-process inference mechanism.
 - Second local follow-up bdbfca780e364437bd8624eda5d1fa56 was forwarded by global again after old cloud thread route went stale. Separate new ChatGPT conversation displayed response «Точный текст предыдущего ответа в этом диалоге мне недоступен», did NOT call chat.reply; local status remains pending with ACK. Thus context continuity / assured tool reply remained unresolved.

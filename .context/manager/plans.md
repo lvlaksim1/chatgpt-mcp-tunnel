@@ -1,5 +1,12 @@
 # Manager plans
 
+## 2026-10-30: v0.2.23 automatic Windows Global Hub activation
+1. DONE: v0.2.21 Global Hub from entirely closed Yandex, new local chat and real answer ХОЛОДНЫЙ-УСПЕХ end-to-end.
+2. DONE: v0.2.23 source ChatHostActivator, C# builds + isolated selftest. Implemented server-only tray timer polling every 12s, pending-unforwarded check, hub heartbeat TTL, 120s launch throttle, strict per-user ChatGPT URL.
+3. NEXT: CI release v0.2.23 (including committed v0.2.22 context restoration), verified installer DOMKAT; create local per-user hub-entrypoint.url using observed installation identifier and start actual test with browser processes zero.
+4. NEXT: without opening browser manually, send a fresh local chat message; check activator log, Hub ui-initialize, message forwarded and local answered. Check follow-up memory; repair missing chat.reply separately if persists.
+5. NEXT: supervised Windows reboot and testing of independent remote computers, no extra tunnels or scheduled ChatGPT automation.
+
 ## 2026-10-29: v0.2.22 local chat context recovery after Global cold start
 1. DONE v0.2.21 cold browser no-process start and automatic first local chat model reply via hidden browser. Previous answer АВТОЗАПУСК-21 stored with chat.reply.
 2. OBSERVED second message forwarded into a new cloud thread after stale route, cloud model lacked prior answer and did not invoke chat.reply, so local stays pending with ui-forwarded ACK. Need server-side context recovery.
