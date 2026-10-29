@@ -51,6 +51,7 @@ try:
     expected |= uia_tools
     github_tools = {"github.auth", "github.api", "github.graphql", "github.repositories", "github.files", "github.branches", "github.commits", "github.batch_commit", "github.issues", "github.pulls", "github.actions", "github.jobs", "github.releases", "github.release_assets", "github.artifacts", "github.search", "github.git"}
     expected |= github_tools
+    expected.update({"chat.receive", "chat.reply"})
     expected.add("computers.list")
     expected.update({"file.transfer.start", "file.transfer.status", "file.transfer.cancel"})
     assert len(github_tools) == 17
@@ -74,6 +75,34 @@ try:
                       "params": {"name": "bridge_ping", "arguments": {}}})
     assert "CHATGPT_MCP_TUNNEL_PING_OK" in json.dumps(result), result
     print("CALL_OK CHATGPT_MCP_TUNNEL_PING_OK")
+
+    # Test the full chat message lifecycle; do not alter existing user messages.
+    import tempfile
+    import uuid
+    from datetime import datetime, timezone
+    folder = Path(os.environ.get("LOCALAPPDATA", str(Path.home()))) / "ChatGPTMCPAgent" / "Chat" / "messages"
+    folder.mkdir(parents=True, exist_ok=True)
+    message_id = uuid.uuid4().hex
+    message_file = folder / f"{message_id}.json"
+    message_file.write_text(json.dumps({
+        "Id": message_id, "CreatedUtc": datetime.now(timezone.utc).isoformat(),
+        "Text": "CHAT_E2E_TEST", "Status": "pending",
+        "Reply": None, "RepliedUtc": None
+    }), encoding="utf-8")
+    try:
+        received = request({"jsonrpc": "2.0", "id": 4, "method": "tools/call",
+            "params": {"name": "chat.receive", "arguments": {"wait_seconds": 0, "max_messages": 30}}})
+        assert message_id in json.dumps(received), received
+        replied = request({"jsonrpc": "2.0", "id": 5, "method": "tools/call",
+            "params": {"name": "chat.reply", "arguments": {
+                "message_id": message_id, "reply": "CHAT_E2E_REPLY"}}})
+        assert any('"ok":true' in c.get("text", "") for c in replied.get("content", [])), replied
+        content = json.loads(message_file.read_text(encoding="utf-8"))
+        assert content["Status"] == "answered" and content["Reply"] == "CHAT_E2E_REPLY", content
+        print("CHAT_RECEIVE_REPLY_OK")
+    finally:
+        message_file.unlink(missing_ok=True)
+
 finally:
     proc.terminate()
     try:

@@ -78,6 +78,15 @@ internal static class Program
             Environment.ExitCode = AgentStorage.RunSelfTest();
             return;
         }
+        if (args.Length == 1 && args[0] == "--test-chat-window")
+        {
+            Application.EnableVisualStyles();
+            using var chat = new ChatWindow();
+            if (chat.Handle == IntPtr.Zero ||
+                !chat.Controls.OfType<Label>().Any(l => l.Text.Contains("ChatGPT")))
+                Environment.ExitCode = 31;
+            return;
+        }
         if (args.Length == 1 && args[0] == "--test-transfer-window")
         {
             Application.EnableVisualStyles();
@@ -284,6 +293,7 @@ internal sealed class TrayContext : ApplicationContext
         menu.Items.Add("Настройки подключения", null, (_, _) => ShowSettings());
         menu.Items.Add("Переподключиться", null, (_, _) => RestartAgent());
         menu.Items.Add("Проверить обновления", null, async (_, _) => await CheckUpdatesAsync(true));
+        menu.Items.Add("Чат", null, (_, _) => ShowChat());
         menu.Items.Add("Передача файлов", null, (_, _) => ShowTransfers());
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("Выход", null, (_, _) => { AgentWatchdog.PauseForManualExit(); ExitThread(); });
@@ -294,7 +304,7 @@ internal sealed class TrayContext : ApplicationContext
             Visible = true,
             ContextMenuStrip = menu
         };
-        _tray.DoubleClick += (_, _) => ShowSettings();
+        _tray.DoubleClick += (_, _) => ShowChat();
         _timer.Tick += (_, _) =>
         {
             if (_shutdown.WaitOne(0))
@@ -342,6 +352,24 @@ internal sealed class TrayContext : ApplicationContext
             StartAgent();
             _ = CheckUpdatesAsync(false);
         }
+    }
+
+    private Form? _chatWindow;
+    private void ShowChat()
+    {
+        if (_chatWindow is { IsDisposed: false } existing)
+        {
+            EnsureSettingsWindowVisible(existing);
+            return;
+        }
+        var chat = new ChatWindow();
+        _chatWindow = chat;
+        chat.FormClosed += (_, _) =>
+        {
+            if (ReferenceEquals(_chatWindow, chat)) _chatWindow = null;
+            chat.Dispose();
+        };
+        EnsureSettingsWindowVisible(chat);
     }
 
     private Form? _transferWindow;
@@ -557,6 +585,7 @@ internal sealed class TrayContext : ApplicationContext
     {
         if (_updating || _stopping) return;
         if (_transferWindow is { IsDisposed: false } transfers) transfers.Close();
+        if (_chatWindow is { IsDisposed: false } chat) chat.Close();
         StopAgent();
         _connection = "Переподключение…";
         _nextStart = DateTime.MinValue;

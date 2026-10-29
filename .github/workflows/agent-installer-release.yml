@@ -107,6 +107,8 @@ jobs:
           if ($tailnetFirewallTest.ExitCode -ne 0) { throw "Tailnet-specific firewall rule/address test failed: $($tailnetFirewallTest.ExitCode)" }
           $stagingTest = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--test-updater-download' -Wait -PassThru
           if ($stagingTest.ExitCode -ne 0) { throw "Windows updater staging/rename test failed: $($stagingTest.ExitCode)" }
+          $chatUi = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--test-chat-window' -Wait -PassThru
+          if ($chatUi.ExitCode -ne 0) { throw "Chat window test failed: $($chatUi.ExitCode)" }
           $transferUi = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--test-transfer-window' -Wait -PassThru
           if ($transferUi.ExitCode -ne 0) { throw "File transfer window test failed: $($transferUi.ExitCode)" }          $secretForms = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--test-secret-forms' -Wait -PassThru
           if ($secretForms.ExitCode -ne 0) { throw "Client/server secret field UX test failed: $($secretForms.ExitCode)" }
