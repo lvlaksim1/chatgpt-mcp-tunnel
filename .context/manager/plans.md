@@ -1,5 +1,8 @@
 # Manager plans
 
+## 2026-10-29: Study of MCP Apps global and thread entrypoints
+- NEXT: explore global sidebar entrypoint, thread tab and deep links in ordinary ChatGPT (non-destructive). Then split chat.ui.hub global and chat.ui.thread per-conversation from chat.ui.open bootstrap; add hostContext route processing and iframe ownership leases, preserving single tunnel.
+
 ## 29.10.2026: two distinct live ChatGPT threads and switch-back PASS
 - New second local session chat_id 58f8d4f5ab3c4fea88382a4ab029967f received its own new ChatGPT thread via ui/message target:new, route waiting -> ready, and local message 477156c8b341421ebb5866f0bc4188d5 returned Status=answered, Reply=ВТОРОЙ.
 - Switched GUI back to first local session chat_id c8d881eb8f0f4ff1aac24dcfe21a0a0c. Message 755051abb067448a9ff138bd2d082371 was forwarded and answered Reply=ПЕРВЫЙ in that same first session. Previous messages ПРИНЯТО and ПРОДОЛЖЕНИЕ remain visible only there. Thus 2 independent new ChatGPT threads, 2 associated local chat histories and switch-back have live end-to-end PASS.
