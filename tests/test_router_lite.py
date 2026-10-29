@@ -25,6 +25,8 @@ router_env = {**base_env, "CHATGPT_MCP_ROUTER_ENABLED": "1",
               "CHATGPT_MCP_ROUTER_LISTEN": f"http://127.0.0.1:{port}"}
 agent_env = {**base_env, "CHATGPT_MCP_COMPUTER_ID": "TEST-AGENT",
              "CHATGPT_MCP_ROUTER_URL": f"ws://127.0.0.1:{port}/agent"}
+# A fresh local clone may not have ignored test artifacts yet.
+(root / ".tools").mkdir(parents=True, exist_ok=True)
 router_log = (root / ".tools" / "router-test-stderr.log").open("w", encoding="utf-8")
 agent_log = (root / ".tools" / "agent-test-stderr.log").open("w", encoding="utf-8")
 router = subprocess.Popen(["dotnet", str(dll)], cwd=root, env=router_env,

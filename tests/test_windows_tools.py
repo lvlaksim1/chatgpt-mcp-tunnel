@@ -126,6 +126,20 @@ try:
         shell = call("shell.exec", command="Write-Output 'MCP_SHELL_OK'", working_directory=str(location))
         assert shell["exit_code"] == 0 and "MCP_SHELL_OK" in shell["stdout"], shell
         print("SHELL_EXEC_OK", flush=True)
+        # Explicit safe activity code survives only as an allowlisted key.
+        # Raw commands and sensitive strings must never enter the control log.
+        secret = "CONTROL_ACTIVITY_SECRET_123456789"
+        shell = call("shell.exec",
+                     command=f"Write-Output '{secret}'",
+                     activity="tests_run", working_directory=str(location))
+        assert shell["exit_code"] == 0 and secret in shell["stdout"], shell
+        snapshot = json.loads((Path(control_root.name) / "state.json").read_text(encoding="utf-8"))
+        recent = snapshot["Recent"]
+        assert any(item["Tool"] == "shell.exec" and item.get("Activity") == "tests_run"
+                   for item in recent), recent
+        assert secret not in json.dumps(snapshot), snapshot
+        print("SHELL_ACTIVITY_REDACTION_OK", flush=True)
+
 
         # shell.exec must close stdin: the MCP server's own stdio pipe stays
         # open for future calls, and Git must not inherit that live input.

@@ -61,7 +61,8 @@ internal sealed class ControlOverlay : Form
         _refresh.Start();
     }
 
-    private static string Friendly(string tool) => tool switch
+    private static string Friendly(string tool, string? activity = null) =>
+        ControlActivityLabels.Display(tool, activity) ?? (tool switch
     {
         "shell.exec" => "Выполнение команды",
         "fs.read" => "Чтение файла",
@@ -83,7 +84,7 @@ internal sealed class ControlOverlay : Form
         "desktop.uia.action" => "Действие с элементом",
         "desktop.batch" => "Серия действий",
         _ => tool
-    };
+    });
     private static bool Recent(ControlSnapshot snap)
     {
         if (snap.Recent.Count == 0) return false;
@@ -110,12 +111,12 @@ internal sealed class ControlOverlay : Form
             _header.ForeColor = s.Stopped ? Color.OrangeRed :
                 active ? Color.LightGreen : Color.LightSkyBlue;
             var current = s.Active.LastOrDefault();
-            _current.Text = current is not null ? "Сейчас: " + Friendly(current.Tool) :
+            _current.Text = current is not null ? "Сейчас: " + Friendly(current.Tool, current.Activity) :
                 s.Stopped ? "Новые команды заблокированы на этом ПК." :
                 "Все операции завершены.";
             _history.Text = "Последние операции:" + Environment.NewLine +
                 string.Join(Environment.NewLine,
-                    s.Recent.Take(3).Select(x => "✓ " + Friendly(x.Tool)));
+                    s.Recent.Take(3).Select(x => "✓ " + Friendly(x.Tool, x.Activity)));
             _stop.Text = s.Stopped ? "ВОЗОБНОВИТЬ УПРАВЛЕНИЕ" : "СТОП — ПРЕКРАТИТЬ УПРАВЛЕНИЕ";
             _stop.BackColor = s.Stopped ? Color.FromArgb(48, 119, 89) :
                 Color.FromArgb(174, 48, 54);

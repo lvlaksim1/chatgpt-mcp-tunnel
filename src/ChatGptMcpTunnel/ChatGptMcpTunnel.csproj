@@ -8,6 +8,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../Shared/ControlState.cs" Link="ControlState.cs" />
+    <Compile Include="../Shared/ControlActivityLabels.cs" Link="ControlActivityLabels.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="ModelContextProtocol" Version="2.2.0" />

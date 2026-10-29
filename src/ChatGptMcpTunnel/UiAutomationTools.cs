@@ -107,8 +107,13 @@ public static class UiAutomationTools
 
         var operation = JsonSerializer.SerializeToElement(request, JsonOptions)
             .GetProperty("operation").GetString() ?? "unknown";
+        var requestJson = JsonSerializer.SerializeToElement(request, JsonOptions);
+        string? actionName = operation == "action" &&
+            requestJson.TryGetProperty("action", out var actionJson)
+            ? actionJson.GetString() : null;
         using var control = ControlState.Begin("desktop.uia." + operation,
-            guiAction: operation == "action", readOnly: operation != "action");
+            guiAction: operation == "action", readOnly: operation != "action",
+            activity: actionName);
 
         var workerFile = Path.Combine(AppContext.BaseDirectory, "AutomationWorker.ps1");
         if (!File.Exists(workerFile))

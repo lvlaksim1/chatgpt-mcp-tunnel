@@ -79,6 +79,25 @@ internal static class ControlTests
         Environment.SetEnvironmentVariable("CHATGPT_MCP_CONTROL_TEST_ROOT", temp);
         try
         {
+            // Human-readable descriptions are derived from allowlisted keys,
+            // never copied from potentially sensitive command arguments.
+            if (ControlActivityLabels.Shell("dotnet build src/Test.csproj") != "project_build") return 81;
+            if (ControlActivityLabels.Shell("git -C D:/Dev/Test status --short") != "git_status") return 82;
+            if (ControlActivityLabels.Shell("python tests/test_mcp_stdio.py") != "tests_run") return 83;
+            if (ControlActivityLabels.Shell("dotnet build Test.csproj; python tests/test_mcp_stdio.py") != "build_and_test") return 84;
+            if (ControlActivityLabels.Shell("git push origin main") != "git_push") return 85;
+            if (ControlActivityLabels.Shell("Remove-Item x.txt; git status", "git_status") != "files_delete") return 90;
+            if (ControlActivityLabels.Shell("Stop-Process -Id 123", "project_build") != "process_stop") return 91;
+            if (ControlActivityLabels.Display("desktop.uia.action", "set_value") is null) return 86;
+            if (ControlActivityLabels.Display("shell.exec", "password=secret") is not null) return 87;
+            var sensitive = "Set-Content -Path C:/secret.txt -Value 'MY_PRIVATE_TOKEN_TEST_123'";
+            using (var safe = ControlState.Begin("shell.exec", activity: ControlActivityLabels.Shell(sensitive))) { }
+            using (var bad = ControlState.Begin("shell.exec", activity: "MY_PRIVATE_TOKEN_TEST_123")) { }
+            var persisted = File.ReadAllText(ControlState.StateFile);
+            if (persisted.Contains("MY_PRIVATE_TOKEN_TEST_123", StringComparison.Ordinal) ||
+                persisted.Contains("C:/secret.txt", StringComparison.Ordinal))
+                return 88;
+            if (ControlState.Read().Recent[0].Activity != "") return 89;
             if (ControlState.IsStopped) return 61;
             using (var operation = ControlState.Begin("shell.exec")) { }
             ControlState.Stop();
