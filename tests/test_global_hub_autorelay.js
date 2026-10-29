@@ -1,7 +1,7 @@
 "use strict";
 const fs=require("fs"),vm=require("vm"),path=require("path"),assert=require("assert").strict;
 const html=fs.readFileSync(path.join(__dirname,"../src/ChatGptMcpTunnel/ChatGlobalHubApp.html"),"utf8");
-const src=html.match(/<script>([\s\S]*?)<\/script>/)[1];
+const src=html.match(/<script>([\s\S]*?)<\/script>/)[1].replace("__HUB_TRANSPORT_MODE__","chat");
 const calls=[],logs=[],messages=[],timeouts=new Map(),intervals=new Map();
 let sequence=0,acknowledged=false;
 const chatId="6".repeat(32),messageId="7".repeat(32),status={textContent:""};
@@ -93,5 +93,5 @@ async function drain(){for(let i=0;i<45;i++)await Promise.resolve();}
  await drain();
  assert.ok(logs.some(x=>x.kind==="teardown"));
  assert.ok(calls.some(x=>x.id===901&&x.result));
- console.log("GLOBAL_HUB_AUTOPOLL_TARGET_NEW_ACK_NO_DUPLICATES_OK");
+ console.log("ORDINARY_CHAT_BOOTSTRAP_AUTOPOLL_TARGET_NEW_ACK_NO_DUPLICATES_OK");
 })().catch(e=>{console.error(e);process.exitCode=1;});

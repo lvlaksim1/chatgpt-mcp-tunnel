@@ -1,5 +1,9 @@
 # Latest handoff
 
+## 2026-10-30: v0.2.24 return to ordinary ChatGPT instead of Work
+- User reports newly generated tunnel chats are Work. Direct browser inspection of 'Проверка предыдущего ответа' found GPT-6 Astra + Work-style execution/results, whereas v0.2.18 'Приёмка MCP Tunnel' remains normal ChatGPT with High thinking. Global entrypoint origin /mcp-app causes model request target:new in Work host context; normal chat did not.
+- v0.2.24 SOURCE ONLY: new chat.bootstrap.open (non-entrypoint, model-visible), ui://chat-bootstrap-v0224 auto-dispatch in ordinary existing /c. Old Global becomes observer-only; Windows activator changed to strict /c/<uuid> and only chatbridge-* heartbeat. Local tests and builds PASS. Need CI release, install, one-time ordinary chat bootstrap and cold /c auto reopen + mode verification.
+
 ## 2026-10-30: v0.2.23 automatic Windows Global Hub activation
 - User authorized full Yandex Browser close and no special retention of old tunnel chats. DOMKAT v0.2.21 currently installed. Repeated test: browser.exe 0 -> OS deep link -> fresh Global Hub init -> new local message 30OCT-9D41 -> answer ХОЛОДНЫЙ-УСПЕХ in local chat. New follow-up forwarded but remained pending when checked.
 - v0.2.22 source added local context restoration; our new v0.2.23 source adds Windows tray ChatHostActivator with per-user URL file, heartbeat/queue monitoring, strict URL validate, 2min cooldown. C# builds, --test-host-activator PASS. Need CI release+install, activate private URL, no-manual-browser send acceptance; then follow-up and reboot.

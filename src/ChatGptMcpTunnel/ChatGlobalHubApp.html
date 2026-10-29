@@ -10,7 +10,9 @@ body{margin:0;padding:8px;background:transparent;color:var(--color-text-secondar
 (() => {
   "use strict";
   const mode = "global", status = document.getElementById("status");
-  const instanceId = "hub-" + Math.random().toString(36).slice(2,12) +
+  const chatTransport = "__HUB_TRANSPORT_MODE__" === "chat";
+  const instanceId = (chatTransport ? "chatbridge-" : "hub-") +
+    Math.random().toString(36).slice(2,12) +
     "-" + Date.now().toString(36);
   const calls = new Map();
   const idPattern=/^[a-f0-9]{32}$/i;
@@ -67,7 +69,7 @@ body{margin:0;padding:8px;background:transparent;color:var(--color-text-secondar
   }
   async function poll(){
     pollTimer=null;
-    if(!initialized || disposed || polling)return;
+    if(!initialized || disposed || polling || !chatTransport)return;
     polling=true;
     let delay=2500;
     try{
@@ -144,7 +146,7 @@ body{margin:0;padding:8px;background:transparent;color:var(--color-text-secondar
   });
   request("ui/initialize",{
     protocolVersion:"2026-01-26",
-    appInfo:{name:"ChatGPT MCP Tunnel Background Hub",version:"0.2.22"},
+    appInfo:{name:chatTransport ? "ChatGPT MCP Tunnel Ordinary Chat Bridge" : "ChatGPT MCP Tunnel Global Observer",version:"0.2.24"},
     appCapabilities:{availableDisplayModes:["fullscreen","inline"]}
   }).then(async response=>{
     initialized=true;
@@ -161,8 +163,10 @@ body{margin:0;padding:8px;background:transparent;color:var(--color-text-secondar
     heartbeatTimer=setInterval(()=>{
       void log("heartbeat",{visibility:document.visibilityState==="visible"?"visible":"hidden"});
     },15000);
-    // No user action or ChatGPT chat controls are required to begin forwarding.
-    schedule(500);
+    // Only the component embedded in a NORMAL ChatGPT conversation can
+    // create conversations. Global app may be hosted in Work.
+    if(chatTransport) schedule(500);
+    else status.textContent="MCP Tunnel: Global status observer";
   }).catch(()=>{
     status.textContent="MCP Tunnel: ошибка инициализации";
   });

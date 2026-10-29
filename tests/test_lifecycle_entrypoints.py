@@ -35,9 +35,9 @@ with tempfile.TemporaryDirectory(prefix="mcp-lifecycle-probe-") as temp:
   proc.stdin.write('{"jsonrpc":"2.0","method":"notifications/initialized"}\n')
   proc.stdin.flush()
   tools={x["name"]:x for x in request("tools/list")["tools"]}
-  assert len(tools)==56,len(tools)
+  assert len(tools)==57,len(tools)
   for name,mode,uri in (
-   ("chat.hub.open","global","ui://chatgpt-mcp-tunnel/hub-relay-v0222"),
+   ("chat.hub.open","global","ui://chatgpt-mcp-tunnel/hub-observer-v0224"),
    ("chat.thread.open","thread","ui://chatgpt-mcp-tunnel/lifecycle-thread-v0220")
   ):
    meta=tools[name]["_meta"]
@@ -61,6 +61,22 @@ with tempfile.TemporaryDirectory(prefix="mcp-lifecycle-probe-") as temp:
     assert 'chat.ui.ack' in content["text"]
    else:
     assert 'chat.ui.pending' not in content["text"]
+  # The only auto-dispatching bridge must be invoked from an ordinary
+  # ChatGPT conversation, not registered as a Global/Work entrypoint.
+  boot=tools["chat.bootstrap.open"]
+  boot_meta=boot["_meta"]
+  assert "openai/ui" not in boot_meta,boot_meta
+  assert boot_meta["ui"]["visibility"]==["model","app"]
+  assert boot_meta["ui"]["resourceUri"]=="ui://chatgpt-mcp-tunnel/chat-bootstrap-v0224"
+  boot_result=tool("chat.bootstrap.open",{})
+  assert boot_result["ok"] and boot_result["mode"]=="ordinary_chat_bootstrap",boot_result
+  boot_html=request("resources/read",{"uri":boot_meta["ui"]["resourceUri"]})["contents"][0]
+  assert boot_html["mimeType"]=="text/html;profile=mcp-app"
+  assert 'const chatTransport = "chat" === "chat"' in boot_html["text"]
+  assert '"ui/message"' in boot_html["text"]
+  assert 'chat.ui.pending' in boot_html["text"]
+  global_html=request("resources/read",{"uri":tools["chat.hub.open"]["_meta"]["ui"]["resourceUri"]})["contents"][0]
+  assert 'const chatTransport = "observer" === "chat"' in global_html["text"]
   assert tools["chat.lifecycle.event"]["_meta"]["ui"]["visibility"]==["app"]
   good=tool("chat.lifecycle.event",{"mode":"global","kind":"ui-initialize",
    "instance_id":"ui-test-01","details_json":json.dumps({

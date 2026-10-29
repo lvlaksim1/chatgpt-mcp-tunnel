@@ -6,7 +6,7 @@ on:
       version:
         description: 'Stable numeric release version (X.Y.Z)'
         required: true
-        default: '0.2.23'
+        default: '0.2.24'
         type: string
 
 permissions:
@@ -142,6 +142,8 @@ jobs:
           node tests/test_lifecycle_widget.js
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node tests/test_global_hub_autorelay.js
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/test_global_observer_no_work.js
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python tests/test_multichat_routing.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

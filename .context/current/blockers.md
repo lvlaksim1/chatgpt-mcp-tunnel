@@ -1,5 +1,8 @@
 # Current blockers and open risks
 
+## 2026-10-30: v0.2.24 return to ordinary ChatGPT instead of Work
+- Critical Work regression in v0.2.23: Global entrypoint-created conversations run Astra/Work rather than normal ChatGPT. Source v0.2.24 fixes routing but awaits actual host acceptance. Important potential issue: ordinary /c anchor conversation must auto-mount model-invoked chat.bootstrap.open iframe after cold reopen; if not, route needs further engineering. Do not accept Work mode as successful despite answered local messages.
+
 ## 2026-10-30: v0.2.23 automatic Windows Global Hub activation
 - Core cold-start now works after OS launch of URL, and first message gets real model reply. Remaining step: automatic OS URI launch when message sent without any manual link, currently v0.2.23 source pending release. Follow-up message can be forwarded but remain un-answered if model does not call chat.reply; v0.2.22 context transfer source is not yet installed.
 - Browser engine remains required as ChatGPT Host in this architecture, even if started by Windows invisibly. Never claim no browser process. MKATUSHONOK local chats not yet connected to server-side Hub queue.

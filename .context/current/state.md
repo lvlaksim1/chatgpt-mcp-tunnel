@@ -1,5 +1,9 @@
 # Current state
 
+## 2026-10-30: v0.2.24 return to ordinary ChatGPT instead of Work
+- DOMKAT installed v0.2.23. Confirmed newest cloud chat 'Проверка предыдущего ответа' is Work/Astra (GPT-6 Astra and results sidebar) despite /c URL; old 'Приёмка MCP Tunnel v0.2.18' is ordinary ChatGPT (composer High). Separate Global tool invocation inside ordinary chat displayed widget unavailable, confirming need for a dedicated non-entrypoint tool.
+- Source v0.2.24 created chat.bootstrap.open with own ui://chat-bootstrap-v0224 and no static entrypoint; its iframe auto-polls queue and sends target:new. Global chat.hub.open ui://hub-observer-v0224 no longer sends messages; agent accepts only /c/<uuid> URL and chatbridge-* heartbeat. Local build + contract/multichat/Router Lite/observer JS tests PASS; not installed or cloud accepted yet.
+
 ## 2026-10-30: v0.2.23 automatic Windows Global Hub activation
 - 30.10.2026 on DOMKAT user-authorized full Yandex shutdown (browser.exe=0), Windows Start-Process Global ChatGPT URI cold-start confirmed ui-initialize and fresh hub instance. New local message 30OCT-9D41 was delivered via Global Hub and received reply ХОЛОДНЫЙ-УСПЕХ with status answered. Second follow-up forwarded but pending as of inspection. Source v0.2.22 context recovery was concurrently added and preserved.
 - Added v0.2.23 source Windows ChatHostActivator: server-tray monitor pending unforwarded messages, global event heartbeat TTL, auto launch already validated Global URI from per-user configuration, rate limit 2m. Private plugin identifier not checked into repo. Agent/MCP .NET builds and selftest PASS. Installed DOMKAT still v0.2.21 pending CI/install. Details docs/mcp-hub-host-activator-v0.2.23.md.

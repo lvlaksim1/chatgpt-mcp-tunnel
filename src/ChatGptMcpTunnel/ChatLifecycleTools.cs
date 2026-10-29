@@ -9,7 +9,8 @@ using ModelContextProtocol.Server;
 [McpServerToolType]
 public static class ChatLifecycleTools
 {
-    public const string GlobalUri = "ui://chatgpt-mcp-tunnel/hub-relay-v0222";
+    public const string GlobalUri = "ui://chatgpt-mcp-tunnel/hub-observer-v0224";
+    public const string BootstrapUri = "ui://chatgpt-mcp-tunnel/chat-bootstrap-v0224";
     public const string ThreadUri = "ui://chatgpt-mcp-tunnel/lifecycle-thread-v0220";
     private static string Root => Environment.GetEnvironmentVariable("CHATGPT_MCP_CHAT_TEST_ROOT") ??
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -26,13 +27,22 @@ public static class ChatLifecycleTools
     };
 
     [McpServerTool(Name = "chat.hub.open", Title = "ChatGPT MCP Tunnel · Global Hub (diagnostic)", ReadOnly = true)]
-    [McpMeta("ui", JsonValue = """{"resourceUri":"ui://chatgpt-mcp-tunnel/hub-relay-v0222","visibility":["model","app"]}""")]
+    [McpMeta("ui", JsonValue = """{"resourceUri":"ui://chatgpt-mcp-tunnel/hub-observer-v0224","visibility":["model","app"]}""")]
     [McpMeta("openai/ui", JsonValue = """{"entrypoints":[{"type":"global"}]}""")]
     [Description("Experimental global MCP Apps lifecycle entrypoint. It records technical handshake events only; it does not send user messages or replace the existing relay.")]
     public static string OpenHub()
     {
         WriteEvent("global", "tool-open", "server", "{}");
         return JsonSerializer.Serialize(new {ok=true,mode="global",resource=GlobalUri});
+    }
+
+    [McpServerTool(Name = "chat.bootstrap.open", Title = "ChatGPT MCP Tunnel · Ordinary Chat Transport", ReadOnly = true)]
+    [McpMeta("ui", JsonValue = """{"resourceUri":"ui://chatgpt-mcp-tunnel/chat-bootstrap-v0224","visibility":["model","app"]}""")]
+    [Description("Activate the automatic MCP Apps message dispatcher in an EXISTING NORMAL ChatGPT conversation. No Global or Work entrypoint. Creates new ordinary ChatGPT threads through ui/message target:new.")]
+    public static string OpenChatBootstrap()
+    {
+        WriteEvent("global", "tool-open", "server", """{"source":"chat"}""");
+        return JsonSerializer.Serialize(new {ok=true,mode="ordinary_chat_bootstrap",resource=BootstrapUri});
     }
 
     [McpServerTool(Name = "chat.thread.open", Title = "ChatGPT MCP Tunnel · Thread Relay (diagnostic)", ReadOnly = true)]
@@ -139,9 +149,15 @@ public static class ChatLifecycleResources
             .Replace("__LIFECYCLE_MODE__", mode, StringComparison.Ordinal);
     }
 
-    [McpServerResource(UriTemplate = ChatLifecycleTools.GlobalUri, Name = "chat_lifecycle_global_v0219", MimeType = "text/html;profile=mcp-app")]
-    [Description("Diagnostic Global MCP Apps lifecycle view; no messaging.")]
-    public static string Global() => Load("global", "ChatGlobalHubApp.html");
+    [McpServerResource(UriTemplate = ChatLifecycleTools.GlobalUri, Name = "chat_hub_observer_v0224", MimeType = "text/html;profile=mcp-app")]
+    [Description("Global MCP Apps status observer. Does not dispatch model requests.")]
+    public static string Global() => Load("global", "ChatGlobalHubApp.html")
+        .Replace("__HUB_TRANSPORT_MODE__", "observer", StringComparison.Ordinal);
+
+    [McpServerResource(UriTemplate = ChatLifecycleTools.BootstrapUri, Name = "chat_bootstrap_v0224", MimeType = "text/html;profile=mcp-app")]
+    [Description("MCP Apps dispatcher invoked only from an ordinary ChatGPT conversation.")]
+    public static string Bootstrap() => Load("global", "ChatGlobalHubApp.html")
+        .Replace("__HUB_TRANSPORT_MODE__", "chat", StringComparison.Ordinal);
 
     [McpServerResource(UriTemplate = ChatLifecycleTools.ThreadUri, Name = "chat_lifecycle_thread_v0219", MimeType = "text/html;profile=mcp-app")]
     [Description("Diagnostic Thread MCP Apps lifecycle view; no messaging.")]

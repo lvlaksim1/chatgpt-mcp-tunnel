@@ -18,7 +18,8 @@ internal sealed class ChatHostActivator
     private static string UrlPath => Path.Combine(Root, "hub-entrypoint.url");
 
     private static readonly Regex HubPathPattern = new(
-        "^/mcp-app/asdk_app_[a-zA-Z0-9]+/chat[.]hub[.]open$", RegexOptions.Compiled);
+        "^/c/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$",
+        RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     private DateTimeOffset _lastCheckUtc = DateTimeOffset.MinValue;
     private DateTimeOffset _lastActivationUtc = DateTimeOffset.MinValue;
@@ -51,6 +52,9 @@ internal sealed class ChatHostActivator
                     var root = doc.RootElement;
                     if (!root.TryGetProperty("mode", out var mode) ||
                         mode.GetString() != "global" ||
+                        !root.TryGetProperty("instance", out var instance) ||
+                        instance.ValueKind != JsonValueKind.String ||
+                        !(instance.GetString() ?? "").StartsWith("chatbridge-", StringComparison.Ordinal) ||
                         !root.TryGetProperty("kind", out var kind) ||
                         kind.GetString() is not ("heartbeat" or "ui-initialized") ||
                         !root.TryGetProperty("utc", out var time))
@@ -125,7 +129,7 @@ internal sealed class ChatHostActivator
             var url = File.ReadAllText(UrlPath).Trim();
             if (!ValidHubUrl(url))
             {
-                AgentStorage.Log("Global Hub address was rejected. No browser was launched.");
+                AgentStorage.Log("Ordinary ChatGPT anchor URL rejected. No browser was launched.");
                 return;
             }
             _lastActivationUtc = now;
@@ -133,7 +137,7 @@ internal sealed class ChatHostActivator
                 UseShellExecute = true,
                 WindowStyle = ProcessWindowStyle.Minimized
             })?.Dispose();
-            AgentStorage.Log("Global MCP Hub activation requested for an undelivered local message.");
+            AgentStorage.Log("Ordinary ChatGPT MCP Bridge activation requested for an undelivered local message.");
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or
             System.ComponentModel.Win32Exception or InvalidOperationException)
@@ -149,12 +153,12 @@ internal sealed class ChatHostActivator
         Directory.CreateDirectory(temp);
         try
         {
-            if (!ValidHubUrl("https://chatgpt.com/mcp-app/asdk_app_123abc/chat.hub.open"))
+            if (!ValidHubUrl( "https://chatgpt.com/c/01234567-89ab-cdef-0123-456789abcdef"))
                 return 51;
-            if (ValidHubUrl("https://evil.example/mcp-app/asdk_app_123abc/chat.hub.open") ||
-                ValidHubUrl("https://chatgpt.com.evil.example/mcp-app/asdk_app_123abc/chat.hub.open") ||
-                ValidHubUrl("https://chatgpt.com/mcp-app/asdk_app_123abc/chat.thread.open") ||
-                ValidHubUrl("https://chatgpt.com/mcp-app/asdk_app_123abc/chat.hub.open?token=x"))
+            if (ValidHubUrl( "https://evil.example/c/01234567-89ab-cdef-0123-456789abcdef") ||
+                ValidHubUrl( "https://chatgpt.com.evil.example/c/01234567-89ab-cdef-0123-456789abcdef") ||
+                ValidHubUrl( "https://chatgpt.com/mcp-app/asdk_app_123abc/chat.hub.open") ||
+                ValidHubUrl( "https://chatgpt.com/c/01234567-89ab-cdef-0123-456789abcdef?token=x"))
                 return 52;
             var now = DateTimeOffset.UtcNow;
             if (!ShouldActivate(now, null, true, DateTimeOffset.MinValue) ||
@@ -165,9 +169,10 @@ internal sealed class ChatHostActivator
                 return 53;
             var events = Path.Combine(temp, "events.jsonl");
             File.WriteAllLines(events, new[] {
-                JsonSerializer.Serialize(new { utc=now.AddMinutes(-3),mode="global",kind="heartbeat" }),
-                JsonSerializer.Serialize(new { utc=now.AddSeconds(-5),mode="thread",kind="heartbeat" }),
-                JsonSerializer.Serialize(new { utc=now.AddSeconds(-20),mode="global",kind="heartbeat" })
+                JsonSerializer.Serialize(new { utc=now.AddMinutes(-3),mode="global",kind="heartbeat",instance="chatbridge-old" }),
+                JsonSerializer.Serialize(new { utc=now.AddSeconds(-5),mode="thread",kind="heartbeat",instance="ui-any" }),
+                JsonSerializer.Serialize(new { utc=now.AddSeconds(-20),mode="global",kind="heartbeat",instance="chatbridge-new" }),
+                JsonSerializer.Serialize(new { utc=now.AddSeconds(-2),mode="global",kind="heartbeat",instance="hub-work-mode" })
             });
             var last = LatestHubHeartbeat(events);
             if (!last.HasValue || (last.Value - now.AddSeconds(-20)).Duration() > TimeSpan.FromSeconds(1))

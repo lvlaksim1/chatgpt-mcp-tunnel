@@ -1,5 +1,11 @@
 # Manager plans
 
+## 2026-10-30: v0.2.24 return to ordinary ChatGPT instead of Work
+1. DONE investigation: visible Work/Astra UI and results in newest chats, normal Chat in v0.2.18. Official ui/message target:new has no independent mode selector.
+2. DONE code v0.2.24: chat.bootstrap.open normal-thread only (non-global), Global Hub observer no pending/ui/message, separate versioned resources; activator requires /c/<uuid>, chatbridge-only heartbeat. Local builds and tests PASS.
+3. NEXT Windows release v0.2.24 and verified installer; refresh plugin tools in ChatGPT. One-time invoke chat.bootstrap.open from normal /c conversation; record its URL to local settings; close browser entirely and submit local message.
+4. NEXT confirm auto browser /c activation, chatbridge heartbeat, target:new creates a normal ChatGPT mode thread, actual chat.reply and continued replies, no Work/Astra. If archived normal /c does not reload iframe, investigate explicit bootstrap path without falling back to global Work.
+
 ## 2026-10-30: v0.2.23 automatic Windows Global Hub activation
 1. DONE: v0.2.21 Global Hub from entirely closed Yandex, new local chat and real answer ХОЛОДНЫЙ-УСПЕХ end-to-end.
 2. DONE: v0.2.23 source ChatHostActivator, C# builds + isolated selftest. Implemented server-only tray timer polling every 12s, pending-unforwarded check, hub heartbeat TTL, 120s launch throttle, strict per-user ChatGPT URL.

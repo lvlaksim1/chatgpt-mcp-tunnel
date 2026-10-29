@@ -1,5 +1,8 @@
 # Manager intentions and commitments
 
+## 2026-10-30: v0.2.24 return to ordinary ChatGPT instead of Work
+- Deliver v0.2.24 fix for unwanted Work/Astra threads. Create/publish verified Windows release, provision one model-invoked bootstrap MCP iframe in ordinary ChatGPT, set Windows anchor URL /c/<uuid>, cold-start browser and verify new threads remain ordinary ChatGPT, not Work. No Work/Codex/API consumed by tunnel transport.
+
 ## 2026-10-30: v0.2.23 automatic Windows Global Hub activation
 - Finish autonomous cold start: v0.2.23 Windows tray activates previously validated Global Hub when local queue needs a model and no Global heartbeat exists. Preserve v0.2.22 context transfer, verify real replies and continuity. Use ordinary ChatGPT MCP Apps only, without Work/Codex/API or user browser interaction.
 

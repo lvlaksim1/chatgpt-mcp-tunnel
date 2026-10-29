@@ -1,5 +1,11 @@
 # Next actions
 
+## 2026-10-30: v0.2.24 return to ordinary ChatGPT instead of Work
+1. Publish v0.2.24 verified Windows installers with separate ordinary chat bootstrap tool, observer-only Global, /c-only agent activator.
+2. Update DOMKAT, refresh plugin actions; in known ordinary ChatGPT /c conversation invoke chat.bootstrap.open once and verify UI iframe/heartbeat.
+3. Save exact /c URL to local hub-entrypoint.url; shut down Yandex and send new local message, no manual browser launch.
+4. Verify new cloud chat mode is ChatGPT not Work/Astra (look at composer/model and sidebar), with chat.reply; test continuity and reboot later.
+
 ## 2026-10-30: v0.2.23 automatic Windows Global Hub activation
 1. Commit/publish v0.2.23 Windows Global Host Activator, verify build/test and SHA-256. Keep v0.2.22 context recovery.
 2. DOMKAT controlled update; private hub-entrypoint.url with validated installed Global URL.
