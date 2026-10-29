@@ -12,8 +12,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
-dll = root / "src" / "ChatGptMcpTunnel" / "bin" / "Release" / "net8.0" / "ChatGptMcpTunnel.dll"
+dll = Path(os.environ.get("CHATGPT_MCP_TEST_DLL", str(root / "src" / "ChatGptMcpTunnel" / "bin" / "Release" / "net8.0" / "ChatGptMcpTunnel.dll")))
 
+if not dll.is_file():
+    raise SystemExit(f"Runtime DLL missing: {dll}")
 
 def png_rgba(width=3, height=2):
     row = b"\x00" + b"\x34\x89\xaa\xff" * width
