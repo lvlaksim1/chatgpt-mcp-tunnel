@@ -53,6 +53,7 @@ Source: "ServerStart.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Root: HKCU; Subkey: "Software\ChatGPTMCPAgent"; Flags: uninsdeletekey
 
 [UninstallRun]
+Filename: "{app}\{#AppExeName}"; Parameters: "--watchdog-unregister"; Flags: runhidden waituntilterminated; RunOnceId: "ChatGptMcpWatchdogUnregister"
 Filename: "{app}\{#AppExeName}"; Parameters: "--shutdown"; Flags: runhidden waituntilterminated; RunOnceId: "ChatGptMcpAgentShutdown"
 
 [UninstallDelete]
@@ -62,6 +63,7 @@ Type: files; Name: "{autoprograms}\ChatGPT MCP Agent.lnk"
 Type: files; Name: "{userdesktop}\ChatGPT MCP Agent.lnk"
 
 [Run]
+Filename: "{app}\{#AppExeName}"; Parameters: "--watchdog-register"; Flags: runhidden waituntilterminated
 Filename: "{app}\{#AppExeName}"; Flags: nowait runhidden
 
 [Code]

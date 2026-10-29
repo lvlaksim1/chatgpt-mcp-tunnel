@@ -6,7 +6,7 @@ on:
       version:
         description: 'Stable numeric release version (X.Y.Z)'
         required: true
-        default: '0.2.10'
+        default: '0.2.11'
         type: string
 
 permissions:
@@ -95,6 +95,8 @@ jobs:
         run: |
           $self = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--selftest' -Wait -PassThru
           if ($self.ExitCode -ne 0) { throw "Tray DPAPI/config selftest failed: $($self.ExitCode)" }
+          $watchdog = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--test-watchdog' -Wait -PassThru
+          if ($watchdog.ExitCode -ne 0) { throw "Recovery policy selftest failed: $($watchdog.ExitCode)" }
           New-Item -ItemType Directory -Force -Path .tools | Out-Null
           $env:CHATGPT_MCP_SKIP_GUI_TESTS = '1'
           $clientErrorTest = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--test-client-errors' -Wait -PassThru
@@ -163,6 +165,12 @@ jobs:
           if (-not (Test-Path (Join-Path $expectedServerDir 'OpenAI\tunnel-client.exe'))) { throw 'Server tunnel-client not bundled' }
           if ((Get-ItemProperty HKCU:\Software\ChatGPTMCPAgent).Role -ne 'server') { throw 'Server role not selected in installer' }
           if (-not (Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name 'ChatGPTMCPAgent' -ErrorAction SilentlyContinue)) { throw 'Autostart checkbox not applied' }
+          if (-not (Get-ScheduledTask -TaskName "ChatGPT MCP Tunnel Recovery" -ErrorAction SilentlyContinue)) { throw "Installed server watchdog task missing" }
+          $recovery = Get-ScheduledTask -TaskName "ChatGPT MCP Tunnel Recovery"
+          if (($recovery.Actions | Out-String) -notmatch '--watchdog-check') { throw "Recovery task does not invoke built-in watchdog mode" }
+          Start-ScheduledTask -TaskName "ChatGPT MCP Tunnel Recovery"
+          Start-Sleep -Seconds 3
+          if ((Get-ScheduledTaskInfo -TaskName "ChatGPT MCP Tunnel Recovery").LastTaskResult -ne 0) { throw "Recovery task execution failed" }
           $check = Start-Process -FilePath $exe -ArgumentList '--selftest' -Wait -PassThru
           if ($check.ExitCode -ne 0) { throw 'Installed agent selftest failed' }
           New-Item -ItemType Directory -Force -Path $data | Out-Null
@@ -178,15 +186,18 @@ jobs:
           if ($check.ExitCode -ne 0) { throw 'Updated agent selftest failed' }
           $stop = Start-Process -FilePath $exe -ArgumentList '--shutdown' -Wait -PassThru
           if ($stop.ExitCode -ne 0) { throw 'Agent shutdown command failed' }
+          if (-not (Get-ScheduledTask -TaskName "ChatGPT MCP Tunnel Recovery" -ErrorAction SilentlyContinue)) { throw "Watchdog disappeared during update" }
           $uninstall = Join-Path $expectedServerDir 'unins000.exe'
           $last = Start-Process -FilePath $uninstall -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -PassThru
           if (-not $last.WaitForExit(180000)) { $last.Kill(); throw 'last installer timed out' }
           if ($last.ExitCode -ne 0) { throw "Uninstall failed: $($last.ExitCode)" }
           if (Test-Path $data) { throw 'Uninstall left application-owned data' }
           if (Test-Path $exe) { throw 'Uninstall left installed executable' }
+          if (Get-ScheduledTask -TaskName "ChatGPT MCP Tunnel Recovery" -ErrorAction SilentlyContinue) { throw "Uninstall left watchdog task" }
           $clientInstall = Start-Process -FilePath (Resolve-Path $setup) -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/ROLE=client','/TASKS=desktopicon',("/DIR=$customClientDir") -PassThru
           if (-not $clientInstall.WaitForExit(180000)) { $clientInstall.Kill(); throw 'client installer timeout' }
           if ($clientInstall.ExitCode -ne 0) { throw 'Client role install failed' }
+          if (Get-ScheduledTask -TaskName "ChatGPT MCP Tunnel Recovery" -ErrorAction SilentlyContinue) { throw "Client without autostart unexpectedly registered watchdog" }
           if ((Get-ItemProperty HKCU:\Software\ChatGPTMCPAgent).Role -ne 'client') { throw 'Client role not selected' }
           $installedClientDir = (Get-ItemProperty HKCU:\Software\ChatGPTMCPAgent).InstallDir
           if ($installedClientDir.TrimEnd('\') -ine $customClientDir.TrimEnd('\')) { throw "User-selected client folder ignored: $installedClientDir" }
@@ -223,7 +234,7 @@ jobs:
           $update = "dist\ChatGPT_MCP_Tunnel_Update_v$env:VERSION.exe"
           $legacyUpdate = "dist\ChatGPT_MCP_Agent_Update_v$env:VERSION.exe"
           Copy-Item $update $legacyUpdate
-          gh release create $env:TAG $setup $update $legacyUpdate --target "${{ github.sha }}" --title "ChatGPT MCP Tunnel v$env:VERSION" --notes "v0.2.8: прямое защищённое WSS-соединение через статический публичный IP маршрутизатора DOMKAT, TCP 55202; сохранён локальный TCP 55201. Сертификат SHA-256 закрепляется на клиенте, ключи хранятся с защитой Windows DPAPI. Сетевые настройки/проброс портов автоматически не изменяются. Проверены локальные TLS/отпечаток, маршрутизация и Windows-установщики; реальное соединение между двумя физическими компьютерами ещё не проверено. Инструкция docs/direct-wan.md."
+          gh release create $env:TAG $setup $update $legacyUpdate --target "${{ github.sha }}" --title "ChatGPT MCP Tunnel v$env:VERSION" --notes "v$env:VERSION: встроенный сторожевой механизм. Автоматическое восстановление отсутствующих локальных процессов, защита от двойного запуска и блокировка перезапуска при временных сетевых ошибках. Установка и удаление задания выполняются установщиком."
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Prune older agent binary releases

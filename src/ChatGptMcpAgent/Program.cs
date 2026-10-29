@@ -53,6 +53,26 @@ internal static class Program
                 .GetAwaiter().GetResult();
             return;
         }
+        if (args.Length == 1 && args[0] == "--watchdog-check")
+        {
+            Environment.ExitCode = AgentWatchdog.Check();
+            return;
+        }
+        if (args.Length == 1 && args[0] == "--watchdog-register")
+        {
+            Environment.ExitCode = AgentWatchdog.Register();
+            return;
+        }
+        if (args.Length == 1 && args[0] == "--watchdog-unregister")
+        {
+            Environment.ExitCode = AgentWatchdog.Unregister();
+            return;
+        }
+        if (args.Length == 1 && args[0] == "--test-watchdog")
+        {
+            Environment.ExitCode = AgentWatchdog.SelfTest();
+            return;
+        }
         if (args.Contains("--selftest", StringComparer.OrdinalIgnoreCase))
         {
             Environment.ExitCode = AgentStorage.RunSelfTest();
@@ -185,6 +205,7 @@ internal static class Program
 
         using var instance = new Mutex(initiallyOwned: true, @"Local\ChatGptMcpAgent", out var first);
         if (!first) return;
+        AgentWatchdog.ClearManualPause();
         ApplicationConfiguration.Initialize();
         using var stopEvent = new EventWaitHandle(false, EventResetMode.ManualReset, ShutdownEventName);
         using var settingsEvent = new EventWaitHandle(false, EventResetMode.AutoReset, SettingsEventName);
@@ -265,7 +286,7 @@ internal sealed class TrayContext : ApplicationContext
         menu.Items.Add("Проверить обновления", null, async (_, _) => await CheckUpdatesAsync(true));
         menu.Items.Add("Передача файлов", null, (_, _) => ShowTransfers());
         menu.Items.Add(new ToolStripSeparator());
-        menu.Items.Add("Выход", null, (_, _) => ExitThread());
+        menu.Items.Add("Выход", null, (_, _) => { AgentWatchdog.PauseForManualExit(); ExitThread(); });
         _tray = new NotifyIcon
         {
             Icon = _icons.ForStatus(_connection),
