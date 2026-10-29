@@ -1,5 +1,9 @@
 # Current blockers and open risks
 
+## 2026-10-29: Deep MCP Apps autonomy research, external GitHub implementations
+- Full reboot/no-browser model response remains an unproven acceptance criterion. No verified transport has yet been shown to generate ordinary ChatGPT answers after all ChatGPT host processes are gone. The proposed Global/Thread/deep-link bootstrapping experiment should establish exactly which host process exists and how it is activated, instead of assuming a deep link guarantees generation.
+- MCP iframe localStorage is not adequate source of truth; #417 leaves cross-host View persistence unspecified. Existing legacy UI/queue works; future multi-iframe duplicate claim protection required (#54).
+
 ## 29.10.2026: v0.2.18 real ordinary ChatGPT multi-chat acceptance PASSED
 - Live target:new cloud handoff is now proven on DOMKAT v0.2.18 using two separate successful messages in one newly created local chat. No blocker to basic multi-chat. Remaining unverified: multiple concurrent new threads/iframes, browser suspension/closure, remote MKATUSHONOK own local chats and atomic iframe lease for concurrency.
 

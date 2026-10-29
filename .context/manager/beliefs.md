@@ -1,5 +1,10 @@
 # Manager beliefs
 
+## 2026-10-29: Deep MCP Apps autonomy research, external GitHub implementations
+- Deep verified investigation: global/thread entrypoints launch UI inside a living MCP Host (both accept {}); they are not independent model inference endpoints. Deep link passes app relative route via openai/deepLink to global app, but URL does not guarantee existing instance reuse or host startup. In OpenAI extensions platform table Web explicitly refers to Work browser, not classic ChatGPT; ordinary ChatGPT must be validated empirically.
+- Research projects: open-mcp-apps SQLite + append-only event ledger + idempotent commands for persistent data; goose-chatgpt-web separate session vs BrowserHost/daemon; ChatCmd browser-extension local chat; PC-Bridge Windows app with embedded ChatGPT web view. None proves inference with zero ChatGPT host process. Source docs/mcp-apps-autonomy-deep-research-2026-10-29.md.
+- GitHub issue findings: openai/mcp-extensions#29 manual thread bootstrap failure marked fixed 2026-10-21; #54 independent app instances on model invocations (staff reply WebMCP, not planned); #37 global deep link may launch a new tab not existing instance; ext-apps#417 localStorage View persistence not part of portable protocol; ext-apps#754 asks for pinned view. Need instance identity, lease/fencing and DB source of truth.
+
 ## 2026-10-29: Study of MCP Apps global and thread entrypoints
 - Source-verified: global fullscreen navigation and thread-specific content tab are static MCP App entrypoints (_meta[openai/ui].entrypoints); both call tool with {}. A deep link can pass relative route via hostContext[openai/deepLink].url and host-context-changed notifications. ui/message target:new is live-validated in v0.2.18; manual global/thread entrypoints and deep links in ordinary Yandex ChatGPT are to be verified. OpenAI advises separate tools per entrypoint and versioned UI resource caching. Research: docs/mcp-apps-entrypoints-research-2026-10-29.md.
 

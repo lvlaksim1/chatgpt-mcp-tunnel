@@ -1,5 +1,11 @@
 # Next actions
 
+## 2026-10-29: Deep MCP Apps autonomy research, external GitHub implementations
+1. Read full docs/mcp-apps-autonomy-deep-research-2026-10-29.md; validate source citations and record protocols.
+2. On DOMKAT perform observation-only global entrypoint and thread entrypoint launch tests in ordinary ChatGPT. Capture tool arguments {}, tool invocation and ui/initialize and host capabilities; don't alter working app release.
+3. Test deep-link activation on exact installed plugin ID; verify address launches appropriate Host; then full closed-browser + reboot model response using unique nonce and persisted chat state. Record details.
+4. Implement state DB, context capsule, global hub/thread relay, lease/epoch/ACK collision handling only after architecture experiment. Keep no Work/Codex/API.
+
 ## 2026-10-29: Study of MCP Apps global and thread entrypoints
 - Experiment A: open global via sidebar with {} and inspect actual handshake; B: thread entrypoint in two chats; C: actual plugin deep link with /chat/{id}, no guessed ID. Then propose one-release Hub/Thread architecture and browser-reopen tests.
 

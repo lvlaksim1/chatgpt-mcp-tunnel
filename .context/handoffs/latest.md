@@ -1,5 +1,10 @@
 # Latest handoff
 
+## 2026-10-29: Deep MCP Apps autonomy research, external GitHub implementations
+- Investigated official MCP Apps and OpenAI extensions plus real GitHub projects and 2026 Oct issues. Detailed findings saved docs/mcp-apps-autonomy-deep-research-2026-10-29.md. Only repo markdown/context changed; installed DOMKAT v0.2.18 unaffected.
+- Important: Global/Thread tool entrypoints with {} launch inside a running Host, deep links only route to global apps and do not guarantee host background inference. Full no-browser / reboot acceptance still unproven, unlike two independent threads already live-tested in ordinary ChatGPT.
+- Proposed next action: empirical Global/Thread/deep-link host boot probe and browser-closed first-turn test, followed by local persistent SQLite state and lease-protected relay.
+
 ## 2026-10-29: Study of MCP Apps global and thread entrypoints
 - Source-verified: global fullscreen navigation and thread-specific content tab are static MCP App entrypoints (_meta[openai/ui].entrypoints); both call tool with {}. A deep link can pass relative route via hostContext[openai/deepLink].url and host-context-changed notifications. ui/message target:new is live-validated in v0.2.18; manual global/thread entrypoints and deep links in ordinary Yandex ChatGPT are to be verified. OpenAI advises separate tools per entrypoint and versioned UI resource caching. Research: docs/mcp-apps-entrypoints-research-2026-10-29.md.
 

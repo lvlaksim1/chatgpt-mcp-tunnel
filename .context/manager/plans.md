@@ -1,5 +1,11 @@
 # Manager plans
 
+## 2026-10-29: Deep MCP Apps autonomy research, external GitHub implementations
+1. DOCUMENTATION DONE: deep review of official MCP Apps/OpenAI extensions + 6 real GitHub designs/issues; report in docs/mcp-apps-autonomy-deep-research-2026-10-29.md; no production changes.
+2. NEXT: isolated tests of Global/Thread entrypoints and deep links in ordinary ChatGPT/Yandex on DOMKAT; record hostContext, actual tools/call and whether global has its own chat.
+3. NEXT: decisive browser-closed/reboot bootstrapping experiment—queue local message, close all normal ChatGPT host processes, try OS level global/deep-link activation, verify real ui/initialize AND model response, not just page launch. Do not conflate background UI with independent model computation.
+4. Architecture: local SQLite event-sourced chat state, context capsule, MCP route manager, global hub + thread relay, atomic per-chat leases and message idempotency. Keep one tunnel, ordinary ChatGPT subscription path, no API/Codex/Work or hourly task.
+
 ## 2026-10-29: Study of MCP Apps global and thread entrypoints
 - NEXT: explore global sidebar entrypoint, thread tab and deep links in ordinary ChatGPT (non-destructive). Then split chat.ui.hub global and chat.ui.thread per-conversation from chat.ui.open bootstrap; add hostContext route processing and iframe ownership leases, preserving single tunnel.
 
