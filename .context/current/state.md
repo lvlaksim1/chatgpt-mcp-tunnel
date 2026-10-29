@@ -1,5 +1,10 @@
 # Current state
 
+## 29.10.2026 — MCP Apps ui/message source prototype (not physically accepted)
+- ui-message bridge in repo: chat.ui.open with _meta.ui.resourceUri ui://chatgpt-mcp-tunnel/relay and global/thread entrypoints, resource HTML via resources/read, app-only chat.ui.pending and chat.ui.ack; forwards local chat messages via host ui/message with target=active,send=true when user enabled.
+- Confirmed locally: 52 tools, actual resources/read HTML, message+attachment metadata, durable idempotent ack, no ack on denied host, UI teardown handling. Test host simulator is not real ChatGPT. .NET builds zero warnings/errors, stdio chat, large file/Router Lite 23 Windows remote tool/reconnect tests pass.
+- Version v0.2.15 source in preparation. Live ChatGPT host behavior and installed desktop GUI unverified; existing installed product and WSS router untouched. No scheduler, browser automation, Codex, Work or separate API added.
+
 ## 29.10.2026: v0.2.14 STABLE RELEASE verified (not deployed)
 - GitHub Actions 40866882778 completed success on 21a1a0c: application and runtime build, GUI attachment selftest, real MCP image/text/integrity tests, 49 tool catalog and Router Lite 23 tools, file transfer, TLS, Inno Setup full/update/uninstall and preservation checks.
 - GitHub Release v0.2.14 published with Setup/Update/legacy update alias; Setup SHA256 7ff5afc44db3a535b71e11b6f174141684f666dd0396c303fa03ee64d2d8174d, Update SHA256 ef4899062bde3caecb85fc29d23c03a155ea78d66902d6d49da761bf4f4504ef.

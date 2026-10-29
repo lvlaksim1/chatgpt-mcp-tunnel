@@ -1,5 +1,11 @@
 # Next actions
 
+## Next for MCP Apps ui/message v0.2.15
+1. Commit source/test/docs with sealed manager generation and run official Windows GitHub Actions installer release; check setup/update/uninstall preservation and status.
+2. Provide Windows update link only after release succeeded; do not auto-restart production DOMKAT or remote MKATUSHONOK without explicit instruction.
+3. In ordinary ChatGPT refresh plugin tools, invoke chat.ui.open; enable relay and send a local text message. Verify new chat turn and chat.reply actually fires; document refusal/teardown evidence.
+4. If host does not permit unattended ui/message from active iframe, retain original queue, report exact rejection and test an MCP-only alternative.
+
 ## Next after stable v0.2.14 release
 1. Offer published Setup/Update from https://github.com/lvlaksim1/chatgpt-mcp-tunnel/releases/tag/v0.2.14; hashes are recorded in current state.
 2. Owner uses built-in updater or verified Update installer on DOMKAT; do not deploy remotely without explicit authorization. Preserve data, TLS pin, keys and one OpenAI tunnel.

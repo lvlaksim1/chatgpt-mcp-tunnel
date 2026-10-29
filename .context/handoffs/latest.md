@@ -1,5 +1,11 @@
 # Latest handoff
 
+## Handoff — ui/message experiment v0.2.15 source tested, 29.10.2026
+- Owner requested a real release based on MCP Apps ui/message, independent of Codex/Work/API/browser automation/scheduler. Code implemented, in main after commit.
+- New chat.ui.open MCP tool with MCP Apps resource/entrypoints and UI button «Начать передачу»; chat.ui.pending returns oldest queued message and attached metadata, iframe calls ui/message, chat.ui.ack saves a separate durable acknowledgment only after success.
+- Local tests: 52 tools, resource MIME and HTML, simulated host actual JSON-RPC ui/message accepted and denied, zero warnings/errors, original stdio & Router Lite all 23 Windows remote tools/reconnect PASS.
+- Not a proof of production host: active ChatGPT embedded component required. User-side manual test in ordinary ChatGPT + refreshed plugin necessary; deployed network/windows apps untouched.
+
 ## Handoff after v0.2.14 stable release 29.10.2026
 - The new local chat attachments and Ctrl+V screenshot feature is published. GitHub Actions run 40866882778 SUCCESS, full Setup/Update installation/upgrade/uninstall acceptance passed; release v0.2.14 stable, source commit 21a1a0c.
 - 49 MCP tools in new runtime, including chat.attachment.read, verified image and UTF-8 text as real tool content; 23 remote Router Lite tools/reconnect preserved.

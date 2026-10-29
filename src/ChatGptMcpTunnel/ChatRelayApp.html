@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ChatGPT MCP Tunnel — связка чата</title>
+<style>
+:root { color-scheme:light dark; font-family:system-ui,"Segoe UI",sans-serif; }
+* { box-sizing:border-box; }
+body { margin:0; padding:16px; background:var(--color-background-primary,transparent); color:var(--color-text-primary,inherit); }
+main { max-width:650px; margin:0 auto; }
+h2 { font-size:17px; margin:0 0 10px; }
+p { line-height:1.5; font-size:13px; }
+.controls { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+button { appearance:none; border:1px solid #7b8591; padding:10px 15px; font-size:14px; border-radius:9px; background:#1960a5; color:white; cursor:pointer; }
+button.secondary { background:transparent; color:inherit; }
+button:disabled { opacity:.5; cursor:wait; }
+.status { background:color-mix(in srgb,currentColor 7%,transparent); padding:10px; border-radius:8px; margin:12px 0; font-size:13px; white-space:pre-wrap; }
+.detail { color:var(--color-text-secondary,#777); }
+pre { font-size:11px; overflow-wrap:anywhere; white-space:pre-wrap; }
+</style>
+</head>
+<body>
+<main>
+<h2>Связь локального чата с ChatGPT</h2>
+<p>Сообщения из окна <b>ChatGPT MCP Tunnel</b> будут передаваться в этот диалог через <code>ui/message</code>. Никаких API-ключей, Codex и планировщика.</p>
+<div class="controls">
+<button id="start" type="button">Начать передачу</button>
+<button class="secondary" id="stop" type="button" disabled>Остановить</button>
+<button class="secondary" id="check" type="button">Проверить очередь</button>
+</div>
+<div role="status" aria-live="polite" class="status" id="status">Подключение к MCP Apps…</div>
+<p class="detail">Эксперимент: компонент должен оставаться открытым в ChatGPT. Если ChatGPT приостановит или закроет его, передача сообщений остановится. Неотправленные сообщения сохранятся в локальной очереди.</p>
+<pre id="details"></pre>
+</main>
+<script>
+(() => {
+  "use strict";
+  const status = document.getElementById("status");
+  const details = document.getElementById("details");
+  const start = document.getElementById("start");
+  const stop = document.getElementById("stop");
+  const check = document.getElementById("check");
+  let serial = 0;
+  const calls = new Map();
+  let initialized = false, running = false, busy = false, disposed = false;
+  let timer = null, count = 0;
+  const tell = (message) => { status.textContent = message; };
+  const report = (message) => { details.textContent = message; };
+  const delay = (ms) => { if (timer !== null) clearTimeout(timer); timer = setTimeout(poll, ms); };
+
+  window.addEventListener("message", (event) => {
+    if (event.source !== window.parent) return;
+    const value = event.data;
+    if (!value || value.jsonrpc !== "2.0") return;
+    if (value.method === "ui/resource-teardown") {
+      disposed = true; running = false;
+      if (timer !== null) clearTimeout(timer);
+      window.parent.postMessage({ jsonrpc:"2.0", id:value.id, result:{} }, "*");
+      return;
+    }
+    if (!calls.has(value.id)) return;
+    const call = calls.get(value.id);
+    calls.delete(value.id);
+    clearTimeout(call.timeout);
+    if (value.error) call.reject(new Error(String(value.error.message || "MCP rejected")));
+    else call.resolve(value.result);
+  });
+  function request(method, params) {
+    if (disposed) return Promise.reject(new Error("Компонент закрыт"));
+    const id = ++serial;
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        calls.delete(id);
+        reject(new Error("Хост MCP не ответил за 20 секунд"));
+      }, 20000);
+      calls.set(id, { resolve, reject, timeout });
+      window.parent.postMessage({ jsonrpc:"2.0", id, method, params }, "*");
+    });
+  }
+  async function tool(name, args={}) {
+    const response = await request("tools/call", { name, arguments:args });
+    if (response?.isError) throw new Error("Ошибка инструмента " + name);
+    const first = response?.content?.find(x => x.type === "text");
+    if (!first) throw new Error("Не получен текстовый результат " + name);
+    const payload = JSON.parse(first.text);
+    if (!payload.ok) throw new Error(String(payload.error || "Ошибка очереди"));
+    return payload;
+  }
+  function formatMessage(message) {
+    const attachments = Array.isArray(message.attachments) ? message.attachments : [];
+    const line = attachments.map(a => "- " + a.name + " (" + a.media_type +
+       "), идентификатор " + a.id).join("\n");
+    return "Сообщение пользователя из локального окна ChatGPT MCP Tunnel.\n" +
+      "ID сообщения: " + message.id + "\n" +
+      (message.text ? "\nТекст:\n" + message.text + "\n" : "") +
+      (line ? "\nВложения:\n" + line + "\n" : "") +
+      "\nОтветь на этот запрос. Для просмотра вложений вызови chat.attachment.read " +
+      "с message_id и attachment_id. Ответ сохрани в локальном окне " +
+      "через chat.reply(message_id,reply).";
+  }
+  async function poll() {
+    timer = null;
+    if (!initialized || !running || busy || disposed) return;
+    busy = true;
+    try {
+      const next = await tool("chat.ui.pending");
+      count = next.count;
+      if (next.message) {
+        tell("Передаю сообщение " + next.message.id + " через ui/message…");
+        const sent = await request("ui/message", {
+          role:"user",
+          content:[{ type:"text", text:formatMessage(next.message) }],
+          _meta:{ "openai/message":{ target:"active", send:true } }
+        });
+        if (sent?.isError) throw new Error("Хост отклонил ui/message");
+        await tool("chat.ui.ack", { message_id:next.message.id });
+        tell("Сообщение передано в ChatGPT. Осталось в очереди: " + Math.max(0,next.count-1));
+      } else {
+        tell("Ожидание сообщений. Неотправленных: 0.");
+      }
+      report("Последний опрос: " + new Date().toLocaleTimeString("ru-RU") +
+          "\nОтправка: " + (running ? "включена" : "выключена"));
+    } catch (e) {
+      tell("Ошибка отправки через MCP: " + e.message);
+      report("Сообщение осталось в очереди. Проверьте разрешения ChatGPT и возможность работы ui/message.");
+      running = false;
+      start.disabled = false;
+      stop.disabled = true;
+    } finally {
+      busy = false;
+      if (running && !disposed) delay(count ? 1000 : 1800);
+    }
+  }
+  start.addEventListener("click", () => {
+    if (!initialized || disposed) return;
+    running = true; start.disabled = true; stop.disabled = false;
+    tell("Передача включена. Проверяю сообщения…");
+    delay(0);
+  });
+  stop.addEventListener("click", () => {
+    running = false; start.disabled = false; stop.disabled = true;
+    if (timer !== null) clearTimeout(timer);
+    timer = null; tell("Передача остановлена.");
+  });
+  check.addEventListener("click", async () => {
+    try {
+      const next = await tool("chat.ui.pending");
+      tell("В очереди: " + next.count + ". " + (next.message ? "Следующий ID: "+next.message.id : ""));
+    } catch (e) { tell("Ошибка проверки: " + e.message); }
+  });
+  request("ui/initialize", {
+    protocolVersion:"2026-01-26",
+    appInfo:{name:"ChatGPT MCP Tunnel Chat Relay",version:"0.2.15"},
+    appCapabilities:{availableDisplayModes:["inline","fullscreen"]}
+  }).then((response) => {
+    initialized = true;
+    window.parent.postMessage({jsonrpc:"2.0",method:"ui/notifications/initialized"}, "*");
+    const caps = response?.hostCapabilities || {};
+    report("Хост: " + (response?.hostInfo?.name || "неизвестен") +
+        "\nВозможности: " + JSON.stringify(caps));
+    tell("MCP подключён. Нажмите «Начать передачу», чтобы проверить ui/message.");
+  }).catch((err) => { tell("Хост не поддерживает MCP Apps: " + err.message); start.disabled = true; });
+})();
+</script>
+</body>
+</html>

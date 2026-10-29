@@ -6,7 +6,7 @@ on:
       version:
         description: 'Stable numeric release version (X.Y.Z)'
         required: true
-        default: '0.2.14'
+        default: '0.2.15'
         type: string
 
 permissions:
@@ -65,6 +65,7 @@ jobs:
           dotnet publish src/ChatGptMcpTunnel/ChatGptMcpTunnel.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -p:DebugType=None -p:DebugSymbols=false -p:Version=$env:VERSION -o publish/Runtime
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           if (-not (Test-Path publish/Runtime/AutomationWorker.ps1)) { throw 'UI Automation worker missing' }
+          if (-not (Test-Path publish/Runtime/ChatRelayApp.html)) { throw 'MCP App relay UI resource missing' }
 
       - name: Bundle verified official OpenAI tunnel-client v0.0.18
         shell: pwsh
@@ -124,6 +125,10 @@ jobs:
           python tests/test_mcp_stdio.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python tests/test_chat_attachments.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tests/test_chat_ui_mcp.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/test_chat_ui_bridge.js
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python tests/test_router_lite.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -247,7 +252,7 @@ jobs:
           $update = "dist\ChatGPT_MCP_Tunnel_Update_v$env:VERSION.exe"
           $legacyUpdate = "dist\ChatGPT_MCP_Agent_Update_v$env:VERSION.exe"
           Copy-Item $update $legacyUpdate
-          gh release create $env:TAG $setup $update $legacyUpdate --target "${{ github.sha }}" --title "ChatGPT MCP Tunnel v$env:VERSION" --notes "v$env:VERSION: вложения в чат (несколько файлов, перетаскивание и Ctrl+V), предпросмотр; chat.receive возвращает метаданные, chat.attachment.read читает текст и отправляет изображение как MCP-картинку. Туннель и текущая конфигурация сохраняются."
+          gh release create $env:TAG $setup $update $legacyUpdate --target "${{ github.sha }}" --title "ChatGPT MCP Tunnel v$env:VERSION" --notes "v$env:VERSION: эксперимент MCP Apps ui/message. Инструмент chat.ui.open открывает встроенный посредник; после кнопки «Начать передачу» компонент через MCP забирает сообщения из локального окна и инициирует ui/message в обычном ChatGPT. Подтверждение отправки идемпотентно, отказы сохраняют очередь. Отдельный API, браузерная автоматизация и планировщик не используются. Важно: передача требует активного MCP-компонента; автоматическая обработка настоящим хостом ChatGPT требует отдельной пользовательской проверки. Существующая сеть и настройки не изменяются."
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Prune older agent binary releases

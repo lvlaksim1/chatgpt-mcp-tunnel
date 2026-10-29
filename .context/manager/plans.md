@@ -1,5 +1,12 @@
 # Manager plans
 
+## Plan: ui/message experiment v0.2.15
+1. DONE: MCP ui resource, global/thread entrypoints, chat.ui.open/pending/ack, user opt-in, window-side pending messages, ui/message request and durable ack.
+2. DONE: .NET build (zero warnings/errors), MCP 52 tools/resource tests, simulated host positive/denial, all 23 remotely routable tools and reconnect.
+3. NEXT: CI Windows Setup/Update v0.2.15 and stable artifact verification; document this as an experiment, not confirmed ChatGPT activation.
+4. NEXT: owner-controlled update and ChatGPT tool-refresh, invoke chat.ui.open IN ordinary ChatGPT, click Start, send message in local window, watch whether model starts and uses chat.reply.
+5. If host denies automatic ui/message or component lifecycle is too short, record observation and redesign, without introducing any forbidden platform.
+
 ## v0.2.14 published — next physical acceptance
 - Completed: 49 runtime tools, GUI attachment, MCP text/PNG, all 23 remote Windows tools/reconnect local tests, Windows CI installer full/update/uninstall and stable release.
 - Next: owner manually updates local DOMKAT when appropriate; if using the chat UI on another computer, update that installation as separately authorized.

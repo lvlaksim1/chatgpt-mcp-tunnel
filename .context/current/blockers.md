@@ -1,5 +1,11 @@
 # Current blockers and open risks
 
+## ui/message experimental acceptance gates 29.10.2026
+- Protocol states ui/message originates in a live MCP Apps iframe; the server cannot guarantee sending to fully closed ChatGPT. Host may require interaction or reject asynchronous messages. Only live ChatGPT integration can answer.
+- ChatGPT plugin schema may remain stale and hide chat.ui.open/52 tools until refreshed; existing tools in the active chat may not include new entrypoint.
+- Test JavaScript host simulates success and host rejection, not actual OpenAI backend behavior. Do NOT represent simulated results as confirmed on real ChatGPT.
+- Installed Windows app is unchanged. Owner acceptance after installer update and plugin refresh pending.
+
 ## Residual gate after v0.2.14 release
 - v0.2.14 Windows source, CI and installer acceptance passed. Production remains v0.2.13 until an owner-controlled update; new GUI is not live yet.
 - ChatGPT's 45-tool cached connector list must be refreshed to expose 49 runtime tools, including chat.attachment.read. Text/image tool E2E passed only against isolated runtime so far.

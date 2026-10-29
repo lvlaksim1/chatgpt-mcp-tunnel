@@ -55,6 +55,7 @@ else
 {
     // Preserve existing ChatGPT MCP tool contracts and Router Lite behavior.
     mcp.WithToolsFromAssembly();
+    mcp.WithResourcesFromAssembly();
     builder.Services.AddHostedService<RouterLiteHost>();
 }
 await builder.Build().RunAsync();

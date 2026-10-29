@@ -1,5 +1,11 @@
 # Manager intentions and commitments
 
+## MCP Apps ui/message experiment accepted 29.10.2026
+- commitment_id: direct-chat-ui-message-2026-10-29. Owner authority: explicitly implement MCP-only ui/message.
+- status: active; prototype and local simulated-host verification done, stable CI release and LIVE ChatGPT host acceptance remain.
+- objective: send user message from existing local GUI to ordinary ChatGPT through MCP tools and ui/message, no scheduler, other API, Codex or Work. Existing OpenAI tunnel and Router Lite preserved.
+- no completed claim unless actual ordinary ChatGPT ui/message invokes a new turn, invokes chat.reply, and the reply appears in local chat.
+
 ## Chat attachments v0.2.14 — CI/release complete, physical acceptance active
 - commitment_id: chat-window-attachments-2026-10-29
 - state: source/local tests and GitHub Windows Setup+Update stable release v0.2.14 COMPLETED, 40866882778 SUCCESS.

@@ -1,5 +1,12 @@
 # Manager beliefs
 
+## B25 — MCP Apps ui/message prototype source-tested 29.10.2026
+- Owner explicitly instructed implementing ui/message without API, Codex, Work, browser automation or scheduler.
+- Official MCP Apps specification establishes ui/message as a request FROM A CURRENTLY RUNNING MCP APP VIEW to its host; openai/message metadata supports target=active, send=true. It is NOT a server-originated trigger for closed ChatGPT.
+- Implemented chat.ui.open tool with _meta.ui.resourceUri and openai/ui global/thread entrypoints, resources/read HTML, app-only chat.ui.pending/ack, user-enabled polling, and automatic ui/message; the original queue and attachments remain untouched, ack saved only after host success.
+- Verified local MCP tools/list 52 tools, resources/read HTML, isolated queue and idempotent ack; JavaScript MCP host simulation accepted ui/message and returned ack, and denied ui/message without acknowledgment. Two .NET builds zero errors/warnings; prior stdio MCP and Router Lite 23 remote tools/reconnect tests pass.
+- Critical: genuine ChatGPT host acceptance and widget lifetime are UNVERIFIED. This is an experimental build, not a proof of anytime access. Existing deployed app not updated.
+
 ## B24 — stable v0.2.14 Windows release accepted 29.10.2026
 - GitHub Actions run 40866882778 completed SUCCESS on commit 21a1a0c5218a9425d00ba01c866deb95ce94f54d; tests passed: original stdio 49 tools, Router Lite 23 remote tools and reconnect, new attachment text/image/integrity tests, self-contained UI tests, Inno Setup full/update and clean install/update-preservation/uninstall.
 - Stable GitHub Release v0.2.14 published with 3 verified assets: Setup SHA256 7ff5afc44db3a535b71e11b6f174141684f666dd0396c303fa03ee64d2d8174d, Update and legacy alias SHA256 ef4899062bde3caecb85fc29d23c03a155ea78d66902d6d49da761bf4f4504ef.
