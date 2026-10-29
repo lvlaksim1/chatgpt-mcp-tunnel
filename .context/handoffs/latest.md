@@ -1,5 +1,11 @@
 # Latest handoff
 
+## 29.10.2026: REAL ordinary ChatGPT ui/message acceptance 19:36-19:42 MSK
+- 29.10.2026 19:36-19:42 MSK real ordinary ChatGPT user interface and MCP Apps iframe acceptance PASS. New chat exposed 52 tools, chat.ui.open rendered iframe; manual ui/message nonce 58ewppk5 generated and returned exact model turn.
+- Started relay once. DOMKAT queue nonce 43830fd3, actual ChatWindow GUI nonce GUI8C42 and background-tab GUI nonce BGTAB42 all caused automatic ChatGPT turns, with chat.reply writing responses and durable ACK. Displayed answer verified visually in local UI.
+- Hourly planner not involved with these test timestamps (scheduled at minute 44). Browser tab was restored. No promise for browser closed/suspended or indefinite iframe; future work is lifetime/recovery and UI footer correction. MKATUSHONOK GUI untested.
+- Unrelated user TXT files untouched; existing process watchdog and fallback schedule unchanged.
+
 ## 29.10.2026: DOMKAT production update 0.2.16 and ChatGPT browser tool refresh
 - 29.10.2026 Owner directed DOMKAT install and browser action refresh. Completed v0.2.16.0 live deployment with SHA256 FC05177A63EEC63E28BEE080247ED7B7835A3758098D77D072EFE9253696DBA0. After two Inno code 5 due active processes, succeeded via watchdog pause + agent --shutdown + silent Inno. Current readyz 200, bridge_ping OK, both machines connected, watchdog Ready.
 - Authenticated Yandex Browser ChatGPT > Plugins > ChatGPT MCP Tunnel > Manage > 'Обновить инструменты': UI action performed, button disabled then re-enabled with no visible error. Current turn's host catalog may be cached at 45, runtime CI 52; must validate in fresh turn before claiming live new action exposure.

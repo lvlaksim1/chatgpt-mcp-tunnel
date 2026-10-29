@@ -1,5 +1,10 @@
 # Current blockers and open risks
 
+## 29.10.2026: REAL ordinary ChatGPT ui/message acceptance 19:36-19:42 MSK
+- Active-iframe ordinary ChatGPT ui/message feasibility is now confirmed by REAL host, not only mocks. No live relay protocol blocker.
+- Remaining always-on limitation: if ChatGPT component is closed/suspended, no proven way yet for local MCP server to wake ordinary ChatGPT. Browser-closed availability not accepted.
+- ChatWindow footer stale because it uses old hourly cycle status despite immediate chat.reply. Fix in next build. MKATUSHONOK GUI and long-term idle/reconnect pending. Hourly fallback remains active by user configuration.
+
 ## 29.10.2026: DOMKAT production update 0.2.16 and ChatGPT browser tool refresh
 - Only open ui/message acceptance gate: real ordinary ChatGPT must expose chat.ui.open after browser refresh/new turn and permit the component to send messages. Need direct-click and automatic-poll tests separately, including chat.reply. The current tool catalogue in this ongoing ChatGPT turn may remain cached at 45.
 - Reproducible deployment problem: Inno Setup silent update v0.2.16 on live DOMKAT returns code 5 when agent/Router Lite/tunnel-client stay active or watchdog respawns children. Manual controlled stop worked. Add preflight stop/pause and regression test in next patch.

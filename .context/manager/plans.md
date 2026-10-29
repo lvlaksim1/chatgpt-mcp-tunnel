@@ -1,5 +1,12 @@
 # Manager plans
 
+## 29.10.2026: REAL ordinary ChatGPT ui/message acceptance 19:36-19:42 MSK
+1. DONE: ordinary ChatGPT 52 tools; chat.ui.open renders real MCP Apps iframe.
+2. DONE: manual nonce 58ewppk5, synthetic queue 43830fd3, GUI GUI8C42 and inactive-tab GUI BGTAB42; all generated ChatGPT model replies, and queued/GUI messages were saved via chat.reply.
+3. NEXT: fix WinForms ChatWindow footer to reflect ui/message replies, rather than relying only on legacy cycle-status.json.
+4. NEXT: test browser minimized/closed/reopened, discarded tab, long lifetime, sleep/reconnect and automatic recovery WITHOUT browser automation or an API.
+5. NEXT: verify MKATUSHONOK GUI, then evaluate disabling hourly fallback task with owner.
+
 ## 29.10.2026: DOMKAT production update 0.2.16 and ChatGPT browser tool refresh
 1. DONE: Owner-authorized DOMKAT update v0.2.13 -> v0.2.16; SHA-256 validated; manual controlled stop/restart overcame Inno RestartManager failure.
 2. DONE: ChatGPT browser: Plugins > ChatGPT MCP Tunnel > Manage > 'Обновить инструменты'; UI returned to ready, no visible error.

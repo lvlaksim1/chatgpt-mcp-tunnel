@@ -1,5 +1,9 @@
 # Manager intentions and commitments
 
+## 29.10.2026: REAL ordinary ChatGPT ui/message acceptance 19:36-19:42 MSK
+- Live ui-message-2026-10-29 active host acceptance now PASS on DOMKAT 0.2.16 for manual, queued, real GUI, background-tab. Commitment remains OPEN for persistent iframe lifetime and reliable always-available behavior when browser closed/suspended.
+- Fix misleading local chat footer and verify remote MKATUSHONOK GUI roundtrip in next phase. Hourly task may be disabled only after owner decision and full persistence acceptance.
+
 ## 29.10.2026: DOMKAT production update 0.2.16 and ChatGPT browser tool refresh
 - commitment ui-message-2026-10-29: DOMKAT installation 0.2.16 and explicit owner-requested browser action refresh now DONE. Remaining goal: real ChatGPT chat.ui.open availability in fresh host session, user-click ui/message versus automatic local queue, chat.reply, lifecycle behavior; claim no scheduler only after live proof.
 - Maintain separate issue: updater should automatically coordinate agent/watchdog shutdown to avoid silent Inno exit 5 on an active installation.

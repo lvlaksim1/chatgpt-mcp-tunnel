@@ -1,5 +1,14 @@
 # Manager beliefs
 
+## 29.10.2026: REAL ordinary ChatGPT ui/message acceptance 19:36-19:42 MSK
+- Actual ordinary ChatGPT fresh browser session exposed new 52-tool catalog, invoked chat.ui.open and rendered real MCP Apps iframe with hostCapabilities.message.text and experimental.openai/message.
+- Manual click probe sent user message nonce 58ewppk5 and ChatGPT answered with matching nonce, proving real ui/message new model turn.
+- Once Start relay was clicked, synthetic DOMKAT queue nonce 43830fd3 auto-forwarded and ChatGPT replied with chat.reply; queue message Status=answered and durable ACK=true.
+- Real WinForms ChatWindow opened by double-click on DOMKAT tray icon. Message GUI8C42 was submitted via actual text field and Send, automatically forwarded by iframe and answered via chat.reply; actual GUI history showed the returned reply, JSON Status=answered.
+- Browser ChatGPT tab was switched to a different tab, real WinForms GUI message BGTAB42 still automatically forwarded and answered via chat.reply with ACK=true, then original browser tab was restored.
+- Tests performed ~19:36-19:42 MSK, not at scheduled minute 44. Polling works only while the host iframe is alive, NOT proven with browser closed, host suspended or infinite duration.
+- GUI footer still incorrectly reports awaiting hourly schedule despite immediate new replies; needs fix. Installed DOMKAT 0.2.16, MKATUSHONOK local GUI untested.
+
 ## 29.10.2026: DOMKAT production update 0.2.16 and ChatGPT browser tool refresh
 - Owner explicitly authorized installing v0.2.16 on DOMKAT and refreshing connected action catalog via browser.
 - Installed on DOMKAT with verified release SHA-256 FC05177A63EEC63E28BEE080247ED7B7835A3758098D77D072EFE9253696DBA0. Initially Inno Setup silently returned code 5 because RestartManager could not close running agent/runtime/tunnel-client (confirmed installation log); no files updated during those attempts. Successful controlled install paused only existing watchdog, invoked agent --shutdown (exit 0), waited for its own three processes to exit, ran official updater and restored existing watchdog.

@@ -1,5 +1,11 @@
 # Current state
 
+## 29.10.2026: REAL ordinary ChatGPT ui/message acceptance 19:36-19:42 MSK
+- Live 0.2.16 acceptance PASS: ordinary ChatGPT new session after plugin tool refresh exposed 52 tools; invoked chat.ui.open, real iframe opened, host advertised ui/message text plus OpenAI extension.
+- Manual probe 58ewppk5 triggered model turn and exact answer. Auto relay enabled once: queue nonce 43830fd3 forwarded with durable ACK, answered via chat.reply; real DOMKAT WinForms text message GUI8C42 forwarded and replied; answer visibly displayed in GUI. Inactive ChatGPT browser tab: GUI message BGTAB42 also forwarded/acked/replied. All JSON statuses answered.
+- Test window 19:36-19:42 MSK, not during planned hour-minute 44 scheduler. Existing scheduled fallback left enabled. Real iframe required to remain alive; closure/suspend behavior untested.
+- Technical debt: GUI footer falsely claims model inactive/next hourly schedule after immediate successful MCP responses. MKATUSHONOK local GUI still untested.
+
 ## 29.10.2026: DOMKAT production update 0.2.16 and ChatGPT browser tool refresh
 - Production DOMKAT v0.2.16.0 confirmed after controlled update from v0.2.13; SHA256 official verified; readyz 200, existing single tunnel bridge_ping OK, both DOMKAT and MKATUSHONOK connected, watchdog Ready, ChatRelayApp.html installed.
 - In Yandex Browser authenticated ChatGPT browser settings, exact UI button 'Обновить инструменты' for the existing ChatGPT MCP Tunnel plugin was clicked; button disabled during execution and re-enabled, no visible error. Static 45-tool catalog in current pre-refresh ChatGPT session remains an unresolved cache question, not proof of failed update. New runtime 52 commands proven in Windows CI, real ChatGPT ui/message still NOT tested.

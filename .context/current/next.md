@@ -1,5 +1,12 @@
 # Next actions
 
+## 29.10.2026: REAL ordinary ChatGPT ui/message acceptance 19:36-19:42 MSK
+1. Update ChatWindow footer state calculation to use message RepliedUtc and successful ui relay forwarding as stronger evidence of active ChatGPT responses; preserve historic cycle diagnostics separately.
+2. Validate actual iframe lifecycle across inactive/minimized browser, closed/reopened browser, thread changes and suspension, with queue recovery tests. No assumption of perpetual background operation.
+3. Test MKATUSHONOK local GUI message routing to ordinary ChatGPT and back via MCP.
+4. Agree with owner before disabling fallback hourly scheduled chat task. Keep process watchdog.
+5. Acceptance evidence codes: manual 58ewppk5, queued 43830fd3, real GUI GUI8C42, inactive tab BGTAB42.
+
 ## 29.10.2026: DOMKAT production update 0.2.16 and ChatGPT browser tool refresh
 1. Verify action catalog is refreshed in a new ChatGPT turn; check chat.ui.open/52 tools. Do not assume a refresh UI click hot-reloads the tool catalog in a currently executing turn.
 2. Call chat.ui.open in ordinary ChatGPT and run user-click 'Тест ui/message' and background 'Начать передачу' separately; validate actual local chat -> ChatGPT -> chat.reply. Report exact host refusal if any.
