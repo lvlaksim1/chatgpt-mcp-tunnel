@@ -67,7 +67,7 @@ Type: files; Name: "{autoprograms}\ChatGPT MCP Agent.lnk"
 Type: files; Name: "{userdesktop}\ChatGPT MCP Agent.lnk"
 
 [Run]
-Filename: "{app}\{#AppExeName}"; Parameters: "--watchdog-register"; Flags: runhidden waituntilterminated
+; Registration takes place after settings are finalized by CurStepChanged.
 Filename: "{app}\{#AppExeName}"; Description: "Запустить ChatGPT MCP Agent"; Flags: nowait postinstall skipifsilent
 
 [Code]
@@ -143,6 +143,7 @@ end;
 procedure CurStepChanged(CurStep: TSetupStep);
 var
   Name: String;
+  RecoveryExitCode: Integer;
 begin
   if CurStep <> ssPostInstall then exit;
   Name := 'client';
@@ -159,6 +160,13 @@ begin
   else
     RegDeleteValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Run',
       'ChatGPTMCPAgent');
+
+  // InstallDir, role and autostart now exist: registering in [Run] was too early.
+  if Exec(ExpandConstant('{app}\{#AppExeName}'), '--watchdog-register',
+     ExpandConstant('{app}'), SW_HIDE, ewWaitUntilTerminated, RecoveryExitCode) then
+    Log('Recovery task registration exit=' + IntToStr(RecoveryExitCode))
+  else
+    Log('Recovery task registration launch failed');
 end;
 
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);

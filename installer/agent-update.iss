@@ -63,7 +63,7 @@ Type: files; Name: "{autoprograms}\ChatGPT MCP Agent.lnk"
 Type: files; Name: "{userdesktop}\ChatGPT MCP Agent.lnk"
 
 [Run]
-Filename: "{app}\{#AppExeName}"; Parameters: "--watchdog-register"; Flags: runhidden waituntilterminated
+; Integrated recovery registration is performed in ssPostInstall after installation completes.
 Filename: "{app}\{#AppExeName}"; Flags: nowait runhidden
 
 [Code]
@@ -89,6 +89,18 @@ begin
     exit;
   end;
   Result := True;
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+  RecoveryExitCode: Integer;
+begin
+  if CurStep <> ssPostInstall then exit;
+  if Exec(ExpandConstant('{app}\{#AppExeName}'), '--watchdog-register',
+     ExpandConstant('{app}'), SW_HIDE, ewWaitUntilTerminated, RecoveryExitCode) then
+    Log('Update watchdog registration exit=' + IntToStr(RecoveryExitCode))
+  else
+    Log('Update watchdog registration could not start');
 end;
 
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
