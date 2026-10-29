@@ -1,7 +1,7 @@
 "use strict";
 const fs=require("fs"),vm=require("vm"),path=require("path"),assert=require("assert").strict;
-const html=fs.readFileSync(path.join(__dirname,"../src/ChatGptMcpTunnel/ChatGlobalHubApp.html"),"utf8");
-const src=html.match(/<script>([\s\S]*?)<\/script>/)[1].replace("__HUB_TRANSPORT_MODE__","chat");
+const html=fs.readFileSync(path.join(__dirname,"../src/ChatGptMcpTunnel/ChatBootstrapApp.html"),"utf8");
+const src=html.match(/<script>([\s\S]*?)<\/script>/)[1];
 const calls=[],logs=[],messages=[],timeouts=new Map(),intervals=new Map();
 let sequence=0,acknowledged=false;
 const chatId="6".repeat(32),messageId="7".repeat(32),status={textContent:""};
@@ -24,8 +24,10 @@ const host={postMessage(msg){
   assert.equal(msg.params._meta["openai/message"].send,true);
   assert.ok(msg.params.content[0].text.includes(chatId));
   assert.ok(msg.params.content[0].text.includes(messageId));
-  assert.ok(msg.params.content[0].text.includes("АВТОЗАПУСК-21"),
-    "Global Hub did not restore prior logical chat context");
+  assert.ok(msg.params.content[0].text.includes("PREVIOUS_REPLY_21"),
+    "Ordinary bridge did not restore prior logical chat context");
+  assert.ok(msg.params.content[0].text.includes("chat.reply(message_id="),
+    "Model reply callback instructions are missing");
   callbacks.message({source:host,data:{jsonrpc:"2.0",id:msg.id,result:{ok:true}}});
   return;
  }
@@ -40,7 +42,7 @@ const host={postMessage(msg){
    assert.equal(args.discover,true);
    assert.equal(args.chat_id,"0".repeat(32));
    payload={ok:true,count:acknowledged?0:1,message:acknowledged?null:testMessage,
-    context:"Пользователь: Первый вопрос\nАссистент: АВТОЗАПУСК-21\n"};
+    context:"User: Previous question\nAssistant: PREVIOUS_REPLY_21\n"};
   }else if(name==="chat.ui.ack"){
    assert.equal(args.new_chat,true);
    assert.equal(args.message_id,messageId);

@@ -8,6 +8,7 @@ with tempfile.TemporaryDirectory(prefix="mcp-lifecycle-probe-") as temp:
  env=os.environ.copy()
  env["CHATGPT_MCP_CHAT_TEST_ROOT"]=temp
  env["CHATGPT_MCP_CYCLE_TEST_CHAT_ROOT"]=temp
+ env["CHATGPT_MCP_CONTROL_TEST_ROOT"]=str(Path(temp)/"control")
  proc=subprocess.Popen(["dotnet",str(dll)],cwd=r,env=env,
   stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,
   encoding="utf-8",errors="replace",bufsize=1)
@@ -35,9 +36,9 @@ with tempfile.TemporaryDirectory(prefix="mcp-lifecycle-probe-") as temp:
   proc.stdin.write('{"jsonrpc":"2.0","method":"notifications/initialized"}\n')
   proc.stdin.flush()
   tools={x["name"]:x for x in request("tools/list")["tools"]}
-  assert len(tools)==57,len(tools)
+  assert len(tools)==58,len(tools)
   for name,mode,uri in (
-   ("chat.hub.open","global","ui://chatgpt-mcp-tunnel/hub-observer-v0224"),
+   ("chat.hub.open","global","ui://chatgpt-mcp-tunnel/hub-observer-v0225"),
    ("chat.thread.open","thread","ui://chatgpt-mcp-tunnel/lifecycle-thread-v0220")
   ):
    meta=tools[name]["_meta"]
@@ -67,9 +68,9 @@ with tempfile.TemporaryDirectory(prefix="mcp-lifecycle-probe-") as temp:
   boot_meta=boot["_meta"]
   assert "openai/ui" not in boot_meta,boot_meta
   assert boot_meta["ui"]["visibility"]==["model","app"]
-  assert boot_meta["ui"]["resourceUri"]=="ui://chatgpt-mcp-tunnel/chat-bootstrap-v0224"
+  assert boot_meta["ui"]["resourceUri"]=="ui://chatgpt-mcp-tunnel/chat-bootstrap-v0225"
   boot_result=tool("chat.bootstrap.open",{})
-  assert boot_result["ok"] and boot_result["mode"]=="ordinary_chat_bootstrap",boot_result
+  assert boot_result["ok"] and boot_result["mode"]=="mcp_apps_multi_chat",boot_result
   boot_html=request("resources/read",{"uri":boot_meta["ui"]["resourceUri"]})["contents"][0]
   assert boot_html["mimeType"]=="text/html;profile=mcp-app"
   assert 'const chatTransport = "chat" === "chat"' in boot_html["text"]

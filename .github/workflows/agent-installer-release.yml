@@ -6,7 +6,7 @@ on:
       version:
         description: 'Stable numeric release version (X.Y.Z)'
         required: true
-        default: '0.2.24'
+        default: '0.2.25'
         type: string
 
 permissions:
@@ -68,6 +68,13 @@ jobs:
           if (-not (Test-Path publish/Runtime/ChatRelayApp.html)) { throw 'MCP App relay UI resource missing' }
           if (-not (Test-Path publish/Runtime/ChatGlobalHubApp.html)) { throw 'MCP Global Hub background relay UI missing' }
           if (-not (Test-Path publish/Runtime/ChatLifecycleApp.html)) { throw 'MCP lifecycle diagnostic UI resource missing' }
+          if (-not (Test-Path publish/Runtime/ChatBootstrapApp.html)) { throw 'Ordinary ChatGPT bootstrap resource missing' }
+      - name: Verify emergency STOP and GUI pacing in packaged Windows agent
+        shell: pwsh
+        run: |
+          & .\publish\ChatGptMcpAgent.exe --test-control
+          if ($LASTEXITCODE -ne 0) { throw "STOP and GUI pacing self-test failed: $LASTEXITCODE" }
+
 
       - name: Bundle verified official OpenAI tunnel-client v0.0.18
         shell: pwsh

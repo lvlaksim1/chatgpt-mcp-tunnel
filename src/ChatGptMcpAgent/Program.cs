@@ -85,6 +85,11 @@ internal static class Program
             Application.Run(preview);
             return;
         }
+        if (args.Length == 1 && args[0] == "--test-control")
+        {
+            Environment.ExitCode = ControlTests.Run();
+            return;
+        }
         if (args.Length == 1 && args[0] == "--test-host-activator")
         {
             Environment.ExitCode = ChatHostActivator.SelfTest();
@@ -356,7 +361,8 @@ internal sealed class TrayContext : ApplicationContext
                 AgentStorage.SelectedRole == "server" &&
                 !_serverProbePending && DateTime.UtcNow >= _nextServerProbe)
                 _ = PollServerStatusAsync();
-            if (!_stopping && !_updating && AgentStorage.SelectedRole == "server")
+            if (!_stopping && !_updating && AgentStorage.SelectedRole == "server" &&
+                !ControlState.IsStopped)
                 _hostActivator.Tick(_child is { HasExited: false });
             var label = "ChatGPT MCP Tunnel — " + _connection;
             _tray.Text = label.Length > 63 ? label[..63] : label;

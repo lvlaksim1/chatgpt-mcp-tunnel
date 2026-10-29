@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="ru">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ChatGPT MCP Tunnel — background hub</title>
+<style>:root{color-scheme:light dark;font-family:system-ui,"Segoe UI",sans-serif}
+body{margin:0;padding:8px;background:transparent;color:var(--color-text-secondary,#777)}
+#status{font-size:11px;margin:0;line-height:1.4}</style></head>
+<body><p role="status" id="status">MCP Tunnel: starting ordinary ChatGPT bridge</p>
+<script>
+(() => {
+  "use strict";
+  const mode = "global", status = document.getElementById("status");
+  const chatTransport = "chat" === "chat";
+  const instanceId = (chatTransport ? "chatbridge-" : "hub-") +
+    Math.random().toString(36).slice(2,12) +
+    "-" + Date.now().toString(36);
+  const calls = new Map();
+  const idPattern=/^[a-f0-9]{32}$/i;
+  let seq=0, initialized=false, disposed=false, polling=false;
+  let pollTimer=null, heartbeatTimer=null;
+  const symbolic=(value)=>typeof value==="string" ? value.slice(0,50):"";
+  function request(method,params={}) {
+    if(disposed) return Promise.reject(new Error("disposed"));
+    const id=++seq;
+    return new Promise((resolve,reject)=>{
+      const timeout=setTimeout(()=>{calls.delete(id);reject(new Error("host_timeout"));},20000);
+      calls.set(id,{resolve,reject,timeout});
+      window.parent.postMessage({jsonrpc:"2.0",id,method,params},"*");
+    });
+  }
+  async function tool(name,args={}) {
+    const res=await request("tools/call",{name,arguments:args});
+    if(res?.isError) throw new Error("mcp_tool_error");
+    const item=res?.content?.find?.(x=>x.type==="text");
+    if(!item) throw new Error("missing_tool_response");
+    const value=JSON.parse(item.text);
+    if(!value.ok) throw new Error("mcp_tool_failed");
+    return value;
+  }
+  async function log(kind,details={}) {
+    if(disposed)return;
+    try{
+      await tool("chat.lifecycle.event",{
+        mode,kind,instance_id:instanceId,details_json:JSON.stringify(details)
+      });
+    }catch(_){}
+  }
+  function ctxDetails(ctx){
+    return {hasDeepLink:!!ctx?.["openai/deepLink"]?.url,
+      displayMode:symbolic(ctx?.displayMode||""),
+      pathKind:ctx?.["openai/deepLink"]?.url?"route":"none"};
+  }
+  function formatMessage(message){
+    const files=Array.isArray(message.attachments)?message.attachments:[];
+    const list=files.map(x=>"- "+x.name+" ("+x.media_type+"), attachment_id="+x.id).join("\n");
+    return [
+      "A user has sent a message from the local ChatGPT MCP Tunnel Windows app.",
+      "Local chat: "+(message.chat_title||"New chat"),
+      "Local chat_id: "+message.chat_id,
+      "Local message_id: "+message.id,
+      message.text ? "User message:\n"+message.text : "",
+      list ? "Attached files:\n"+list : "",
+      "Respond to the user's request. For attachments, use chat.attachment.read(message_id,attachment_id).",
+      "MANDATORY: invoke chat.reply(message_id,reply) with the complete answer BEFORE finishing the assistant turn.",
+      "Reply in Russian unless the user's request asks otherwise. Do not use Work, Codex or an external OpenAI API."
+    ].filter(Boolean).join("\n\n");
+  }
+  function schedule(ms){
+    if(disposed) return;
+    if(pollTimer!==null)clearTimeout(pollTimer);
+    pollTimer=setTimeout(poll,ms);
+  }
+  async function poll(){
+    pollTimer=null;
+    if(!initialized || disposed || polling || !chatTransport)return;
+    polling=true;
+    let delay=2500;
+    try{
+      // Global is a dispatcher, never steals messages from a bound Thread.
+      const result=await tool("chat.ui.pending",{
+        chat_id:"00000000000000000000000000000000",discover:true
+      });
+      const m=result.message;
+      if(m){
+        if(!idPattern.test(m.id||"") || !idPattern.test(m.chat_id||""))
+          throw new Error("invalid_message_ids");
+        const history = typeof result.context === "string" ? result.context.slice(0,4200) : "";
+        const context = history
+          ? "This is previous local chat history recovered from the Windows app. Use it to preserve context.\n"
+            + history + "\nEnd of previous history.\n\n"
+          : "";
+        const instruction =
+          "Create a new conversation in the SAME ORDINARY ChatGPT mode as this originating conversation. "
+          + "For local chat "+m.chat_id+" ("+(m.chat_title||"New chat")+"), "
+          + "first call chat.ui.open(chat_id=\""+m.chat_id+"\") to establish the reply route. "
+          + "Then answer the user and MUST call chat.reply(message_id=\""+m.id+"\",reply=<answer>) "
+          + "before writing any final text. Do not use Work or Codex.\n\n";
+        const sent=await request("ui/message",{
+          role:"user",
+          content:[{type:"text",text:context+instruction+formatMessage(m)}],
+          _meta:{"openai/message":{target:"new",send:true}}
+        });
+        if(sent?.isError)throw new Error("host_message_rejected");
+        await tool("chat.ui.ack",{message_id:m.id,new_chat:true});
+        await log("hub-forwarded",{hasMessage:true,source:"host"});
+        status.textContent="MCP Tunnel: ordinary ChatGPT bridge active";
+        delay=900;
+      } else {
+        status.textContent="MCP Tunnel: ordinary ChatGPT bridge active";
+      }
+    }catch(e){
+      status.textContent="MCP Tunnel: ordinary ChatGPT bridge active";
+      await log("hub-error",{errorCode:"relay_failed"});
+      delay=7000;
+    }finally{
+      polling=false;
+      schedule(delay);
+    }
+  }
+  window.addEventListener("message",event=>{
+    if(event.source!==window.parent)return;
+    const msg=event.data;
+    if(!msg || msg.jsonrpc!=="2.0")return;
+    if(msg.method==="ui/notifications/tool-input"){
+      void log("tool-input",{source:"host"});return;
+    }
+    if(msg.method==="ui/notifications/tool-result"){
+      void log("tool-result",{source:"host"});return;
+    }
+    if(msg.method==="ui/notifications/host-context-changed"){
+      void log("host-context-changed",ctxDetails(msg.params));return;
+    }
+    if(msg.method==="ui/resource-teardown"){
+      if(pollTimer!==null)clearTimeout(pollTimer);
+      if(heartbeatTimer!==null)clearInterval(heartbeatTimer);
+      if(msg.id!==undefined)
+        window.parent.postMessage({jsonrpc:"2.0",id:msg.id,result:{}},"*");
+      // The host may destroy the iframe before this best-effort notification.
+      void log("teardown",{source:"host"}).finally(()=>{disposed=true;});
+      return;
+    }
+    const call=calls.get(msg.id);
+    if(!call)return;
+    calls.delete(msg.id);clearTimeout(call.timeout);
+    if(msg.error)call.reject(new Error(symbolic(msg.error.message||"host_error")));
+    else call.resolve(msg.result);
+  });
+  document.addEventListener("visibilitychange",()=>{
+    void log("visibility-change",{visibility:document.visibilityState==="visible"?"visible":"hidden"});
+  });
+  request("ui/initialize",{
+    protocolVersion:"2026-01-26",
+    appInfo:{name:chatTransport ? "ChatGPT MCP Tunnel Ordinary Chat Bridge" : "ChatGPT MCP Tunnel Global Observer",version:"0.2.25"},
+    appCapabilities:{availableDisplayModes:["fullscreen","inline"]}
+  }).then(async response=>{
+    initialized=true;
+    window.parent.postMessage({jsonrpc:"2.0",method:"ui/notifications/initialized"},"*");
+    await log("ui-initialize",{
+      protocol:"2026-01-26",
+      host:symbolic(response?.hostInfo?.name||"unknown"),mode,
+      hasMessage:!!response?.hostCapabilities?.message?.text,
+      hasOpenAiMessage:!!response?.hostCapabilities?.experimental?.["openai/message"],
+      hasContextUpdate:!!response?.hostCapabilities?.updateModelContext,
+      ...ctxDetails(response?.hostContext||{})
+    });
+    await log("ui-initialized",{source:"iframe"});
+    heartbeatTimer=setInterval(()=>{
+      void log("heartbeat",{visibility:document.visibilityState==="visible"?"visible":"hidden"});
+    },15000);
+    // Only the component embedded in a NORMAL ChatGPT conversation can
+    // create conversations. Global app may be hosted in Work.
+    if(chatTransport) schedule(500);
+    else status.textContent="MCP Tunnel: ordinary ChatGPT bridge active";
+  }).catch(()=>{
+    status.textContent="MCP Tunnel: ordinary ChatGPT bridge active";
+  });
+})();
+</script></body></html>

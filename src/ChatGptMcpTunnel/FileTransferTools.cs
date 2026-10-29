@@ -76,6 +76,7 @@ public static class FileTransferTools
         [Description("Destination computer name from computers.list; omitted for server.")] string? destination_computer = null,
         [Description("Permit replacing an existing destination file after SHA-256 verification (default false).")] bool overwrite = false)
     {
+        ControlState.EnsureAllowed();
         source_path = Absolute(source_path);
         destination_path = Absolute(destination_path);
         var from = NormalizeComputer(source_computer);
@@ -99,7 +100,11 @@ public static class FileTransferTools
         Publish();
         _ = Task.Run(async () =>
         {
-            try { await Execute(job, overwrite); }
+            try
+            {
+                using var activity = ControlState.Begin("file.transfer.start");
+                await Execute(job, overwrite);
+            }
             catch (OperationCanceledException)
             {
                 job.status = "cancelled";
@@ -215,6 +220,7 @@ public static class FileTransferTools
                     while (offset < source.size)
                     {
                         CheckCancelled(job);
+                        ControlState.EnsureAllowed();
                         var amount = (int)Math.Min(ChunkBytes, source.size - offset);
                         var encoded = await Call(job.source_computer, "file.transfer.read",
                             new { path = job.source_path, offset, count = amount });
@@ -261,6 +267,8 @@ public static class FileTransferTools
 
     internal static Task<string> HandleWireAsync(string name, JsonElement args)
     {
+        using var activity = ControlState.Begin(name,
+            readOnly: name is "file.transfer.inspect" or "file.transfer.read");
         var path = Absolute(args.GetProperty("path").GetString() ?? "");
         return name switch
         {

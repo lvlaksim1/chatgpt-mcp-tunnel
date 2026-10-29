@@ -1,7 +1,7 @@
 "use strict";
 const fs=require("fs"),vm=require("vm"),path=require("path"),assert=require("assert").strict;
 const source=fs.readFileSync(path.join(__dirname,"../src/ChatGptMcpTunnel/ChatGlobalHubApp.html"),"utf8")
- .match(/<script>([\s\S]*?)<\/script>/)[1].replace("__HUB_TRANSPORT_MODE__","observer");
+ .match(/<script>([\s\S]*?)<\/script>/)[1];
 const calls=[],logs=[],timeouts=new Map(),intervals=[],listeners={};
 const status={textContent:""};
 let next=0;

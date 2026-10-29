@@ -14,8 +14,11 @@ if os.name != "nt":
 
 root = Path(__file__).resolve().parents[1]
 dll = Path(os.environ.get("CHATGPT_MCP_TEST_DLL", str(root / "src" / "ChatGptMcpTunnel" / "bin" / "Release" / "net8.0" / "ChatGptMcpTunnel.dll")))
+control_root = tempfile.TemporaryDirectory(prefix="chatgpt-control-test-")
+proc_env = os.environ.copy()
+proc_env["CHATGPT_MCP_CONTROL_TEST_ROOT"] = control_root.name
 proc = subprocess.Popen(
-    ["dotnet", str(dll)], cwd=root, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+    ["dotnet", str(dll)], cwd=root, env=proc_env, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
     stderr=subprocess.PIPE, text=True, encoding="utf-8", bufsize=1,
 )
 assert proc.stdin and proc.stdout
@@ -55,7 +58,7 @@ try:
     tools = request("tools/list")["tools"]
     expected = {"bridge_ping", "system.info", "fs.list", "fs.read", "fs.write",
                 "fs.search", "shell.exec", "process.list", "process.kill"}
-    gui_tools = {"desktop.screen.info", "desktop.screen.capture",
+    gui_tools = {"desktop.batch", "desktop.screen.info", "desktop.screen.capture",
                  "desktop.window.list", "desktop.window.activate",
                  "desktop.window.move", "desktop.window.close",
                  "desktop.mouse.move", "desktop.mouse.click",
@@ -67,10 +70,21 @@ try:
     github_tools = {"github.auth", "github.api", "github.graphql", "github.repositories", "github.files", "github.branches", "github.commits", "github.batch_commit", "github.issues", "github.pulls", "github.actions", "github.jobs", "github.releases", "github.release_assets", "github.artifacts", "github.search", "github.git"}
     expected |= github_tools
     expected.add('computers.list')
-    expected.update({"file.transfer.start", "file.transfer.status", "file.transfer.cancel"})
+    expected.update({"file.transfer.start", "file.transfer.status", "file.transfer.cancel", "desktop.batch"})
+    expected.update({"chat.receive", "chat.reply", "chat.cycle", "chat.attachment.read",
+                     "chat.ui.open", "chat.ui.pending", "chat.ui.ack",
+                     "chat.bootstrap.open", "chat.hub.open", "chat.thread.open",
+                     "chat.lifecycle.event", "chat.lifecycle.status"})
     assert len(github_tools) == 17
     assert {t["name"] for t in tools} == expected, tools
     print("TOOL_DISCOVERY_OK", sorted(expected), flush=True)
+    batch = call("desktop.batch", steps_json=json.dumps([
+        {"tool": "desktop.screen.info", "arguments": {}},
+        {"tool": "desktop.window.list", "arguments": {"title_filter": "UNLIKELY-TEST-MATCH"}},
+    ]))
+    assert batch["ok"] is True and batch["completed"] == 2, batch
+    print("DESKTOP_BATCH_READONLY_OK", flush=True)
+
 
     with tempfile.TemporaryDirectory(prefix="chatgpt-mcp-tools-") as temporary:
         location = Path(temporary)

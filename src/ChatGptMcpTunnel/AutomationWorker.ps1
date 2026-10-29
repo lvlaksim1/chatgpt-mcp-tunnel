@@ -20,7 +20,9 @@ try {
     }
     Add-Type -AssemblyName Accessibility -ErrorAction Stop
     Add-Type -TypeDefinition ([IO.File]::ReadAllText((Join-Path $PSScriptRoot 'MsaaBridge.cs.txt'))) -ReferencedAssemblies Accessibility -ErrorAction Stop
-    $req = [Console]::In.ReadToEnd() | ConvertFrom-Json
+    while ($null -ne ($inputLine = [Console]::In.ReadLine())) {
+    try {
+    $req = $inputLine | ConvertFrom-Json
     $view = if ($null -eq $req.view -or [string]$req.view -eq '') { 'control' } else { [string]$req.view }
     if ($view -notin @('control','raw')) { throw 'view must be control or raw' }
     $walker = if ($view -eq 'raw') { [System.Windows.Automation.TreeWalker]::RawViewWalker } else { [System.Windows.Automation.TreeWalker]::ControlViewWalker }
@@ -323,6 +325,12 @@ try {
         default { throw ('Unknown UIA operation: '+$req.operation) }
     }
     [Console]::Out.WriteLine(($output | ConvertTo-Json -Depth 12 -Compress))
+    [Console]::Out.Flush()
+    } catch {
+        [Console]::Out.WriteLine((@{success=$false;error=$_.Exception.Message;error_type=$_.Exception.GetType().Name} | ConvertTo-Json -Compress))
+        [Console]::Out.Flush()
+    }
+    }
 } catch {
     [Console]::Out.WriteLine((@{success=$false;error=$_.Exception.Message;error_type=$_.Exception.GetType().Name} | ConvertTo-Json -Compress))
     exit 1

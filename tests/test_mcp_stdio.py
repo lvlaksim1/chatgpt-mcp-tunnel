@@ -14,6 +14,8 @@ import shutil
 cycle_sandbox = Path(tempfile.mkdtemp(prefix="chatgpt-mcp-cycle-test-"))
 proc_env = os.environ.copy()
 proc_env["CHATGPT_MCP_CYCLE_TEST_CHAT_ROOT"] = str(cycle_sandbox)
+proc_env["CHATGPT_MCP_CHAT_TEST_ROOT"] = str(cycle_sandbox)
+proc_env["CHATGPT_MCP_CONTROL_TEST_ROOT"] = str(cycle_sandbox / "control")
 
 proc = subprocess.Popen(
     ["dotnet", str(dll)], cwd=root, env=proc_env,
@@ -46,7 +48,7 @@ try:
     tools = [t["name"] for t in result["tools"]]
     expected = {"bridge_ping", "system.info", "fs.list", "fs.read", "fs.write",
                 "fs.search", "shell.exec", "process.list", "process.kill"}
-    gui_tools = {"desktop.screen.info", "desktop.screen.capture",
+    gui_tools = {"desktop.batch", "desktop.screen.info", "desktop.screen.capture",
                  "desktop.window.list", "desktop.window.activate",
                  "desktop.window.move", "desktop.window.close",
                  "desktop.mouse.move", "desktop.mouse.click",
@@ -57,6 +59,7 @@ try:
     expected |= uia_tools
     github_tools = {"github.auth", "github.api", "github.graphql", "github.repositories", "github.files", "github.branches", "github.commits", "github.batch_commit", "github.issues", "github.pulls", "github.actions", "github.jobs", "github.releases", "github.release_assets", "github.artifacts", "github.search", "github.git"}
     expected |= github_tools
+    expected.add("desktop.batch")
     expected.update({"chat.receive", "chat.reply", "chat.cycle", "chat.attachment.read", "chat.ui.open", "chat.ui.pending", "chat.ui.ack"})
     expected.update({"chat.bootstrap.open","chat.hub.open","chat.thread.open","chat.lifecycle.event","chat.lifecycle.status"})
     expected.add("computers.list")
@@ -87,7 +90,7 @@ try:
     import tempfile
     import uuid
     from datetime import datetime, timezone
-    folder = Path(os.environ.get("LOCALAPPDATA", str(Path.home()))) / "ChatGPTMCPAgent" / "Chat" / "messages"
+    folder = cycle_sandbox / "messages"
     folder.mkdir(parents=True, exist_ok=True)
     message_id = uuid.uuid4().hex
     message_file = folder / f"{message_id}.json"
@@ -135,10 +138,12 @@ try:
             report="MCP diagnostic cycle finished.", **keys)
         assert finished["ok"] and finished["completed_cycle_number"] == 1, finished
         assert finished["next_task"]["cycle_number"] == 2, finished
-        reported = list((cycle_sandbox / "messages").glob("*.json"))
+        reports = [json.loads(p.read_text(encoding="utf-8"))
+                   for p in (cycle_sandbox / "messages").glob("*.json")]
+        reported = [m for m in reports if m.get("Source") == "system"]
         assert len(reported) == 1, reported
-        message = json.loads(reported[0].read_text(encoding="utf-8"))
-        assert message["Source"] == "system" and message["Reply"] == "MCP diagnostic cycle finished.", message
+        message = reported[0]
+        assert message["Reply"] == "MCP diagnostic cycle finished.", message
         new_keys = {"session_id": finished["next_task"]["session_id"],
                     "task_id": finished["next_task"]["task_id"]}
         stale = cycle(35, action="step", wait_seconds=0, **keys)

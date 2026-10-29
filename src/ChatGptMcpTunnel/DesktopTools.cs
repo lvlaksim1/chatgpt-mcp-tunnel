@@ -51,6 +51,7 @@ public static class DesktopTools
     public static async Task<string> ScreenInfo([Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
         if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.screen.info", new { });
+        using var control = ControlState.Begin("desktop.screen.info", guiAction: false, readOnly: true);
         RequireWindows();
         if (!GetCursorPos(out var cursor)) throw NativeError("GetCursorPos");
         var bounds = ScreenBounds();
@@ -75,6 +76,7 @@ public static class DesktopTools
         [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
         if (RouterLite.IsRemote(computer)) return await RouterLite.CallBlocksAsync(computer!, "desktop.screen.capture", new { x, y, width, height, max_width });
+        using var control = ControlState.Begin("desktop.screen.capture", guiAction: false, readOnly: true);
         RequireWindows();
         if (max_width < 320 || max_width > 4096) throw new ArgumentOutOfRangeException(nameof(max_width));
         var screen = ScreenBounds();
@@ -129,6 +131,7 @@ public static class DesktopTools
         [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
         if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.window.list", new { title_filter, include_untitled });
+        using var control = ControlState.Begin("desktop.window.list", guiAction: false, readOnly: true);
         RequireWindows();
         var active = GetForegroundWindow();
         var windows = new List<object>();
@@ -168,6 +171,7 @@ public static class DesktopTools
         [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
         if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.window.activate", new { hwnd });
+        using var control = ControlState.Begin("desktop.window.activate", guiAction: true, readOnly: false);
         RequireWindows();
         var window = ParseWindow(hwnd);
         if (IsIconic(window)) ShowWindowAsync(window, SwRestore);
@@ -217,6 +221,7 @@ public static class DesktopTools
         [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
         if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.window.move", new { hwnd, x, y, width, height });
+        using var control = ControlState.Begin("desktop.window.move", guiAction: true, readOnly: false);
         RequireWindows();
         if (width < 50 || height < 50 || width > 20000 || height > 20000)
             throw new ArgumentOutOfRangeException(nameof(width), "Window size must be between 50 and 20000 pixels.");
@@ -238,6 +243,7 @@ public static class DesktopTools
         [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
         if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.window.close", new { hwnd });
+        using var control = ControlState.Begin("desktop.window.close", guiAction: true, readOnly: false);
         RequireWindows();
         var window = ParseWindow(hwnd);
         if (!PostMessageW(window, WmClose, IntPtr.Zero, IntPtr.Zero))
@@ -253,6 +259,7 @@ public static class DesktopTools
         [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
         if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.mouse.move", new { x, y });
+        using var control = ControlState.Begin("desktop.mouse.move", guiAction: true, readOnly: false);
         RequireWindows();
         CheckCoordinates(x, y);
         if (!SetCursorPos(x, y)) throw NativeError("SetCursorPos");
@@ -268,6 +275,7 @@ public static class DesktopTools
         [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
         if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.mouse.click", new { x, y, button, clicks });
+        using var control = ControlState.Begin("desktop.mouse.click", guiAction: true, readOnly: false);
         RequireWindows();
         CheckCoordinates(x, y);
         if (clicks is not (1 or 2)) throw new ArgumentOutOfRangeException(nameof(clicks));
@@ -299,6 +307,7 @@ public static class DesktopTools
         [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
         if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.mouse.scroll", new { notches, x, y });
+        using var control = ControlState.Begin("desktop.mouse.scroll", guiAction: true, readOnly: false);
         RequireWindows();
         if (notches == 0 || notches < -100 || notches > 100) throw new ArgumentOutOfRangeException(nameof(notches));
         if (x.HasValue != y.HasValue) throw new ArgumentException("Supply both x and y, or neither.");
@@ -317,6 +326,7 @@ public static class DesktopTools
         [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
         if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.keyboard.type", new { text });
+        using var control = ControlState.Begin("desktop.keyboard.type", guiAction: true, readOnly: false);
         RequireWindows();
         if (text.Length > 20000) throw new ArgumentOutOfRangeException(nameof(text), "Maximum 20000 UTF-16 units.");
         // KEYEVENTF_UNICODE sends UTF-16 units, including surrogate pairs.
@@ -339,6 +349,7 @@ public static class DesktopTools
         [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
         if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.keyboard.hotkey", new { keys });
+        using var control = ControlState.Begin("desktop.keyboard.hotkey", guiAction: true, readOnly: false);
         RequireWindows();
         var tokens = keys.Split('+', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
         if (tokens.Length is < 1 or > 6) throw new ArgumentException("Shortcut must have 1..6 keys.");

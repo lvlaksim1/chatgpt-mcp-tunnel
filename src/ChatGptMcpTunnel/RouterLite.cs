@@ -55,14 +55,14 @@ public static class RouterLite
     private static readonly Lazy<IReadOnlyDictionary<string, MethodInfo>> WindowsMethods = new(() =>
     {
         var map = new Dictionary<string, MethodInfo>(StringComparer.Ordinal);
-        foreach (var group in new[] { typeof(ComputerTools), typeof(DesktopTools), typeof(UiAutomationTools) })
+        foreach (var group in new[] { typeof(ComputerTools), typeof(DesktopTools), typeof(UiAutomationTools), typeof(DesktopBatchTools) })
         foreach (var method in group.GetMethods(BindingFlags.Public | BindingFlags.Static))
         {
             var attribute = method.GetCustomAttribute<McpServerToolAttribute>();
             if (attribute?.Name is { } name && !map.TryAdd(name, method))
                 throw new InvalidOperationException($"Duplicate tool {name}");
         }
-        if (map.Count != 23) throw new InvalidOperationException($"Expected 23 Windows tools, got {map.Count}");
+        if (map.Count != 24) throw new InvalidOperationException($"Expected 24 Windows tools, got {map.Count}");
         return map;
     });
 
@@ -332,7 +332,7 @@ public static class RouterLite
         _ => throw new NotSupportedException($"Unsupported MCP block: {block.GetType().Name}")
     };
 
-    private static async Task<object?> InvokeLocalAsync(string name, JsonElement arguments)
+    internal static async Task<object?> InvokeLocalAsync(string name, JsonElement arguments)
     {
         if (FileTransferTools.IsWireTool(name)) return await FileTransferTools.HandleWireAsync(name, arguments);
         if (!WindowsMethods.Value.TryGetValue(name, out var method))

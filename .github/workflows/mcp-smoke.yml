@@ -37,6 +37,12 @@ jobs:
         run: dotnet build src/ChatGptMcpTunnel/ChatGptMcpTunnel.csproj -c Release --nologo
       - name: Verify all eight Windows tools through MCP
         run: python tests/test_windows_tools.py
+      - name: Build Windows tray agent for local STOP tests
+        run: dotnet build src/ChatGptMcpAgent/ChatGptMcpAgent.csproj -c Release --nologo
+      - name: Verify reused persistent UI Automation worker
+        run: python tests/test_uia_worker_persistent.py
+      - name: Verify WinForms local STOP and one-second GUI pacing
+        run: src/ChatGptMcpAgent/bin/Release/net8.0-windows/ChatGptMcpAgent.exe --test-control
       - name: Verify resumable file transfer through Router Lite
         run: python tests/test_file_transfer.py
       - name: Goose restricted MCP test on Windows

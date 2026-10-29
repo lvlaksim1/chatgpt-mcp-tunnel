@@ -56,15 +56,28 @@ public static class UiAutomationTools
         [Description("Target computer from computers.list; omitted means local.")] string? computer = null) => RouterLite.IsRemote(computer) ? RouterLite.CallStringAsync(computer!, "desktop.uia.action", new { hwnd, path, action, value, view }) :
         Run(new { operation = "action", hwnd, path, action, value, view });
 
-    private static async Task<string> Run(object request)
+    private static readonly SemaphoreSlim WorkerGate = new(1, 1);
+    private static Process? Worker;
+
+    static UiAutomationTools()
     {
-        if (!OperatingSystem.IsWindows())
-            return "{\"success\":false,\"error\":\"Windows UI Automation is available only on Windows.\"}";
+        AppDomain.CurrentDomain.ProcessExit += (_, _) => KillWorker();
+    }
 
-        var workerFile = Path.Combine(AppContext.BaseDirectory, "AutomationWorker.ps1");
-        if (!File.Exists(workerFile))
-            return JsonSerializer.Serialize(new { success = false, error = $"Missing UI Automation worker: {workerFile}" });
+    private static void KillWorker()
+    {
+        var process = Worker;
+        Worker = null;
+        if (process is null) return;
+        try { if (!process.HasExited) process.Kill(entireProcessTree: true); }
+        catch (InvalidOperationException) { }
+        finally { process.Dispose(); }
+    }
 
+    private static void EnsureWorker(string workerFile)
+    {
+        if (Worker is { HasExited: false }) return;
+        KillWorker();
         var info = new ProcessStartInfo
         {
             FileName = "powershell.exe",
@@ -78,39 +91,62 @@ public static class UiAutomationTools
             UseShellExecute = false,
             CreateNoWindow = true
         };
-        foreach (var arg in new[] { "-NoProfile", "-NonInteractive", "-STA", "-ExecutionPolicy", "Bypass", "-File", workerFile })
+        foreach (var arg in new[] { "-NoProfile", "-NonInteractive", "-STA", "-ExecutionPolicy",
+                                    "Bypass", "-File", workerFile })
             info.ArgumentList.Add(arg);
+        Worker = new Process { StartInfo = info };
+        if (!Worker.Start()) throw new InvalidOperationException("UI Automation worker did not start.");
+        // Drain stderr asynchronously so startup errors never block on a full pipe.
+        _ = Worker.StandardError.ReadToEndAsync();
+    }
 
+    private static async Task<string> Run(object request)
+    {
+        if (!OperatingSystem.IsWindows())
+            return "{\"success\":false,\"error\":\"Windows UI Automation is available only on Windows.\"}";
+
+        var operation = JsonSerializer.SerializeToElement(request, JsonOptions)
+            .GetProperty("operation").GetString() ?? "unknown";
+        using var control = ControlState.Begin("desktop.uia." + operation,
+            guiAction: operation == "action", readOnly: operation != "action");
+
+        var workerFile = Path.Combine(AppContext.BaseDirectory, "AutomationWorker.ps1");
+        if (!File.Exists(workerFile))
+            return JsonSerializer.Serialize(new { success = false, error = "UI Automation worker missing." });
+        await WorkerGate.WaitAsync();
         try
         {
-            using var process = new Process { StartInfo = info };
-            if (!process.Start()) throw new InvalidOperationException("UI Automation process did not start.");
-
-            var stdout = process.StandardOutput.ReadToEndAsync();
-            var stderr = process.StandardError.ReadToEndAsync();
-            await process.StandardInput.WriteAsync(JsonSerializer.Serialize(request, JsonOptions));
-            process.StandardInput.Close();
-
-            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-            try { await process.WaitForExitAsync(timeout.Token); }
-            catch (OperationCanceledException)
+            EnsureWorker(workerFile);
+            var active = Worker!;
+            // If STOP occurs while UIA is blocking, terminate the worker, not the tray.
+            using var stopWatcher = new System.Threading.Timer(_ =>
             {
-                if (!process.HasExited) process.Kill(entireProcessTree: true);
-                await process.WaitForExitAsync();
-                return "{\"success\":false,\"error\":\"UI Automation operation timed out (30 seconds).\"}";
-            }
+                if (operation != "action") return;
+                try
+                {
+                    if (ControlState.IsStopped && !active.HasExited)
+                        active.Kill(entireProcessTree: true);
+                }
+                catch (InvalidOperationException) { }
+            }, null, 150, 150);
 
-            var output = (await stdout).Trim();
-            var errors = (await stderr).Trim();
+            await active.StandardInput.WriteLineAsync(JsonSerializer.Serialize(request, JsonOptions));
+            await active.StandardInput.FlushAsync();
+            var output = await active.StandardOutput.ReadLineAsync()
+                .WaitAsync(TimeSpan.FromSeconds(30));
+            if (operation == "action") ControlState.EnsureAllowed();
             if (string.IsNullOrWhiteSpace(output))
-                return JsonSerializer.Serialize(new { success = false, error = "UI Automation worker returned empty output.", details = errors });
-            if (process.ExitCode != 0 && !output.StartsWith("{", StringComparison.Ordinal))
-                return JsonSerializer.Serialize(new { success = false, error = "UI Automation worker failed.", details = output + " " + errors });
-            return output;
+                throw new InvalidDataException("UI Automation worker produced no response.");
+            return output.Trim();
         }
         catch (Exception ex)
         {
-            return JsonSerializer.Serialize(new { success = false, error = ex.Message });
+            KillWorker(); // Next call will start a fresh, independent STA worker.
+            if (ex is OperationCanceledException) throw;
+            return JsonSerializer.Serialize(new { success = false,
+                error = ex is TimeoutException ? "UI Automation timed out (30 seconds)" :
+                    "UI Automation worker failed: " + ex.GetType().Name });
         }
+        finally { WorkerGate.Release(); }
     }
 }

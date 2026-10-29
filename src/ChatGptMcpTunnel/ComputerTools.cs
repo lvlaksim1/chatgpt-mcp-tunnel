@@ -77,6 +77,7 @@ public static class ComputerTools
         [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
         if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "fs.list", new { path });
+        using var control = ControlState.Begin("fs.list", guiAction: false, readOnly: true);
         var folder = Path.GetFullPath(path);
         var directory = new DirectoryInfo(folder);
         if (!directory.Exists) throw new DirectoryNotFoundException(folder);
@@ -110,6 +111,7 @@ public static class ComputerTools
         [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
         if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "fs.read", new { path, max_chars });
+        using var control = ControlState.Begin("fs.read", guiAction: false, readOnly: true);
         if (max_chars < 1 || max_chars > 2_000_000) throw new ArgumentOutOfRangeException(nameof(max_chars), "Use 1..2000000.");
         var file = Path.GetFullPath(path);
         using var input = File.OpenRead(file);
@@ -144,6 +146,7 @@ public static class ComputerTools
         [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
         if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "fs.write", new { path, content, overwrite });
+        using var control = ControlState.Begin("fs.write", guiAction: false, readOnly: false);
         var file = Path.GetFullPath(path);
         var parent = Path.GetDirectoryName(file);
         if (!string.IsNullOrEmpty(parent)) Directory.CreateDirectory(parent);
@@ -163,6 +166,7 @@ public static class ComputerTools
         [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
         if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "fs.search", new { path, pattern, recursive, max_results });
+        using var control = ControlState.Begin("fs.search", guiAction: false, readOnly: true);
         if (max_results < 1 || max_results > 10000) throw new ArgumentOutOfRangeException(nameof(max_results), "Use 1..10000.");
         var root = Path.GetFullPath(path);
         if (!Directory.Exists(root)) throw new DirectoryNotFoundException(root);
@@ -212,6 +216,7 @@ public static class ComputerTools
         [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
         if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "shell.exec", new { command, shell, working_directory, timeout_seconds, max_output_chars });
+        using var control = ControlState.Begin("shell.exec", guiAction: false, readOnly: false);
         if (timeout_seconds < 1 || timeout_seconds > 3600) throw new ArgumentOutOfRangeException(nameof(timeout_seconds), "Use 1..3600.");
         if (max_output_chars < 1 || max_output_chars > 2_000_000) throw new ArgumentOutOfRangeException(nameof(max_output_chars), "Use 1..2000000.");
         var startInfo = new ProcessStartInfo
@@ -244,6 +249,15 @@ public static class ComputerTools
         using var process = new Process { StartInfo = startInfo };
         var timer = Stopwatch.StartNew();
         if (!process.Start()) throw new InvalidOperationException("Failed to start command.");
+        using var stopWatcher = new System.Threading.Timer(_ =>
+        {
+            if (ControlState.IsStopped)
+            {
+                try { if (!process.HasExited) process.Kill(entireProcessTree: true); }
+                catch (InvalidOperationException) { }
+            }
+        }, null, 150, 150);
+
         // MCP stdio is a persistent protocol stream. Never let a child shell
         // inherit it: Git and other console programs may await input forever.
         // Deliver EOF to the command immediately unless a future tool adds
@@ -262,6 +276,7 @@ public static class ComputerTools
                 await process.WaitForExitAsync();
             }
         }
+        if (ControlState.IsStopped) throw new OperationCanceledException("Stopped by local user.");
         var stdout = await stdoutTask;
         var stderr = await stderrTask;
         return Json(new
@@ -284,6 +299,7 @@ public static class ComputerTools
         [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
         if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "process.list", new { name_filter, max_results });
+        using var control = ControlState.Begin("process.list", guiAction: false, readOnly: true);
         if (max_results < 1 || max_results > 20000) throw new ArgumentOutOfRangeException(nameof(max_results), "Use 1..20000.");
         var allProcesses = Process.GetProcesses();
         try
@@ -312,6 +328,7 @@ public static class ComputerTools
         [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
     {
         if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "process.kill", new { pid, entire_tree });
+        using var control = ControlState.Begin("process.kill", guiAction: false, readOnly: false);
         using var process = Process.GetProcessById(pid);
         var name = process.ProcessName;
         process.Kill(entireProcessTree: entire_tree);
