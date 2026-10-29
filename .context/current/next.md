@@ -1,5 +1,12 @@
 # Next actions
 
+## Next after physical large-file WAN acceptance 2026-10-29
+1. Physical original-file transfer SUCCESS: MAX.msi 324820992 bytes, full SHA-256 match on DOMKAT, resumed after brief reconnect. Copy exists at C:\Users\Maksim\Downloads\MAX.msi.
+2. Maintenance: fix TransferControlPipe.RunClientAsync false nonzero exits on status JSON with error:null or an array listing; test and release.
+3. Refresh the attached ChatGPT plugin schema (currently 41 exposed tools, runtime 45 incl. 3 file.transfer tools); v0.2.10 local CLI works already.
+4. Optionally validate WinForms transfer window visually in another transfer. Installation of MAX is separate and not part of this acceptance task.
+
+
 ## Priority: publish and deploy v0.2.9 — 29.10.2026
 1. Commit code, release v0.2.9 and pass GitHub Actions Windows installer tests.
 2. Update DOMKAT and MKATUSHONOK while preserving WSS credentials and TLS pin. Verify the three new file.transfer tools.

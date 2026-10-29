@@ -1,5 +1,10 @@
 # Manager beliefs
 
+## Verified two-host WSS file transfer, 29.10.2026
+- 324820992-byte signed MAX.msi copied from MKATUSHONOK to DOMKAT over the authenticated WSS Router Lite, SHA-256 verified by independent receiver hash, and resumed after an observed reconnect at 80.7%.
+- Same-user transfer CLI v0.2.10 allows remote transfer start/status without relaying binary data through model responses. ChatGPT connector currently still enumerates 41 original tools, not the 3 new methods.
+
+
 ## Router Lite file transfers — 29.10.2026
 - Large binary files are streamed within existing authenticated WSS, never through model MCP text responses.
 - Transfer tool family: file.transfer.start/status/cancel. Server orchestrates both directions using internal bounded RPC.

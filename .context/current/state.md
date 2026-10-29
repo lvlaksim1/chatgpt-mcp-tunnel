@@ -1,5 +1,12 @@
 # Current state
 
+## 2026-10-29: PHYSICAL FILE TRANSFER PASS (MKATUSHONOK to DOMKAT)
+- Real Router Lite WSS transfer job 4afa737122d1400dbacfa3e48cd39bee reached completed 100%, 324820992 bytes, from C:\Users\m.katushonok\Downloads\MAX.msi to C:\Users\Maksim\Downloads\MAX.msi.
+- Source and destination SHA-256 independently match: 14A528C373B19B35B3C9E77B5FAEE88DC34A073F15D8801673DDB7C040B2D48F; destination Authenticode Valid (OOO Mnogo Prilozheniy).
+- Progress checkpoints 26.47%, 37.12%, 51.65%, 76.18%, 80.70%, reconnecting at 80.70%, 85.22%, completed. Approx. speed 2.6-2.7 MB/s. No final partial or metadata files.
+- DOMKAT v0.2.10 CLI same-user control pipe, MKATUSHONOK v0.2.9 client. 41 tools remain exposed in ChatGPT plugin snapshot; the new 3 MCP tool registrations still need a plugin refresh. CLI status reports valid data but nonzero exit code due response parser bug. GUI not visually inspected during this real transfer.
+
+
 ## File transfer feature developed and locally tested — 29.10.2026
 - Feature for v0.2.9: authenticated 1 MiB Router Lite chunks, resume sidecars, SHA-256, explicit overwrite, MCP status/cancel/start and WinForms tray progress.
 - Isolated Windows tests PASS: 15 MiB both directions, 90 MiB transfer, cancel and resume, overwrite, 45 MCP tools, LAN/WSS regressions, GUI creation.

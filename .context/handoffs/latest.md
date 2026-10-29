@@ -1,5 +1,12 @@
 # Latest handoff
 
+## Handoff after physical 325 MB WAN transfer accepted 29.10.2026
+- Source MKATUSHONOK C:\Users\m.katushonok\Downloads\MAX.msi; destination DOMKAT C:\Users\Maksim\Downloads\MAX.msi.
+- Job 4afa737122d1400dbacfa3e48cd39bee completed, 324820992 bytes, SHA-256 14A528C373B19B35B3C9E77B5FAEE88DC34A073F15D8801673DDB7C040B2D48F; signature valid. Recovered after reconnect at 80.7%.
+- DOMKAT v0.2.10 / MKATUSHONOK v0.2.9. Live transfer via same-user control CLI over WSS, no file payload in chat. Plugin still exposes only 41 tools.
+- CLI status exit code parsing bug to fix, GUI visual live-check optional. MAX installation not part of this task.
+
+
 ## Direct static WAN architecture implemented and released — 29.10.2026
 - Решение владельца 29.10.2026: DOMKAT имеет статический публичный IPv4 на WAN-интерфейсе маршрутизатора; удалённый клиент расположен в другой локальной сети. Развивается прямой защищённый WSS без обязательного Tailscale/посредника. Локальный адрес DOMKAT не заменяется внешним IP. Источник: прямая команда владельца; код основной ветки f8cc66848a475030b63ad5c15e25ec6c68e76308.
 - Сервер Kestrel обслуживает защищённый порт TCP 55202 в дополнение к прежнему локальному TCP 55201. Сервер создаёт собственный TLS-сертификат, шифрует пароль PFX через DPAPI Windows, клиент проверяет точный SHA-256 отпечаток до передачи общего ключа. Новый режим требует минимум 32 символа общего ключа. Проверены сборки, 42 инструмента, 23 направляемых инструмента Windows, запрет неверного сертификата, выполнение удалённой команды по WSS, восстановление связи, сохранение старого LAN-подключения; GitHub Actions 40781905752 завершён успешно; v0.2.8 опубликована с установщиками Setup и Update.

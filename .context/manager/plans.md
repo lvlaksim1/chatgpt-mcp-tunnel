@@ -1,5 +1,10 @@
 # Manager plans
 
+## Physical transfer acceptance evidence, 29.10.2026
+- DONE: full original MSI copy MKATUSHONOK to DOMKAT 324820992 bytes, SHA-256 14A528C373B19B35B3C9E77B5FAEE88DC34A073F15D8801673DDB7C040B2D48F, valid signature, reconnect recovery.
+- FOLLOW-UP: CLI status parser false exit code; plugin schema refresh; GUI progress window visual smoke test.
+
+
 ## Large file transfer development, 29.10.2026
 - Code and local tests: DONE. 90 MiB integrity PASS, 15 MiB two-way, cancellation/resume, GUI.
 - v0.2.9 CI publication and two-endpoint deployment: IN PROGRESS.
