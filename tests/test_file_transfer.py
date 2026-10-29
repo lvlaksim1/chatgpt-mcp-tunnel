@@ -94,6 +94,18 @@ with tempfile.TemporaryDirectory(prefix="mcp-file-transfer-") as tmp:
             assert hashlib.sha256(dst.read_bytes()).hexdigest()==expected
             assert result["transferred_bytes"]==src.stat().st_size, result
             print("REMOTE_UPLOAD_15MB_SHA256_OK",result["transferred_bytes"],flush=True)
+            # CLI status works for object, list and error results; exit codes must reflect errors only.
+            one = subprocess.run(["dotnet", str(DLL), "--transfer", "status", job],
+                                 cwd=ROOT, env=base, capture_output=True, text=True, timeout=12)
+            assert one.returncode == 0 and json.loads(one.stdout)["status"] == "completed", one.stdout
+            all_jobs = subprocess.run(["dotnet", str(DLL), "--transfer", "status"],
+                                      cwd=ROOT, env=base, capture_output=True, text=True, timeout=12)
+            assert all_jobs.returncode == 0 and any(x["id"] == job for x in json.loads(all_jobs.stdout)), all_jobs.stdout
+            absent = subprocess.run(["dotnet", str(DLL), "--transfer", "status", "0" * 32],
+                                    cwd=ROOT, env=base, capture_output=True, text=True, timeout=12)
+            assert absent.returncode == 2 and "error" in json.loads(absent.stdout), absent.stdout
+            print("TRANSFER_CLI_STATUS_EXIT_CODES_OK",flush=True)
+
             failed=rpc("file.transfer.start",{"source_path":str(src),
                 "destination_path":str(dst),"destination_computer":"TEST-FILE-AGENT"})["transfer_id"]
             assert wait(failed)["status"]=="failed", "Existing target must be protected"

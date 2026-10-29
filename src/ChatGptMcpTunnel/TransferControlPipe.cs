@@ -139,7 +139,10 @@ internal static class TransferControlPipe
                 ?? throw new IOException("Router Lite did not answer the control command.");
             Console.WriteLine(answer);
             using var parsed = JsonDocument.Parse(answer);
-            return parsed.RootElement.TryGetProperty("error", out _) ? 2 : 0;
+            var isError = parsed.RootElement.ValueKind == JsonValueKind.Object &&
+                parsed.RootElement.TryGetProperty("error", out var error) &&
+                error.ValueKind is not (JsonValueKind.Null or JsonValueKind.Undefined);
+            return isError ? 2 : 0;
         }
         catch (Exception ex)
         {
