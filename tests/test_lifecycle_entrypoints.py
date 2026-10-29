@@ -37,12 +37,12 @@ with tempfile.TemporaryDirectory(prefix="mcp-lifecycle-probe-") as temp:
   tools={x["name"]:x for x in request("tools/list")["tools"]}
   assert len(tools)==56,len(tools)
   for name,mode,uri in (
-   ("chat.hub.open","global","ui://chatgpt-mcp-tunnel/lifecycle-global-v0219"),
-   ("chat.thread.open","thread","ui://chatgpt-mcp-tunnel/lifecycle-thread-v0219")
+   ("chat.hub.open","global","ui://chatgpt-mcp-tunnel/lifecycle-global-v0220"),
+   ("chat.thread.open","thread","ui://chatgpt-mcp-tunnel/lifecycle-thread-v0220")
   ):
    meta=tools[name]["_meta"]
    assert meta["ui"]["resourceUri"]==uri,meta
-   assert meta["ui"]["visibility"]==["app"],meta
+   assert meta["ui"]["visibility"]==["model","app"],meta
    assert meta["openai/ui"]["entrypoints"]==[{"type":mode}],meta
    assert not tools[name]["inputSchema"].get("required")
    obj=tool(name,{})

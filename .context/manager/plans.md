@@ -1,5 +1,11 @@
 # Manager plans
 
+## 2026-10-29: v0.2.20 Global/Thread host compatibility correction
+1. DONE: v0.2.19 CI+installer+controlled deployment and tool refresh; both ui resources fetched, private-tool widget warning observed.
+2. DONE source fix v0.2.20 visibility=model+app, global/thread exclusivity, new versioned ui:// resources; isolated tests PASS.
+3. NEXT v0.2.20 CI, verified install DOMKAT, refresh plugin, open global, verify tool-open + handshake + heartbeat; test thread tab and browser deep link.
+4. NEXT close test ChatGPT tab, check teardown; then OS-initiated global app activation and actual model reply when browser is not visible. Preserve other user tabs.
+
 ## 2026-10-29: v0.2.19 Global/Thread lifecycle diagnostic implementation
 1. DONE: implement lifecycle probe Global-only + Thread-only tools, isolated HTML, technical event journal, tests. Build and old protocol tests pass.
 2. NEXT: Windows CI v0.2.19 full/update installers, data preservation, controlled deployment to DOMKAT and refresh plugin tool catalog.

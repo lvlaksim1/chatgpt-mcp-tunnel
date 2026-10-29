@@ -1,5 +1,8 @@
 # Current blockers and open risks
 
+## 2026-10-29: v0.2.20 Global/Thread host compatibility correction
+- Real Global/Thread iframe entrypoint initialization not yet confirmed because v0.2.19 had app-only visibility and ordinary host did not display widget. v0.2.20 source corrects visibility; must verify on live ChatGPT. User browser has many sessions; close non-destructively only test tab until unsaved work is understood.
+
 ## 2026-10-29: v0.2.19 Global/Thread lifecycle diagnostic implementation
 - No code blocker to diagnostic Global/Thread experiment. Actual host behavior and browser-closed start not yet proven; next step deploy verified v0.2.19 and inspect live lifecycle event log. User browser currently runs many tabs/processes; do not abruptly terminate and lose unsaved work.
 

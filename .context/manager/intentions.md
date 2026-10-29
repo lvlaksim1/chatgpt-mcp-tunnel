@@ -1,5 +1,8 @@
 # Manager intentions and commitments
 
+## 2026-10-29: v0.2.20 Global/Thread host compatibility correction
+- Complete v0.2.20 Global/Thread entrypoint real ChatGPT experiment with compatibility metadata; verify iframe event log and test direct OS deep link. Keep the local Windows messenger the sole product UI and preserve all v0.2.18 chat functionality.
+
 ## 2026-10-29: v0.2.19 Global/Thread lifecycle diagnostic implementation
 - Run experimental Global/Thread entrypoint lifecycle in ordinary ChatGPT after v0.2.19 verified installer. Do not conflate static entrypoint tool-open with successful iframe initialization or model answer. Do not replace user chat with MCP panels. Keep Windows messenger only user UI. Preserve existing relay and all history.
 

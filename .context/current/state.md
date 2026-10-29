@@ -1,5 +1,8 @@
 # Current state
 
+## 2026-10-29: v0.2.20 Global/Thread host compatibility correction
+- DOMKAT running v0.2.19 with 146 message files and functioning MCP readyz. In ordinary ChatGPT after tool refresh Global/Thread app-only entrypoints were reported as private tools without widgets; only resource-read events captured. Source v0.2.20 fixes UI visibility to model+app and removes overlapping static entrypoints from legacy chat.ui.open. Source builds and tests pass, CI/release not yet done. docs/mcp-apps-entrypoints-v0.2.20-host-adaptation.md.
+
 ## 2026-10-29: v0.2.19 Global/Thread lifecycle diagnostic implementation
 - Working tree (not yet released): v0.2.19 isolated lifecycle diagnostics: chat.hub.open global-only, chat.thread.open thread-only, chat.lifecycle.event/status app-only, two ui:// resources, static UI handshake/heartbeat/teardown, privacy-filtered lifecycle log. Existing chat.ui.open and message delivery unchanged. Local C# build PASS, Python and JS probe tests PASS, old routing tests PASS. Installed DOMKAT still v0.2.18. Source docs/mcp-apps-lifecycle-experiment-v0.2.19.md.
 

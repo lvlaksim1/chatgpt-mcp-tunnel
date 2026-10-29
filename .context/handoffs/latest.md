@@ -1,5 +1,8 @@
 # Latest handoff
 
+## 2026-10-29: v0.2.20 Global/Thread host compatibility correction
+- v0.2.19 published/installed DOMKAT successfully. Real browser showed a private-tools/no-widgets warning for app-only Global/Thread, and only resource-read events (no iframe init). New v0.2.20 source switches Global/Thread UI visibility to model+app, removes global/thread entrypoint metadata from legacy chat.ui.open and versions resources v0220; tests PASS, pending release.
+
 ## 2026-10-29: v0.2.19 Global/Thread lifecycle diagnostic implementation
 - v0.2.19 lifecycle instrumentation written and locally tested but not yet committed/released/installed. Two separate app-only entrypoints with distinct UI resources and synthetic iframe diagnostics; existing user message relay remains unchanged. All local tests pass; production v0.2.18. Need CI, deployment, browser Global/Thread and deep-link test.
 

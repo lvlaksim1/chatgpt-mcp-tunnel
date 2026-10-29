@@ -59,7 +59,7 @@ with tempfile.TemporaryDirectory(prefix="mcp-chat-ui-contract-") as temp:
         assert len(tools)==56,len(tools)
         item = tools["chat.ui.open"]
         assert item["_meta"]["ui"]["resourceUri"]==resource_uri,item
-        assert item["_meta"]["openai/ui"]["entrypoints"][0]["type"]=="global",item
+        assert "openai/ui" not in item["_meta"],item
         assert tools["chat.ui.pending"]["_meta"]["ui"]["visibility"]==["app"]
         assert tools["chat.ui.ack"]["_meta"]["ui"]["visibility"]==["app"]
         print("MCP_APP_TOOL_META_AND_APP_ONLY_VISIBILITY_OK")

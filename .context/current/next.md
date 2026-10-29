@@ -1,5 +1,10 @@
 # Next actions
 
+## 2026-10-29: v0.2.20 Global/Thread host compatibility correction
+1. CI release v0.2.20 with visible Global/Thread tools and versioned resources; SHA-verify installer, controlled DOMKAT update preserving Chat.
+2. Refresh ChatGPT MCP Tunnel plugin tool list; open new global navigation app and a chat thread entrypoint; confirm lifecycle events in Chat/lifecycle-probe/events.jsonl.
+3. Attempt deep link and OS-activation test. Verify through ui-initialize and model response only. No Work/Codex/API or hourly automation.
+
 ## 2026-10-29: v0.2.19 Global/Thread lifecycle diagnostic implementation
 1. Commit and release v0.2.19 (4 new diagnostic tools; 56 total). CI builds and installer preservation tests.
 2. Controlled update DOMKAT, refresh ChatGPT MCP Tunnel plugin tool catalogue; use Global navigation and Thread tab with real ChatGPT, inspect sanitized event records.
