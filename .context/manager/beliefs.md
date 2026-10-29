@@ -1,5 +1,10 @@
 # Manager beliefs
 
+## 2026-10-29: v0.2.21 Global Hub cold-start and auto-relay experiment
+- User authorized full Yandex Browser closure, and explicitly says old local tunnel chats have no value: do not spend effort on special history backups/migrations.
+- On DOMKAT v0.2.20 actual browser cold launch PASSED: first closed visible Yandex Browser normally and all remaining browser.exe background processes, confirmed browser.exe=0 while tunnel readyz=200. From Windows Start-Process on observed global ChatGPT MCP Apps URI booted browser, authenticated ChatGPT and Global iframe; fresh instance ui-7uzwykoh05-mvu0g62v and tool-open/ui-initialize/ui-initialized in journal at 20:43:21-23 UTC. No manual browser actions.
+- v0.2.21 source adds separate Global Hub resource ui://chatgpt-mcp-tunnel/hub-relay-v0221 served via ChatGlobalHubApp.html. It auto-polls chat.ui.pending(discover=true) and forwards new local chat messages through ui/message target:new, then chat.ui.ack after host acceptance; model is instructed to invoke existing chat.ui.open(chat_id) and chat.reply. Error retry 7s. Original relay untouched. Isolated Python/JS tests PASS. *Real model reply after full cold start not yet tested.*
+
 ## 2026-10-29: v0.2.20 Global/Thread host compatibility correction
 - v0.2.19 published and installed DOMKAT by SHA-verified updater, readyz=200, both computers connected, 146 messages retained, Windows watchdog Ready, no user history changed.
 - Real ordinary ChatGPT Yandex browser after refresh tools showed banner: "Для этих приватных инструментов невозможно отобразить виджеты: chat.hub.open, chat.thread.open" because both entrypoint tools had _meta.ui.visibility=["app"]. Host fetched both resources (resource-read entries) but no tool-open/ui-initialize. Changed to visibility=["model","app"], as already working in v0.2.18. Removed static global/thread entrypoint metadata from existing chat.ui.open (retained model tool and relay), leaving exclusive chat.hub.open global and chat.thread.open thread. Both new resource URIs versioned v0220. Locally built/tested, v0.2.20 source pending CI.

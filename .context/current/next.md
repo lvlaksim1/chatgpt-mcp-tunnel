@@ -1,5 +1,11 @@
 # Next actions
 
+## 2026-10-29: v0.2.21 Global Hub cold-start and auto-relay experiment
+1. Publish v0.2.21 from source: Global Hub auto-polls unbound chats and ui/message target:new with existing chat.ui.open(chat_id) handoff, test JS/contract.
+2. Install verified Windows release DOMKAT, refresh plugins, ensure official URI now hub-relay-v0221.
+3. Fully close Yandex, start Global via Windows deep link. Open WinForms chat and send unique test message, no browser interactions. Observe hub-forwarded, ACK and real model chat.reply; follow up.
+4. If successful, integrate URI host activator into Windows agent, run minimized host tests and Windows reboot acceptance. Avoid Work/Codex/API/Sign in.
+
 ## 2026-10-29: v0.2.20 Global/Thread host compatibility correction
 1. CI release v0.2.20 with visible Global/Thread tools and versioned resources; SHA-verify installer, controlled DOMKAT update preserving Chat.
 2. Refresh ChatGPT MCP Tunnel plugin tool list; open new global navigation app and a chat thread entrypoint; confirm lifecycle events in Chat/lifecycle-probe/events.jsonl.

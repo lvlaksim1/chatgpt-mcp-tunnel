@@ -15,6 +15,7 @@
   <ItemGroup>
     <None Update="ChatRelayApp.html" CopyToOutputDirectory="PreserveNewest" />
     <None Update="ChatLifecycleApp.html" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="ChatGlobalHubApp.html" CopyToOutputDirectory="PreserveNewest" />
     <None Update="AutomationWorker.ps1" CopyToOutputDirectory="PreserveNewest" />
     <None Update="MsaaBridge.cs.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

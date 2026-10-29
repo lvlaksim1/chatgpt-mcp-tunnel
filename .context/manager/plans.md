@@ -1,5 +1,12 @@
 # Manager plans
 
+## 2026-10-29: v0.2.21 Global Hub cold-start and auto-relay experiment
+1. DONE Global and Thread actual iframe lifecycle on v0.2.20; global works in fullscreen, thread inline; deep link from Windows relaunches global with fresh instance. Browser hidden tab continues heartbeat.
+2. DONE full cold browser closure test: browser.exe=0, Global Windows URI starts Yandex and a brand-new authenticated ChatGPT MCP App (proof in event log).
+3. SOURCE v0.2.21: separate Global Hub HTML auto-polls unbound local chats and initiates target:new, ack, no manual button. Local C#/Python/JS test pass. NEXT CI release and controlled DOMKAT install.
+4. NEXT repeat cold browser with v0.2.21; create Windows local chat and send unique request without touching browser. Verify new ChatGPT thread, hub-forwarded ACK and real chat.reply. Then follow-up and minimized browser.
+5. NEXT robust owner lease for multiple Global instances, Windows Agent automatic host link startup, local context capsules and reboot test. Old test chats disposable.
+
 ## 2026-10-29: v0.2.20 Global/Thread host compatibility correction
 1. DONE: v0.2.19 CI+installer+controlled deployment and tool refresh; both ui resources fetched, private-tool widget warning observed.
 2. DONE source fix v0.2.20 visibility=model+app, global/thread exclusivity, new versioned ui:// resources; isolated tests PASS.

@@ -6,7 +6,7 @@ on:
       version:
         description: 'Stable numeric release version (X.Y.Z)'
         required: true
-        default: '0.2.20'
+        default: '0.2.21'
         type: string
 
 permissions:
@@ -66,6 +66,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           if (-not (Test-Path publish/Runtime/AutomationWorker.ps1)) { throw 'UI Automation worker missing' }
           if (-not (Test-Path publish/Runtime/ChatRelayApp.html)) { throw 'MCP App relay UI resource missing' }
+          if (-not (Test-Path publish/Runtime/ChatGlobalHubApp.html)) { throw 'MCP Global Hub background relay UI missing' }
           if (-not (Test-Path publish/Runtime/ChatLifecycleApp.html)) { throw 'MCP lifecycle diagnostic UI resource missing' }
 
       - name: Bundle verified official OpenAI tunnel-client v0.0.18
@@ -137,6 +138,8 @@ jobs:
           node tests/test_multichat_widget.js
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node tests/test_lifecycle_widget.js
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/test_global_hub_autorelay.js
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python tests/test_multichat_routing.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

@@ -1,5 +1,8 @@
 # Current state
 
+## 2026-10-29: v0.2.21 Global Hub cold-start and auto-relay experiment
+- DOMKAT installed v0.2.20, readyz=200, both computers connected; user authorized closure of all Yandex Browser processes. Successfully closed all browser.exe (zero) and cold-started ChatGPT Global via system URL with fresh iframe initialize. Source v0.2.21 auto Global Hub exists, local isolated tests pass, pending CI. Detail: docs/mcp-global-hub-autorelay-v0.2.21.md.
+
 ## 2026-10-29: v0.2.20 Global/Thread host compatibility correction
 - DOMKAT running v0.2.19 with 146 message files and functioning MCP readyz. In ordinary ChatGPT after tool refresh Global/Thread app-only entrypoints were reported as private tools without widgets; only resource-read events captured. Source v0.2.20 fixes UI visibility to model+app and removes overlapping static entrypoints from legacy chat.ui.open. Source builds and tests pass, CI/release not yet done. docs/mcp-apps-entrypoints-v0.2.20-host-adaptation.md.
 

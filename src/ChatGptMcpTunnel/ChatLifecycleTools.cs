@@ -9,7 +9,7 @@ using ModelContextProtocol.Server;
 [McpServerToolType]
 public static class ChatLifecycleTools
 {
-    public const string GlobalUri = "ui://chatgpt-mcp-tunnel/lifecycle-global-v0220";
+    public const string GlobalUri = "ui://chatgpt-mcp-tunnel/hub-relay-v0221";
     public const string ThreadUri = "ui://chatgpt-mcp-tunnel/lifecycle-thread-v0220";
     private static string Root => Environment.GetEnvironmentVariable("CHATGPT_MCP_CHAT_TEST_ROOT") ??
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -21,11 +21,12 @@ public static class ChatLifecycleTools
     {
         "tool-open", "resource-read", "ui-initialize", "ui-initialized",
         "tool-input", "tool-result", "host-context-changed", "heartbeat",
-        "teardown", "ui-error", "tool-call", "visibility-change"
+        "teardown", "ui-error", "tool-call", "visibility-change",
+        "hub-forwarded", "hub-error"
     };
 
     [McpServerTool(Name = "chat.hub.open", Title = "ChatGPT MCP Tunnel · Global Hub (diagnostic)", ReadOnly = true)]
-    [McpMeta("ui", JsonValue = """{"resourceUri":"ui://chatgpt-mcp-tunnel/lifecycle-global-v0220","visibility":["model","app"]}""")]
+    [McpMeta("ui", JsonValue = """{"resourceUri":"ui://chatgpt-mcp-tunnel/hub-relay-v0221","visibility":["model","app"]}""")]
     [McpMeta("openai/ui", JsonValue = """{"entrypoints":[{"type":"global"}]}""")]
     [Description("Experimental global MCP Apps lifecycle entrypoint. It records technical handshake events only; it does not send user messages or replace the existing relay.")]
     public static string OpenHub()
@@ -130,19 +131,19 @@ public static class ChatLifecycleTools
 [McpServerResourceType]
 public static class ChatLifecycleResources
 {
-    private static string Load(string mode)
+    private static string Load(string mode, string htmlFile)
     {
         ChatLifecycleTools.WriteEvent(mode, "resource-read", "server", "{}");
         return File.ReadAllText(Path.Combine(AppContext.BaseDirectory,
-                "ChatLifecycleApp.html"), Encoding.UTF8)
+                htmlFile), Encoding.UTF8)
             .Replace("__LIFECYCLE_MODE__", mode, StringComparison.Ordinal);
     }
 
     [McpServerResource(UriTemplate = ChatLifecycleTools.GlobalUri, Name = "chat_lifecycle_global_v0219", MimeType = "text/html;profile=mcp-app")]
     [Description("Diagnostic Global MCP Apps lifecycle view; no messaging.")]
-    public static string Global() => Load("global");
+    public static string Global() => Load("global", "ChatGlobalHubApp.html");
 
     [McpServerResource(UriTemplate = ChatLifecycleTools.ThreadUri, Name = "chat_lifecycle_thread_v0219", MimeType = "text/html;profile=mcp-app")]
     [Description("Diagnostic Thread MCP Apps lifecycle view; no messaging.")]
-    public static string Thread() => Load("thread");
+    public static string Thread() => Load("thread", "ChatLifecycleApp.html");
 }

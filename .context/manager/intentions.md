@@ -1,5 +1,8 @@
 # Manager intentions and commitments
 
+## 2026-10-29: v0.2.21 Global Hub cold-start and auto-relay experiment
+- Prove completely unattended handoff from Windows local chat to normal ChatGPT and back, using Global MCP App auto-relay. Browser executable may be started by Windows, but no user browser interactions permitted. Keep one tunnel; no Work/Codex/API/Sign in with ChatGPT/cloud planner.
+
 ## 2026-10-29: v0.2.20 Global/Thread host compatibility correction
 - Complete v0.2.20 Global/Thread entrypoint real ChatGPT experiment with compatibility metadata; verify iframe event log and test direct OS deep link. Keep the local Windows messenger the sole product UI and preserve all v0.2.18 chat functionality.
 

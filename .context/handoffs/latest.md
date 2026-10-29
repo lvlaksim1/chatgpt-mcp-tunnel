@@ -1,5 +1,9 @@
 # Latest handoff
 
+## 2026-10-29: v0.2.21 Global Hub cold-start and auto-relay experiment
+- v0.2.20 cold-browser Global initialization proven after all 35+ Yandex Browser processes closed. Host restored from Windows URI automatically; new ui-initialize in server log. User authorized browser closure, says old tunnel chats disposable.
+- v0.2.21 source creates real automatic Global Hub transport in separate ChatGlobalHubApp.html, ui://.../hub-relay-v0221. It discovers queued local chat messages and requests ui/message target:new, ACK, existing chat.ui.open(chat_id) for thread relay. Local mock and MCP contract tests pass. Next CI/install, real cold-browser + local chat message -> model reply.
+
 ## 2026-10-29: v0.2.20 Global/Thread host compatibility correction
 - v0.2.19 published/installed DOMKAT successfully. Real browser showed a private-tools/no-widgets warning for app-only Global/Thread, and only resource-read events (no iframe init). New v0.2.20 source switches Global/Thread UI visibility to model+app, removes global/thread entrypoint metadata from legacy chat.ui.open and versions resources v0220; tests PASS, pending release.
 

@@ -37,7 +37,7 @@ with tempfile.TemporaryDirectory(prefix="mcp-lifecycle-probe-") as temp:
   tools={x["name"]:x for x in request("tools/list")["tools"]}
   assert len(tools)==56,len(tools)
   for name,mode,uri in (
-   ("chat.hub.open","global","ui://chatgpt-mcp-tunnel/lifecycle-global-v0220"),
+   ("chat.hub.open","global","ui://chatgpt-mcp-tunnel/hub-relay-v0221"),
    ("chat.thread.open","thread","ui://chatgpt-mcp-tunnel/lifecycle-thread-v0220")
   ):
    meta=tools[name]["_meta"]
@@ -54,6 +54,13 @@ with tempfile.TemporaryDirectory(prefix="mcp-lifecycle-probe-") as temp:
    assert "ui/initialize" in content["text"]
    assert "ui/notifications/host-context-changed" in content["text"]
    assert "ui/resource-teardown" in content["text"]
+   if mode=="global":
+    assert 'chat.ui.pending' in content["text"]
+    assert '"ui/message"' in content["text"]
+    assert '"new"' in content["text"]
+    assert 'chat.ui.ack' in content["text"]
+   else:
+    assert 'chat.ui.pending' not in content["text"]
   assert tools["chat.lifecycle.event"]["_meta"]["ui"]["visibility"]==["app"]
   good=tool("chat.lifecycle.event",{"mode":"global","kind":"ui-initialize",
    "instance_id":"ui-test-01","details_json":json.dumps({

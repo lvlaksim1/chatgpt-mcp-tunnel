@@ -1,5 +1,8 @@
 # Current blockers and open risks
 
+## 2026-10-29: v0.2.21 Global Hub cold-start and auto-relay experiment
+- Host cold launch PROVEN (fresh global iframe after all browser.exe terminated), but user-message-to-real-model and chat.reply from automatic Hub remain untested until v0.2.21 deploy. A browser process was automatically launched: do not describe this as browserless inference, only no manual browser operation. Existing Yandex browser user tabs can now be closed per explicit user permission. Old local test chats disposable by user directive.
+
 ## 2026-10-29: v0.2.20 Global/Thread host compatibility correction
 - Real Global/Thread iframe entrypoint initialization not yet confirmed because v0.2.19 had app-only visibility and ordinary host did not display widget. v0.2.20 source corrects visibility; must verify on live ChatGPT. User browser has many sessions; close non-destructively only test tab until unsaved work is understood.
 
