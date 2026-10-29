@@ -1,5 +1,10 @@
 # Latest handoff
 
+## 29.10.2026: v0.2.18 MCP Apps cache-bust after live 0.2.17 test
+- v0.2.17 production on DOMKAT verified (readyz 200, both computers connected, 142 messages retained, watchdog Ready), source multi-chat list/create/switch implemented and tested. Windows CI release success 40924254070.
+- Real ChatGPT host after refreshed tools invoked chat.ui.open and returned new mode, but iframe was 0.2.16 cached HTML from unchanged ui://chatgpt-mcp-tunnel/relay URI (confirmed by old status wording; installed HTML was new). No target:new live verification yet.
+- v0.2.18 source changes resource to versioned uri ui://chatgpt-mcp-tunnel/relay-v0218; builds and Python MCP contract tests pass. Next commit/publish/update/refresh/real acceptance. Preserve other user files and disabled hourly cloud task.
+
 ## 29.10.2026: v0.2.17 multi-chat source implemented, pending Windows CI and real ChatGPT
 - v0.2.17 in working tree pending CI: classic WinForms multi-chat UI with create/list/select, local per-chat message mapping and migration-safe legacy chat; MCP Apps ui/message target:new experimental handoff, chat.ui.open(chat_id), per-chat polling and routing.
 - Local builds/selftests and preview with two chats on DOMKAT PASS. Preview app PID 11116 and temp directory removed, production DOMKAT v0.2.16 still running. Hourly cloud task disabled as owner requested, Windows watchdog remains.

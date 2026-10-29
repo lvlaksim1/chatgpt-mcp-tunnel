@@ -1,5 +1,11 @@
 # Next actions
 
+## 29.10.2026: v0.2.18 MCP Apps cache-bust after live 0.2.17 test
+1. Commit v0.2.18 UI resource cache fix (new ui://.../relay-v0218) and publish verified Windows CI release.
+2. Controlled update DOMKAT v0.2.17 -> v0.2.18, ensuring 142+ message files and Windows watchdog intact.
+3. In authenticated browser refresh ChatGPT MCP Tunnel plugin tools, open new ordinary ChatGPT chat, invoke chat.ui.open and verify iframe uses new resource/version by displayed status and protocol behavior.
+4. Create new local GUI chat, send unique nonce and observe target:new new ChatGPT thread, chat.ui.open(chat_id) bootstrap and chat.reply, no messages in wrong local chat. If host behavior differs, record exact outcome and adapt architecture.
+
 ## 29.10.2026: v0.2.17 multi-chat source implemented, pending Windows CI and real ChatGPT
 1. Commit approved v0.2.17 source, full Windows CI run plus release and hash checks; keep source manager capsule synced.
 2. Install verified v0.2.17 update on DOMKAT, pause watchdog/stop active agent only for installation and re-enable; preserve all Chat directory content, existing Router Lite transport and identities.

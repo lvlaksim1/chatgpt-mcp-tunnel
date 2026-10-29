@@ -1,5 +1,11 @@
 # Manager plans
 
+## 29.10.2026: v0.2.18 MCP Apps cache-bust after live 0.2.17 test
+1. DONE v0.2.17 CI and DOMKAT install; no data loss, alive and bridged. Real new-ChatGPT session successfully invoked chat.ui.open, but browser rendered stale HTML (0.2.16) despite updated server.
+2. DONE source v0.2.18 versioned MCP Apps UI resource URI and tests; local builds and protocol tests clean.
+3. NEXT v0.2.18 CI release and controlled update on DOMKAT, browser refresh, new ChatGPT session and live target:new via new local chat.
+4. AFTER real handoff verify chat.ui.open(chat_id) auto-start, reply to correct local chat, context preservation when switching and no cross-chat mix. Keep hourly cloud scheduler disabled.
+
 ## 29.10.2026: v0.2.17 multi-chat source implemented, pending Windows CI and real ChatGPT
 1. DONE: ChatSessionStore per-local-computer session index; backward-compatible legacy chat; WinForms New Chat, list, session selection, isolated drafts and history, last MCP reply display.
 2. DONE: ChatId in chat.receive and chat.ui.pending, ui/message target:new with chat.ui.open(chat_id) bootstrap, per-session heartbeat metadata and routing, legacy widget compatibility.

@@ -7,7 +7,7 @@ using ModelContextProtocol.Server;
 [McpServerToolType]
 public static class ChatUiTools
 {
-    public const string ResourceUri = "ui://chatgpt-mcp-tunnel/relay";
+    public const string ResourceUri = "ui://chatgpt-mcp-tunnel/relay-v0218";
     private static string Root => Environment.GetEnvironmentVariable("CHATGPT_MCP_CHAT_TEST_ROOT") ??
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "ChatGPTMCPAgent", "Chat");
@@ -21,7 +21,7 @@ public static class ChatUiTools
     private static readonly object AckGate = new();
 
     [McpServerTool(Name = "chat.ui.open", Title = "Р§Р°С‚ В· Р’РєР»СЋС‡РёС‚СЊ MCP-РїРѕСЃСЂРµРґРЅРёРє", ReadOnly = true)]
-    [McpMeta("ui", JsonValue = """{"resourceUri":"ui://chatgpt-mcp-tunnel/relay","visibility":["model","app"]}""")]
+    [McpMeta("ui", JsonValue = """{"resourceUri":"ui://chatgpt-mcp-tunnel/relay-v0218","visibility":["model","app"]}""")]
     [McpMeta("openai/ui", JsonValue = """{"entrypoints":[{"type":"global"},{"type":"thread"}]}""")]
     [Description("РћС‚РєСЂС‹С‚СЊ РІСЃС‚СЂРѕРµРЅРЅРѕРµ MCP-РїСЂРёР»РѕР¶РµРЅРёРµ, РєРѕС‚РѕСЂРѕРµ РїСЂРѕРІРµСЂСЏРµС‚ РІС…РѕРґСЏС‰РёРµ СЃРѕРѕР±С‰РµРЅРёСЏ РёР· Р»РѕРєР°Р»СЊРЅРѕРіРѕ РѕРєРЅР° ChatGPT MCP Tunnel Рё РѕС‚РїСЂР°РІР»СЏРµС‚ РёС… С‡РµСЂРµР· ui/message РІ С‚РµРєСѓС‰РёР№ РѕР±С‹С‡РЅС‹Р№ С‡Р°С‚. Р’ СЃР°РјРѕРј РєРѕРјРїРѕРЅРµРЅС‚Рµ С‚СЂРµР±СѓРµС‚СЃСЏ СЏРІРЅРѕ РІРєР»СЋС‡РёС‚СЊ РїРµСЂРµСЃС‹Р»РєСѓ. Р•СЃР»Рё ChatGPT Р·Р°РєСЂС‹РІР°РµС‚ РєРѕРјРїРѕРЅРµРЅС‚, РїРµСЂРµСЃС‹Р»РєР° РїСЂРµРєСЂР°С‰Р°РµС‚СЃСЏ. Р­С‚Рѕ СЌРєСЃРїРµСЂРёРјРµРЅС‚Р°Р»СЊРЅР°СЏ РїСЂРѕРІРµСЂРєР° Р±РµР· API, Codex, Work Рё РїР»Р°РЅРёСЂРѕРІС‰РёРєР°.")]
     public static string Open(string chat_id = "")

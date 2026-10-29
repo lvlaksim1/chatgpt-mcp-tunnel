@@ -1,5 +1,9 @@
 # Current blockers and open risks
 
+## 29.10.2026: v0.2.18 MCP Apps cache-bust after live 0.2.17 test
+- v0.2.17 host cache reused stale MCP Apps iframe HTML after server update and plugin tool refresh; hence actual target:new code could not run. v0.2.18 versioned URI source addresses this; live test after deploy pending.
+- No claim of target:new real ChatGPT acceptance until observing new thread, chat.ui.open(chat_id) and chat.reply. Current multi-chat local UI working, MKATUSHONOK remote routing pending.
+
 ## 29.10.2026: v0.2.17 multi-chat source implemented, pending Windows CI and real ChatGPT
 - No blocker for local multi-chat GUI; isolated tests pass. Real ordinary ChatGPT ui/message target:new + auto-open next iframe is not yet live-tested; mock protocol and code pass. Avoid calling this proven before installed test.
 - MKATUSHONOK chat messages live on that computer and are not yet merged into DOMKAT server queue; distinct routing phase needed.

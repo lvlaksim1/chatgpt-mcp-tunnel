@@ -1,5 +1,10 @@
 # Manager beliefs
 
+## 29.10.2026: v0.2.18 MCP Apps cache-bust after live 0.2.17 test
+- v0.2.17 Windows CI/release SUCCESS (40924254070), SHA256 Update c971f2f0652ec8e766181bfad7394d31f5a72c053a4b08e09ba0b845a34148e9, installed on DOMKAT with matched SHA, Windows watchdog Ready, readyz=200, both computers connected, 142 existing message files preserved.
+- Live ordinary ChatGPT after plugin tool refresh showed mode mcp_apps_multi_chat for new chat.ui.open, but host rendered STALE 0.2.16 MCP Apps HTML from same ui://chatgpt-mcp-tunnel/relay URI. The installed 0.2.17 ChatRelayApp.html had new target:needsNew and no old 'Ожидание сообщений. Неотправленных: 0.' text; browser iframe displayed precisely old wording. This is real observed HTML resource caching.
+- Implemented v0.2.18 cache-bust by versioned UI resource uri ui://chatgpt-mcp-tunnel/relay-v0218, updated registration and tests. Both .NET builds clean, original/extended MCP tests pass. Real new-cloud-chat target:new acceptance still pending refreshed 0.2.18 host.
+
 ## 29.10.2026: v0.2.17 multi-chat source implemented, pending Windows CI and real ChatGPT
 - Owner approved v0.2.17 MCP autonomous chat manager and explicitly requested classic chat UI: '+ Новый чат', per-computer chat list, switch and separate histories. Implemented ChatSessionStore with 32hex chat IDs and on-disk sessions/active-chat records. New ChatWindow includes left sidebar, owner-drawn chat titles/previews, chat selection and isolated in-memory drafts/attachments; old message files without ChatId stay untouched and appear in 'История до обновления'. Replies remain tied to original message IDs.
 - MCP route updated: chat.receive now includes chat_id; chat.ui.open(chat_id), pending(chat_id,discover) and ack(new_chat) support new ChatGPT thread handoff via ui/message target:new and new iframe auto-start via ui/notifications/tool-input. Existing unscoped widget calls only see legacy chat so cannot silently consume messages from unrelated local chats. Route heartbeats and bootstrap waiting markers retained under Chat/ui-routes.

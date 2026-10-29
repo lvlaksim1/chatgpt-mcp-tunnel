@@ -1,5 +1,10 @@
 # Current state
 
+## 29.10.2026: v0.2.18 MCP Apps cache-bust after live 0.2.17 test
+- v0.2.17 source and Windows release 40924254070 SUCCESS. Installed on DOMKAT version 0.2.17.0 with official SHA256 c971f2f0652ec8e766181bfad7394d31f5a72c053a4b08e09ba0b845a34148e9; MCP readyz 200, DOMKAT/MKATUSHONOK connected, 142 messages retained, Windows watchdog Ready, cloud hourly automation still disabled.
+- Ordinary ChatGPT tool refresh confirmed new chat.ui.open mode mcp_apps_multi_chat. However displayed MCP Apps iframe remained old 0.2.16 resource from ui://chatgpt-mcp-tunnel/relay; live target:new never actually ran. Server's installed HTML contained correct new JS.
+- v0.2.18 source now changes UI resource URI to ui://chatgpt-mcp-tunnel/relay-v0218, tests adjusted; .NET builds and protocol tests pass. Pending CI release, install, real target:new test.
+
 ## 29.10.2026: v0.2.17 multi-chat source implemented, pending Windows CI and real ChatGPT
 - 29 Oct 2026 owner-approved v0.2.17 code implementation completed for classic multi-chat on each computer. ChatWindow sidebar has '＋ Новый чат', titled session list with previews, click selection, separate message histories and retained local drafts/attachments. ChatSessionStore stores session metadata separately; existing messages unchanged in 'История до обновления'. GUI footer now reports the latest actual MCP chat.reply response instead of stale hourly scheduler.
 - Server sends chat_id on chat.receive; chat.ui.open(chat_id), pending(chat_id,discover), ack(new_chat) and new iframe auto-start support ui/message target:new handoff without changing total 52 MCP tool names. Legacy no-chat-id widgets restricted to legacy chat.

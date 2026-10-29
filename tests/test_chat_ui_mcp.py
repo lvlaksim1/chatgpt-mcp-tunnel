@@ -10,7 +10,7 @@ from pathlib import Path
 repo = Path(__file__).resolve().parents[1]
 dll = Path(os.environ.get("CHATGPT_MCP_TEST_DLL", str(repo/"src"/"ChatGptMcpTunnel"/"bin"/"Release"/"net8.0"/"ChatGptMcpTunnel.dll")))
 assert dll.is_file(), dll
-resource_uri = "ui://chatgpt-mcp-tunnel/relay"
+resource_uri = "ui://chatgpt-mcp-tunnel/relay-v0218"
 
 with tempfile.TemporaryDirectory(prefix="mcp-chat-ui-contract-") as temp:
     root = Path(temp)
