@@ -1,5 +1,10 @@
 # Manager beliefs
 
+## B24 — stable v0.2.14 Windows release accepted 29.10.2026
+- GitHub Actions run 40866882778 completed SUCCESS on commit 21a1a0c5218a9425d00ba01c866deb95ce94f54d; tests passed: original stdio 49 tools, Router Lite 23 remote tools and reconnect, new attachment text/image/integrity tests, self-contained UI tests, Inno Setup full/update and clean install/update-preservation/uninstall.
+- Stable GitHub Release v0.2.14 published with 3 verified assets: Setup SHA256 7ff5afc44db3a535b71e11b6f174141684f666dd0396c303fa03ee64d2d8174d, Update and legacy alias SHA256 ef4899062bde3caecb85fc29d23c03a155ea78d66902d6d49da761bf4f4504ef.
+- Both physical hosts were NOT updated by manager; observed DOMKAT v0.2.13 still responds to bridge_ping. Owner-side physical clipboard/image UI test and ChatGPT plugin catalog refresh outstanding. This supersedes prior v0.2.14 Windows CI pending belief but not physical acceptance.
+
 ## B23 — Chat attachments tested in source 29.10.2026
 - Owner explicitly authorized file attachments and clipboard images in existing MCP Tunnel chat window.
 - Source: multi-file selection, Explorer drop, Ctrl+V image, preview/remove, attachment-only messages; copied payloads under per-message IDs with SHA-256 and JSON metadata. New chat.attachment.read returns real MCP image block, bounded UTF-8 text, or locally verified binary path. chat.receive includes metadata.

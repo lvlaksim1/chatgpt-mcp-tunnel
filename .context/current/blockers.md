@@ -1,5 +1,10 @@
 # Current blockers and open risks
 
+## Residual gate after v0.2.14 release
+- v0.2.14 Windows source, CI and installer acceptance passed. Production remains v0.2.13 until an owner-controlled update; new GUI is not live yet.
+- ChatGPT's 45-tool cached connector list must be refreshed to expose 49 runtime tools, including chat.attachment.read. Text/image tool E2E passed only against isolated runtime so far.
+- Real clipboard Ctrl+V in owner's active GUI and actual file send are still unverified; do not mark physical acceptance complete.
+
 ## Chat attachment delivery gates — 29.10.2026
 - Source is verified, but DOMKAT and MKATUSHONOK v0.2.13 are not yet updated. Code release is not physical deployment.
 - New chat.attachment.read is the 49th runtime tool. Current ChatGPT plugin snapshot has 45; refresh before native read.

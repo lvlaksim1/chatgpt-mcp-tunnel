@@ -1,5 +1,10 @@
 # Current state
 
+## 29.10.2026: v0.2.14 STABLE RELEASE verified (not deployed)
+- GitHub Actions 40866882778 completed success on 21a1a0c: application and runtime build, GUI attachment selftest, real MCP image/text/integrity tests, 49 tool catalog and Router Lite 23 tools, file transfer, TLS, Inno Setup full/update/uninstall and preservation checks.
+- GitHub Release v0.2.14 published with Setup/Update/legacy update alias; Setup SHA256 7ff5afc44db3a535b71e11b6f174141684f666dd0396c303fa03ee64d2d8174d, Update SHA256 ef4899062bde3caecb85fc29d23c03a155ea78d66902d6d49da761bf4f4504ef.
+- Live DOMKAT on v0.2.13 was untouched and healthy; MKATUSHONOK v0.2.13 unchanged. Owner-side physical Ctrl+V, file-send GUI acceptance and ChatGPT plugin refresh to reach chat.attachment.read still pending.
+
 ## 29.10.2026: Chat attachment feature — SOURCE E2E PASS
 - Added multi-file picker, drag/drop, Ctrl+V image, preview cards and removal, attachments-only message support to WinForms chat. Files copied to LocalAppData/ChatGPTMCPAgent/Chat/attachments/message_id/attachment_id; message JSON becomes visible only after copy and SHA-256; chat.receive returns attachment metadata, chat.attachment.read sends real MCP image or bounded text or binary local path.
 - Verified Windows .NET builds with zero warnings/errors; isolated GUI selftest PASS; tests/test_chat_attachments.py validates image content block, UTF-8 text, invalid identifier, tampering and reply; original MCP 49-tools and Router Lite 23-tools/reconnect tests PASS.

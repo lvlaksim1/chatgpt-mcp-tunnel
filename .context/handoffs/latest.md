@@ -1,5 +1,12 @@
 # Latest handoff
 
+## Handoff after v0.2.14 stable release 29.10.2026
+- The new local chat attachments and Ctrl+V screenshot feature is published. GitHub Actions run 40866882778 SUCCESS, full Setup/Update installation/upgrade/uninstall acceptance passed; release v0.2.14 stable, source commit 21a1a0c.
+- 49 MCP tools in new runtime, including chat.attachment.read, verified image and UTF-8 text as real tool content; 23 remote Router Lite tools/reconnect preserved.
+- Setup SHA256 7ff5afc44db3a535b71e11b6f174141684f666dd0396c303fa03ee64d2d8174d; Update/legacy alias SHA256 ef4899062bde3caecb85fc29d23c03a155ea78d66902d6d49da761bf4f4504ef.
+- Installed DOMKAT and MKATUSHONOK remain v0.2.13 because owner updates them personally; their installed GUI has not been tested for new feature. ChatGPT cached tool list 45 needs refreshing.
+- Next: owner update and observed physical clipboard/file message; do not declare deployed without evidence.
+
 ## Handoff: chat attachments v0.2.14 code accepted, release pending — 29.10.2026
 - Owner requested attach-and-send files and Ctrl+V clipboard images in existing ChatGPT MCP Tunnel chat window.
 - Implemented GUI selection/drag-drop/clipboard image/preview/removal/file-only sends; queue stores copies with SHA-256; chat.receive includes attachments, chat.attachment.read emits MCP real image or UTF-8 text or verified local binary path.

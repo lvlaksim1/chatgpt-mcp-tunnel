@@ -1,5 +1,11 @@
 # Manager intentions and commitments
 
+## Chat attachments v0.2.14 — CI/release complete, physical acceptance active
+- commitment_id: chat-window-attachments-2026-10-29
+- state: source/local tests and GitHub Windows Setup+Update stable release v0.2.14 COMPLETED, 40866882778 SUCCESS.
+- active remaining responsibility: owner-controlled installed update, real clipboard screenshot insertion and file attachment send, live ChatGPT read of actual image through refreshed plugin schema.
+- Do not alter installed DOMKAT/MKATUSHONOK or network credentials under this release-only step. Source: verified CI and GitHub Release 29.10.2026.
+
 ## Chat attachments v0.2.14 — accepted 29.10.2026
 - commitment_id: chat-window-attachments-2026-10-29
 - status: accepted/active; source implementation and local tests completed; release and physical owner-facing acceptance pending.

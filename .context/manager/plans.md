@@ -1,5 +1,11 @@
 # Manager plans
 
+## v0.2.14 published — next physical acceptance
+- Completed: 49 runtime tools, GUI attachment, MCP text/PNG, all 23 remote Windows tools/reconnect local tests, Windows CI installer full/update/uninstall and stable release.
+- Next: owner manually updates local DOMKAT when appropriate; if using the chat UI on another computer, update that installation as separately authorized.
+- Refresh current ChatGPT plugin snapshot (45 tools) to expose chat.attachment.read; verify actual message from the user's GUI with file and pasted image; read through tool; verify historical persistence and no regression.
+- Do not claim installed UI works before the owner completes physical test.
+
 ## Plan: Chat attachment release v0.2.14 — 29.10.2026
 1. DONE: UI picker/multi-select/drag-drop/Ctrl+V/preview/remove/attachments-only, isolated storage and SHA-256, new chat.attachment.read.
 2. DONE: isolated GUI persistence selftest, MCP real image/text/integrity tests, 49 tools and 23 Windows remote tools/reconnect regression.

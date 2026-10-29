@@ -1,5 +1,11 @@
 # Next actions
 
+## Next after stable v0.2.14 release
+1. Offer published Setup/Update from https://github.com/lvlaksim1/chatgpt-mcp-tunnel/releases/tag/v0.2.14; hashes are recorded in current state.
+2. Owner uses built-in updater or verified Update installer on DOMKAT; do not deploy remotely without explicit authorization. Preserve data, TLS pin, keys and one OpenAI tunnel.
+3. Test physical file picker, drag-and-drop, pasted screenshot Ctrl+V, attachment-only message, thumbnails/remove, chat history and 49th MCP tool after connector refresh.
+4. Verify actual model reads PNG as MCP image and file content via chat.attachment.read. Only then close commitment.
+
 ## Next actions: Chat attachments v0.2.14
 1. Commit source/tests/docs and sealed manager generation atomically; preserve unrelated untracked files.
 2. Run Windows GitHub Actions installer release v0.2.14, verify Setup/Update, installer acceptance, chat GUI/attachment test, protocol and Router Lite regression.
