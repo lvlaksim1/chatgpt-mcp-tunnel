@@ -1,5 +1,12 @@
 # Latest handoff
 
+## Handoff: chat attachments v0.2.14 code accepted, release pending — 29.10.2026
+- Owner requested attach-and-send files and Ctrl+V clipboard images in existing ChatGPT MCP Tunnel chat window.
+- Implemented GUI selection/drag-drop/clipboard image/preview/removal/file-only sends; queue stores copies with SHA-256; chat.receive includes attachments, chat.attachment.read emits MCP real image or UTF-8 text or verified local binary path.
+- Verification: .NET zero warnings/errors, UI attachment test exit 0, tests/test_chat_attachments.py all E2E passed; original MCP 49 tools, Router Lite 23 remote tools and reconnection passed.
+- Windows installer release v0.2.14 and real owner GUI test pending. Installed DOMKAT/MKATUSHONOK remain v0.2.13. ChatGPT plugin snapshot 45 needs refresh.
+- Two unrelated untracked user text files and production tunnel/security/network unchanged.
+
 ## Handoff after physical 325 MB WAN transfer accepted 29.10.2026
 - Source MKATUSHONOK C:\Users\m.katushonok\Downloads\MAX.msi; destination DOMKAT C:\Users\Maksim\Downloads\MAX.msi.
 - Job 4afa737122d1400dbacfa3e48cd39bee completed, 324820992 bytes, SHA-256 14A528C373B19B35B3C9E77B5FAEE88DC34A073F15D8801673DDB7C040B2D48F; signature valid. Recovered after reconnect at 80.7%.

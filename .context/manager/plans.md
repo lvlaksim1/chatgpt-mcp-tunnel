@@ -1,5 +1,12 @@
 # Manager plans
 
+## Plan: Chat attachment release v0.2.14 — 29.10.2026
+1. DONE: UI picker/multi-select/drag-drop/Ctrl+V/preview/remove/attachments-only, isolated storage and SHA-256, new chat.attachment.read.
+2. DONE: isolated GUI persistence selftest, MCP real image/text/integrity tests, 49 tools and 23 Windows remote tools/reconnect regression.
+3. NEXT: publish source and sealed generation in one Git commit; run GitHub Actions Windows v0.2.14 release Setup/Update tests.
+4. NEXT: validate release assets/hashes; owner-managed update after explicit approval, do not modify current DOMKAT/MKATUSHONOK v0.2.13 during development.
+5. NEXT: live Ctrl+V and attached-file UI test and ChatGPT new tool refresh; mark complete only after physical evidence.
+
 ## Physical transfer acceptance evidence, 29.10.2026
 - DONE: full original MSI copy MKATUSHONOK to DOMKAT 324820992 bytes, SHA-256 14A528C373B19B35B3C9E77B5FAEE88DC34A073F15D8801673DDB7C040B2D48F, valid signature, reconnect recovery.
 - FOLLOW-UP: CLI status parser false exit code; plugin schema refresh; GUI progress window visual smoke test.

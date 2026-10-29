@@ -18,7 +18,7 @@ proc_env["CHATGPT_MCP_CYCLE_TEST_CHAT_ROOT"] = str(cycle_sandbox)
 proc = subprocess.Popen(
     ["dotnet", str(dll)], cwd=root, env=proc_env,
     stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-    text=True, encoding="utf-8", bufsize=1,
+    text=True, encoding="utf-8", errors="replace", bufsize=1,
 )
 assert proc.stdin and proc.stdout
 try:
@@ -57,7 +57,7 @@ try:
     expected |= uia_tools
     github_tools = {"github.auth", "github.api", "github.graphql", "github.repositories", "github.files", "github.branches", "github.commits", "github.batch_commit", "github.issues", "github.pulls", "github.actions", "github.jobs", "github.releases", "github.release_assets", "github.artifacts", "github.search", "github.git"}
     expected |= github_tools
-    expected.update({"chat.receive", "chat.reply", "chat.cycle"})
+    expected.update({"chat.receive", "chat.reply", "chat.cycle", "chat.attachment.read"})
     expected.add("computers.list")
     expected.update({"file.transfer.start", "file.transfer.status", "file.transfer.cancel"})
     assert len(github_tools) == 17

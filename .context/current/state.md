@@ -1,5 +1,11 @@
 # Current state
 
+## 29.10.2026: Chat attachment feature — SOURCE E2E PASS
+- Added multi-file picker, drag/drop, Ctrl+V image, preview cards and removal, attachments-only message support to WinForms chat. Files copied to LocalAppData/ChatGPTMCPAgent/Chat/attachments/message_id/attachment_id; message JSON becomes visible only after copy and SHA-256; chat.receive returns attachment metadata, chat.attachment.read sends real MCP image or bounded text or binary local path.
+- Verified Windows .NET builds with zero warnings/errors; isolated GUI selftest PASS; tests/test_chat_attachments.py validates image content block, UTF-8 text, invalid identifier, tampering and reply; original MCP 49-tools and Router Lite 23-tools/reconnect tests PASS.
+- Version source v0.2.14 in preparation; Windows CI, stable release and live deployment are NOT proven. Both physical hosts currently installed v0.2.13, ChatGPT plugin catalog still shows 45 old tools.
+- Evidence: local test/build and owner instruction 29.10.2026.
+
 ## 2026-10-29: PHYSICAL FILE TRANSFER PASS (MKATUSHONOK to DOMKAT)
 - Real Router Lite WSS transfer job 4afa737122d1400dbacfa3e48cd39bee reached completed 100%, 324820992 bytes, from C:\Users\m.katushonok\Downloads\MAX.msi to C:\Users\Maksim\Downloads\MAX.msi.
 - Source and destination SHA-256 independently match: 14A528C373B19B35B3C9E77B5FAEE88DC34A073F15D8801673DDB7C040B2D48F; destination Authenticode Valid (OOO Mnogo Prilozheniy).

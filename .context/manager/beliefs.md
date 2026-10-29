@@ -1,5 +1,12 @@
 # Manager beliefs
 
+## B23 — Chat attachments tested in source 29.10.2026
+- Owner explicitly authorized file attachments and clipboard images in existing MCP Tunnel chat window.
+- Source: multi-file selection, Explorer drop, Ctrl+V image, preview/remove, attachment-only messages; copied payloads under per-message IDs with SHA-256 and JSON metadata. New chat.attachment.read returns real MCP image block, bounded UTF-8 text, or locally verified binary path. chat.receive includes metadata.
+- Verified: local Windows .NET builds zero warnings/errors, ChatWindow attachment selftest PASS, isolated MCP attachment E2E PASS (PNG, UTF-8, invalid identifier and SHA-256 mismatch), baseline MCP 49 tools, Router Lite all 23 remote Windows functions and reconnect PASS.
+- This is SOURCE-tested, not installed on user computers. Installed v0.2.13 remains unchanged, CI/release v0.2.14 and physical clipboard/UI acceptance pending. ChatGPT tool catalog currently 45, refresh required to expose new command.
+- Evidence: direct owner instruction and verified local test results 29.10.2026.
+
 ## Verified two-host WSS file transfer, 29.10.2026
 - 324820992-byte signed MAX.msi copied from MKATUSHONOK to DOMKAT over the authenticated WSS Router Lite, SHA-256 verified by independent receiver hash, and resumed after an observed reconnect at 80.7%.
 - Same-user transfer CLI v0.2.10 allows remote transfer start/status without relaying binary data through model responses. ChatGPT connector currently still enumerates 41 original tools, not the 3 new methods.

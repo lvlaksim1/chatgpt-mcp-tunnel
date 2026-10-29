@@ -1,5 +1,12 @@
 # Next actions
 
+## Next actions: Chat attachments v0.2.14
+1. Commit source/tests/docs and sealed manager generation atomically; preserve unrelated untracked files.
+2. Run Windows GitHub Actions installer release v0.2.14, verify Setup/Update, installer acceptance, chat GUI/attachment test, protocol and Router Lite regression.
+3. Validate release hashes and CI; report factual status.
+4. Owner-controlled update of installed DOMKAT/MKATUSHONOK only upon explicit deployment permission. Verify real attachment picker and Ctrl+V screenshot; refresh ChatGPT tools and call chat.attachment.read.
+5. Keep commitment active until physical acceptance; no production network/keys/Tunnel ID changes.
+
 ## Next after physical large-file WAN acceptance 2026-10-29
 1. Physical original-file transfer SUCCESS: MAX.msi 324820992 bytes, full SHA-256 match on DOMKAT, resumed after brief reconnect. Copy exists at C:\Users\Maksim\Downloads\MAX.msi.
 2. Maintenance: fix TransferControlPipe.RunClientAsync false nonzero exits on status JSON with error:null or an array listing; test and release.

@@ -78,6 +78,12 @@ internal static class Program
             Environment.ExitCode = AgentStorage.RunSelfTest();
             return;
         }
+        if (args.Length == 1 && args[0] == "--test-chat-attachments")
+        {
+            Application.EnableVisualStyles();
+            Environment.ExitCode = ChatWindow.SelfTestAttachments();
+            return;
+        }
         if (args.Length == 1 && args[0] == "--test-chat-window")
         {
             Application.EnableVisualStyles();

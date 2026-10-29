@@ -51,7 +51,8 @@
     ".context/decisions/tailscale-overlay-2026-10-28.md",
     ".context/decisions/direct-wss-wan-2026-10-29.md",
     ".context/decisions/streaming-file-transfer-2026-10-29.md",
-    ".context/decisions/integrated-watchdog-2026-10-29.md"
+    ".context/decisions/integrated-watchdog-2026-10-29.md",
+    ".context/decisions/chat-attachments-2026-10-29.md"
   ],
   "dialogues": [],
   "history": [],

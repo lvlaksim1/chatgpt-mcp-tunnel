@@ -1,5 +1,11 @@
 # Current blockers and open risks
 
+## Chat attachment delivery gates — 29.10.2026
+- Source is verified, but DOMKAT and MKATUSHONOK v0.2.13 are not yet updated. Code release is not physical deployment.
+- New chat.attachment.read is the 49th runtime tool. Current ChatGPT plugin snapshot has 45; refresh before native read.
+- Isolated GUI test verifies persistence, not physical Ctrl+V in owner's live clipboard and installed UI; live acceptance remains.
+- Local chat files are plain user-profile files, not separately encrypted; ChatGPT only receives attachments on explicit tool calls while model is executing, not automatically from the local window.
+
 ## Open gate after direct WSS v0.2.8 release (29.10.2026)
 - Проверка 29.10.2026 через работающий MCP Tunnel: активный процесс ChatGptMcpAgent.exe PID 14536 имеет FileVersion 0.2.7.0 (запущен 2026-10-29 00:33:36 по системному времени Windows); Router Lite слушает 192.168.0.3:55201 (PID 2992), TCP 55202 не слушает. v0.2.8 не устанавливалась менеджером; bridge_ping успешен. Этот факт supersedes прежний текущий статус v0.2.6, но не меняет вывод о непроверенном межсетевом соединении. На маршрутизаторе не создавался проброс TCP 55202, правила брандмауэра не менялись. Физическая связь с MKATUSHONOK через Интернет и 23 удалённых инструмента остаётся НЕ ДОКАЗАНА. Публичный WAN IPv4 подтверждён чтением роутера; постоянство адреса основывается на словах владельца.
 - Setup from separate networks still requires owner-controlled server update, explicit local Windows firewall permission, manual router port forwarding, correct server certificate fingerprint transferred over a trusted channel, and one strong client key. No firewall/router/network change has yet been made. Blocking external TCP 55202 or an incorrect fingerprint prevents remote connection.

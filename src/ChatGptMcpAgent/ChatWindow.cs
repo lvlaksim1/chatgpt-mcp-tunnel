@@ -1,53 +1,65 @@
 using System.Drawing;
+using System.Drawing.Imaging;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
 namespace ChatGptMcpAgent;
 
-// A local chat surface. Messages are queued for the ChatGPT MCP plugin; this
-// window intentionally does not use Codex, a model API, or a browser.
+// Local queue for a connected ChatGPT MCP session; never starts a second model or cloud tunnel.
 internal sealed class ChatWindow : Form
 {
+    private const long MaxFileSize = 2L * 1024 * 1024 * 1024;
+    private const int MaxAttachments = 20;
     private readonly RichTextBox _history = new()
     {
-        Dock = DockStyle.Fill,
-        ReadOnly = true,
-        BorderStyle = BorderStyle.None,
-        BackColor = Color.FromArgb(248, 249, 251),
-        Font = new Font("Segoe UI", 10),
+        Dock = DockStyle.Fill, ReadOnly = true, BorderStyle = BorderStyle.None,
+        BackColor = Color.FromArgb(248, 249, 251), Font = new Font("Segoe UI", 10),
         DetectUrls = true
     };
-    private readonly TextBox _input = new() 
+    private readonly TextBox _input = new()
     {
-        Multiline = true,
-        AcceptsReturn = true,
-        ScrollBars = ScrollBars.Vertical,
-        Dock = DockStyle.Fill,
-        Font = new Font("Segoe UI", 10)
+        Multiline = true, AcceptsReturn = true, ScrollBars = ScrollBars.Vertical,
+        Dock = DockStyle.Fill, Font = new Font("Segoe UI", 10),
+        AllowDrop = true
     };
-    private readonly Button _send = new() { Text = "Отправить", Dock = DockStyle.Right, Width = 128 };
+    private readonly Button _send = new() { Text = "Отправить", Dock = DockStyle.Right, Width = 117 };
+    private readonly Button _attach = new()
+    {
+        Text = "📎", Dock = DockStyle.Left, Width = 47,
+        AccessibleName = "Прикрепить файлы"
+    };
+    private readonly FlowLayoutPanel _attachmentStrip = new()
+    {
+        Dock = DockStyle.Bottom, Height = 73, AutoScroll = true,
+        FlowDirection = FlowDirection.LeftToRight, WrapContents = false,
+        BackColor = Color.FromArgb(242, 245, 249), Padding = new Padding(3)
+    };
     private readonly Label _status = new()
     {
         Text = "Сообщения передаются через подключённый MCP-плагин при проверке очереди.",
-        Dock = DockStyle.Bottom,
-        Height = 43,
-        ForeColor = Color.DimGray
+        Dock = DockStyle.Bottom, Height = 43, ForeColor = Color.DimGray
     };
     private readonly System.Windows.Forms.Timer _refresh = new() { Interval = 1000 };
+    private readonly List<PendingAttachment> _pending = new();
     private string _snapshot = "";
     private string _messageStatus = "Сообщений в очереди нет.";
-    private static string CycleStatusPath => Path.Combine(AgentStorage.DataFolder, "Chat", "cycle-status.json");
-
-    private static string ChatFolder => Path.Combine(AgentStorage.DataFolder, "Chat", "messages");
+    private bool _sending;
+    private static string ChatRoot => Environment.GetEnvironmentVariable("CHATGPT_MCP_CHAT_TEST_ROOT") ??
+        Path.Combine(AgentStorage.DataFolder, "Chat");
+    private static string CycleStatusPath => Path.Combine(ChatRoot, "cycle-status.json");
+    private static string ChatFolder => Path.Combine(ChatRoot, "messages");
+    private static string AttachmentFolder => Path.Combine(ChatRoot, "attachments");
 
     public ChatWindow()
     {
         Text = "ChatGPT MCP Tunnel — Чат";
         Icon = TrayIcons.AppIcon();
-        MinimumSize = new Size(540, 420);
-        Size = new Size(760, 650);
+        MinimumSize = new Size(580, 450);
+        Size = new Size(790, 685);
         StartPosition = FormStartPosition.CenterScreen;
         Font = new Font("Segoe UI", 10);
+        AllowDrop = true;
 
         var header = new Label
         {
@@ -55,63 +67,288 @@ internal sealed class ChatWindow : Form
             Text = "Чат с ChatGPT  ·  обычный режим, через MCP Tunnel",
             Font = new Font("Segoe UI Semibold", 11)
         };
-        var entry = new Panel { Dock = DockStyle.Bottom, Height = 142, Padding = new Padding(12, 6, 12, 7) };
+        var entry = new Panel { Dock = DockStyle.Bottom, Height = 222, Padding = new Padding(12, 6, 12, 7) };
         var inputAndButton = new Panel { Dock = DockStyle.Fill };
         inputAndButton.Controls.Add(_input);
         inputAndButton.Controls.Add(_send);
+        inputAndButton.Controls.Add(_attach);
         entry.Controls.Add(inputAndButton);
+        entry.Controls.Add(_attachmentStrip);
         entry.Controls.Add(_status);
-
         Controls.Add(_history);
         Controls.Add(entry);
         Controls.Add(header);
+
+        _attach.Click += (_, _) => SelectFiles();
         _send.Click += (_, _) => SendMessage();
         _input.KeyDown += (_, e) =>
         {
+            if (e.Control && e.KeyCode == Keys.V && TryPasteImage())
+            {
+                e.SuppressKeyPress = true;
+                return;
+            }
             if (e.KeyCode != Keys.Enter || e.Shift) return;
             e.SuppressKeyPress = true;
             SendMessage();
         };
+        _input.DragEnter += FileDragEnter;
+        _input.DragDrop += FileDragDrop;
+        DragEnter += FileDragEnter;
+        DragDrop += FileDragDrop;
         _refresh.Tick += (_, _) => RefreshMessages();
         _refresh.Start();
         Shown += (_, _) => { RefreshMessages(); _input.Focus(); };
         FormClosed += (_, _) => _refresh.Dispose();
     }
 
-    private void SendMessage()
+    private void SelectFiles()
     {
+        using var dialog = new OpenFileDialog
+        {
+            Title = "Прикрепить файлы к сообщению",
+            Filter = "Все файлы (*.*)|*.*", Multiselect = true, CheckFileExists = true
+        };
+        if (dialog.ShowDialog(this) == DialogResult.OK) AddFiles(dialog.FileNames);
+    }
+
+    private void FileDragEnter(object? sender, DragEventArgs e) =>
+        e.Effect = e.Data?.GetDataPresent(DataFormats.FileDrop) == true
+            ? DragDropEffects.Copy : DragDropEffects.None;
+
+    private void FileDragDrop(object? sender, DragEventArgs e)
+    {
+        if (e.Data?.GetData(DataFormats.FileDrop) is string[] files) AddFiles(files);
+    }
+
+    private void AddFiles(IEnumerable<string> paths)
+    {
+        if (_sending) return;
+        foreach (var path in paths)
+        {
+            try
+            {
+                if (_pending.Count >= MaxAttachments)
+                    throw new InvalidOperationException($"Не больше {MaxAttachments} вложений.");
+                var file = new FileInfo(path);
+                if (!file.Exists) throw new FileNotFoundException("Файл не найден.", path);
+                if (file.Length > MaxFileSize)
+                    throw new InvalidOperationException("Файл превышает 2 ГиБ.");
+                _pending.Add(new PendingAttachment
+                {
+                    Name = file.Name, Path = file.FullName,
+                    SizeBytes = file.Length, IsImage = IsImageName(file.Name)
+                });
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException)
+            {
+                MessageBox.Show(this, $"Не удалось прикрепить {Path.GetFileName(path)}: {ex.Message}",
+                    "Вложения", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+        UpdateAttachmentStrip();
+    }
+
+    private bool TryPasteImage()
+    {
+        try
+        {
+            if (!Clipboard.ContainsImage()) return false;
+            if (_pending.Count >= MaxAttachments)
+            {
+                MessageBox.Show(this, $"Не больше {MaxAttachments} вложений.");
+                return true;
+            }
+            using var image = Clipboard.GetImage();
+            if (image is null) return false;
+            using var memory = new MemoryStream();
+            image.Save(memory, ImageFormat.Png);
+            if (memory.Length > MaxFileSize) throw new InvalidOperationException("Изображение слишком большое.");
+            var bytes = memory.ToArray();
+            _pending.Add(new PendingAttachment
+            {
+                Name = $"Снимок-{DateTime.Now:yyyyMMdd-HHmmss}.png",
+                ImageBytes = bytes, SizeBytes = bytes.Length, IsImage = true
+            });
+            UpdateAttachmentStrip();
+            return true;
+        }
+        catch (Exception ex) when (ex is System.Runtime.InteropServices.ExternalException
+                                    or InvalidOperationException or ArgumentException)
+        {
+            MessageBox.Show(this, "Ошибка вставки изображения: " + ex.Message,
+                "Буфер обмена", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return true;
+        }
+    }
+
+    private void UpdateAttachmentStrip()
+    {
+        _attachmentStrip.SuspendLayout();
+        foreach (Control control in _attachmentStrip.Controls)
+        {
+            if (control is Panel panel)
+                foreach (Control child in panel.Controls)
+                    if (child is PictureBox picture) picture.Image?.Dispose();
+        }
+        _attachmentStrip.Controls.Clear();
+        foreach (var item in _pending.ToArray())
+        {
+            var card = new Panel
+            {
+                Width = 220, Height = 58, BorderStyle = BorderStyle.FixedSingle,
+                BackColor = Color.White, Margin = new Padding(3)
+            };
+            var remove = new Button
+            {
+                Text = "×", Dock = DockStyle.Right, Width = 27,
+                AccessibleName = $"Удалить вложение {item.Name}",
+                FlatStyle = FlatStyle.Flat
+            };
+            remove.FlatAppearance.BorderSize = 0;
+            remove.Click += (_, _) => { _pending.Remove(item); UpdateAttachmentStrip(); };
+            var label = new Label
+            {
+                Text = item.Name + Environment.NewLine + FormatSize(item.SizeBytes),
+                Dock = DockStyle.Fill, AutoEllipsis = true, Padding = new Padding(5, 8, 1, 0),
+                Font = new Font("Segoe UI", 8.2f)
+            };
+            if (item.IsImage)
+            {
+                var preview = new PictureBox
+                {
+                    Dock = DockStyle.Left, Width = 54, SizeMode = PictureBoxSizeMode.Zoom
+                };
+                try
+                {
+                    if (item.ImageBytes is not null)
+                    {
+                        using var stream = new MemoryStream(item.ImageBytes);
+                        using var image = Image.FromStream(stream);
+                        preview.Image = new Bitmap(image, new Size(50, 50));
+                    }
+                    else if (item.Path is not null && item.SizeBytes <= 16 * 1024 * 1024)
+                    {
+                        using var image = Image.FromFile(item.Path);
+                        preview.Image = new Bitmap(image, new Size(50, 50));
+                    }
+                }
+                catch (Exception ex) when (ex is IOException or ArgumentException or OutOfMemoryException) { }
+                card.Controls.Add(preview);
+            }
+            card.Controls.Add(label);
+            card.Controls.Add(remove);
+            _attachmentStrip.Controls.Add(card);
+        }
+        _attachmentStrip.ResumeLayout();
+    }
+
+    private static bool IsImageName(string name) =>
+        new[] { ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp" }
+            .Contains(Path.GetExtension(name).ToLowerInvariant());
+
+    private static string FormatSize(long bytes) =>
+        bytes < 1024 ? $"{bytes} Б" :
+        bytes < 1048576 ? $"{bytes / 1024.0:F1} КиБ" :
+        $"{bytes / 1048576.0:F1} МиБ";
+
+    private async void SendMessage()
+    {
+        if (_sending) return;
         var text = _input.Text.Trim();
-        if (text.Length == 0) return;
+        if (text.Length == 0 && _pending.Count == 0) return;
         if (text.Length > 20000)
         {
-            MessageBox.Show(this, "Ограничение сообщения — 20 000 символов.",
+            MessageBox.Show(this, "Ограничение текста — 20 000 символов.",
                 "ChatGPT MCP Tunnel", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
-
+        _sending = true;
+        _send.Enabled = _attach.Enabled = false;
+        _messageStatus = "Сохранение вложений…";
+        UpdateCycleStatus();
+        var attachments = _pending.ToArray();
         try
         {
+            await Task.Run(() => PersistMessage(text, attachments));
+            if (IsDisposed) return;
+            _input.Clear();
+            _pending.Clear();
+            UpdateAttachmentStrip();
+            _snapshot = "";
+            RefreshMessages();
+        }
+        catch (Exception ex)
+        {
+            _messageStatus = "Ошибка отправки: " + ex.GetType().Name;
+            if (!IsDisposed) UpdateCycleStatus();
+            if (!IsDisposed) MessageBox.Show(this, "Не удалось отправить сообщение: " + ex.Message,
+                "ChatGPT MCP Tunnel", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+        finally
+        {
+            _sending = false;
+            if (!IsDisposed) _send.Enabled = _attach.Enabled = true;
+        }
+    }
+
+    private static void PersistMessage(string text, PendingAttachment[] attachments)
+    {
+        var id = Guid.NewGuid().ToString("N");
+        var destination = Path.Combine(AttachmentFolder, id);
+        var saved = new List<ChatAttachment>();
+        try
+        {
+            if (attachments.Length != 0) Directory.CreateDirectory(destination);
+            foreach (var item in attachments)
+            {
+                var attachmentId = Guid.NewGuid().ToString("N");
+                var target = Path.Combine(destination, attachmentId);
+                if (item.ImageBytes is not null)
+                    File.WriteAllBytes(target, item.ImageBytes);
+                else if (item.Path is not null)
+                    File.Copy(item.Path, target, overwrite: false);
+                else throw new InvalidOperationException("Отсутствует источник вложения.");
+                using var file = File.OpenRead(target);
+                saved.Add(new ChatAttachment
+                {
+                    Id = attachmentId, Name = item.Name,
+                    SizeBytes = file.Length,
+                    Sha256 = Convert.ToHexString(SHA256.HashData(file)).ToLowerInvariant(),
+                    MediaType = MediaTypeFor(item.Name)
+                });
+            }
+
             Directory.CreateDirectory(ChatFolder);
             var message = new ChatRecord
             {
-                Id = Guid.NewGuid().ToString("N"),
-                CreatedUtc = DateTimeOffset.UtcNow,
-                Text = text,
-                Status = "pending"
+                Id = id, CreatedUtc = DateTimeOffset.UtcNow,
+                Text = text, Status = "pending", Attachments = saved
             };
-            var file = Path.Combine(ChatFolder, message.Id + ".json");
-            var temp = file + ".tmp";
-            File.WriteAllText(temp, JsonSerializer.Serialize(message), new UTF8Encoding(false));
-            File.Move(temp, file);
-            _input.Clear();
-            RefreshMessages();
+            var filePath = Path.Combine(ChatFolder, id + ".json");
+            var temp = filePath + ".tmp";
+            try
+            {
+                File.WriteAllText(temp, JsonSerializer.Serialize(message), new UTF8Encoding(false));
+                File.Move(temp, filePath);
+            }
+            finally { if (File.Exists(temp)) File.Delete(temp); }
         }
-        catch (Exception e)
+        catch
         {
-            MessageBox.Show(this, "Не удалось сохранить сообщение: " + e.Message,
-                "ChatGPT MCP Tunnel", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            if (Directory.Exists(destination)) Directory.Delete(destination, recursive: true);
+            throw;
         }
     }
+
+    private static string MediaTypeFor(string name) => Path.GetExtension(name).ToLowerInvariant() switch
+    {
+        ".png" => "image/png", ".jpg" or ".jpeg" => "image/jpeg",
+        ".gif" => "image/gif", ".webp" => "image/webp", ".bmp" => "image/bmp",
+        ".txt" or ".md" or ".csv" or ".json" or ".xml" or ".log" or ".cs" or ".py" => "text/plain",
+        ".pdf" => "application/pdf",
+        _ => "application/octet-stream"
+    };
 
     private void RefreshMessages()
     {
@@ -135,7 +372,6 @@ internal sealed class ChatWindow : Form
             var snapshot = JsonSerializer.Serialize(rows);
             if (snapshot == _snapshot) return;
             _snapshot = snapshot;
-
             _history.SuspendLayout();
             _history.Clear();
             foreach (var row in rows)
@@ -143,20 +379,25 @@ internal sealed class ChatWindow : Form
                 if (row is null) continue;
                 if (row.Source == "system")
                 {
-                    Append("ChatGPT · " + row.Text + " · " + row.CreatedUtc.ToLocalTime().ToString("HH:mm"), Color.FromArgb(24, 125, 86), true);
+                    Append("ChatGPT · " + row.Text + " · " + row.CreatedUtc.ToLocalTime().ToString("HH:mm"),
+                        Color.FromArgb(24, 125, 86), true);
                     Append(row.Reply ?? "", Color.Black, false);
                     Append("", Color.Gray, false);
                     continue;
                 }
-                Append("Вы  ·  " + row.CreatedUtc.ToLocalTime().ToString("dd.MM HH:mm"), Color.FromArgb(24, 95, 160), true);
-                Append(row.Text, Color.Black, false);
+                Append("Вы  ·  " + row.CreatedUtc.ToLocalTime().ToString("dd.MM HH:mm"),
+                    Color.FromArgb(24, 95, 160), true);
+                if (!string.IsNullOrEmpty(row.Text)) Append(row.Text, Color.Black, false);
+                foreach (var attachment in row.Attachments ?? new())
+                    Append("📎 " + attachment.Name + " (" + FormatSize(attachment.SizeBytes) + ")",
+                        Color.FromArgb(75, 89, 111), false);
                 if (row.Status == "answered" && row.Reply is not null)
                 {
-                    Append("ChatGPT  ·  " + (row.RepliedUtc?.ToLocalTime().ToString("dd.MM HH:mm") ?? ""), Color.FromArgb(24, 125, 86), true);
+                    Append("ChatGPT  ·  " + (row.RepliedUtc?.ToLocalTime().ToString("dd.MM HH:mm") ?? ""),
+                        Color.FromArgb(24, 125, 86), true);
                     Append(row.Reply, Color.Black, false);
                 }
-                else
-                    Append("Ожидает ответа", Color.Gray, false);
+                else Append("Ожидает ответа", Color.Gray, false);
                 Append("", Color.Gray, false);
             }
             _history.SelectionStart = _history.TextLength;
@@ -168,10 +409,7 @@ internal sealed class ChatWindow : Form
                 : "Все сообщения обработаны. Для нового сообщения нажмите Enter.";
             UpdateCycleStatus();
         }
-        catch (Exception e)
-        {
-            _status.Text = "Ошибка чтения очереди: " + e.GetType().Name;
-        }
+        catch (Exception ex) { _status.Text = "Ошибка чтения очереди: " + ex.GetType().Name; }
     }
 
     private void UpdateCycleStatus()
@@ -198,10 +436,77 @@ internal sealed class ChatWindow : Form
     private void Append(string text, Color color, bool bold)
     {
         _history.SelectionColor = color;
-        _history.SelectionFont = new Font(_history.Font, bold ? FontStyle.Bold : FontStyle.Regular);
+        using var font = new Font(_history.Font, bold ? FontStyle.Bold : FontStyle.Regular);
+        _history.SelectionFont = font;
         _history.AppendText(text + Environment.NewLine);
     }
 
+    // Isolated GUI and attachment persistence test. Does not touch the real queue or clipboard.
+    internal static int SelfTestAttachments()
+    {
+        var previous = Environment.GetEnvironmentVariable("CHATGPT_MCP_CHAT_TEST_ROOT");
+        var root = Path.Combine(Path.GetTempPath(), "mcp-chat-attachments-" + Guid.NewGuid().ToString("N"));
+        Environment.SetEnvironmentVariable("CHATGPT_MCP_CHAT_TEST_ROOT", root);
+        try
+        {
+            var original = Path.Combine(root, "sample.txt");
+            Directory.CreateDirectory(root);
+            File.WriteAllText(original, "hello attachment", Encoding.UTF8);
+            using var bitmap = new Bitmap(30, 20);
+            using var memory = new MemoryStream();
+            bitmap.Save(memory, ImageFormat.Png);
+            using var window = new ChatWindow();
+            if (window.Handle == IntPtr.Zero) return 40;
+            window.AddFiles([original]);
+            window._pending.Add(new PendingAttachment
+            {
+                Name = "clipboard.png", ImageBytes = memory.ToArray(),
+                SizeBytes = memory.Length, IsImage = true
+            });
+            window.UpdateAttachmentStrip();
+            if (window._pending.Count != 2 || window._attachmentStrip.Controls.Count != 2) return 41;
+            PersistMessage("", window._pending.ToArray());
+            var messages = Directory.GetFiles(ChatFolder, "*.json");
+            if (messages.Length != 1) return 42;
+            using var doc = JsonDocument.Parse(File.ReadAllText(messages[0]));
+            var id = doc.RootElement.GetProperty("Id").GetString()!;
+            var att = doc.RootElement.GetProperty("Attachments");
+            if (att.GetArrayLength() != 2) return 43;
+            foreach (var item in att.EnumerateArray())
+            {
+                var attachmentId = item.GetProperty("Id").GetString()!;
+                var stored = Path.Combine(AttachmentFolder, id, attachmentId);
+                if (!File.Exists(stored)) return 44;
+                using var file = File.OpenRead(stored);
+                var sha = Convert.ToHexString(SHA256.HashData(file));
+                if (!sha.Equals(item.GetProperty("Sha256").GetString(), StringComparison.OrdinalIgnoreCase))
+                    return 45;
+            }
+            return 0;
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("CHATGPT_MCP_CHAT_TEST_ROOT", previous);
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
+        }
+    }
+
+    private sealed class PendingAttachment
+    {
+        public string Name { get; init; } = "";
+        public string? Path { get; init; }
+        public byte[]? ImageBytes { get; init; }
+        public long SizeBytes { get; init; }
+        public bool IsImage { get; init; }
+    }
+    private sealed class ChatAttachment
+    {
+        public string Id { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string MediaType { get; set; } = "";
+        public long SizeBytes { get; set; }
+        public string Sha256 { get; set; } = "";
+    }
     private sealed class ChatRecord
     {
         public string Id { get; set; } = "";
@@ -211,5 +516,6 @@ internal sealed class ChatWindow : Form
         public string Status { get; set; } = "pending";
         public string? Reply { get; set; }
         public DateTimeOffset? RepliedUtc { get; set; }
+        public List<ChatAttachment> Attachments { get; set; } = new();
     }
 }

@@ -6,7 +6,7 @@ on:
       version:
         description: 'Stable numeric release version (X.Y.Z)'
         required: true
-        default: '0.2.13'
+        default: '0.2.14'
         type: string
 
 permissions:
@@ -109,6 +109,8 @@ jobs:
           if ($stagingTest.ExitCode -ne 0) { throw "Windows updater staging/rename test failed: $($stagingTest.ExitCode)" }
           $chatUi = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--test-chat-window' -Wait -PassThru
           if ($chatUi.ExitCode -ne 0) { throw "Chat window test failed: $($chatUi.ExitCode)" }
+          $chatAttachments = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--test-chat-attachments' -Wait -PassThru
+          if ($chatAttachments.ExitCode -ne 0) { throw "Chat attachment GUI / persistence test failed: $($chatAttachments.ExitCode)" }
           $transferUi = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--test-transfer-window' -Wait -PassThru
           if ($transferUi.ExitCode -ne 0) { throw "File transfer window test failed: $($transferUi.ExitCode)" }          $secretForms = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--test-secret-forms' -Wait -PassThru
           if ($secretForms.ExitCode -ne 0) { throw "Client/server secret field UX test failed: $($secretForms.ExitCode)" }
@@ -120,6 +122,8 @@ jobs:
           $nativeIcon.Dispose()
           $env:CHATGPT_MCP_TEST_DLL = "$pwd\publish\Runtime\ChatGptMcpTunnel.dll"
           python tests/test_mcp_stdio.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tests/test_chat_attachments.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python tests/test_router_lite.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -243,7 +247,7 @@ jobs:
           $update = "dist\ChatGPT_MCP_Tunnel_Update_v$env:VERSION.exe"
           $legacyUpdate = "dist\ChatGPT_MCP_Agent_Update_v$env:VERSION.exe"
           Copy-Item $update $legacyUpdate
-          gh release create $env:TAG $setup $update $legacyUpdate --target "${{ github.sha }}" --title "ChatGPT MCP Tunnel v$env:VERSION" --notes "v$env:VERSION: встроенный сторожевой механизм. Автоматическое восстановление отсутствующих локальных процессов, защита от двойного запуска и блокировка перезапуска при временных сетевых ошибках. Установка и удаление задания выполняются установщиком."
+          gh release create $env:TAG $setup $update $legacyUpdate --target "${{ github.sha }}" --title "ChatGPT MCP Tunnel v$env:VERSION" --notes "v$env:VERSION: вложения в чат (несколько файлов, перетаскивание и Ctrl+V), предпросмотр; chat.receive возвращает метаданные, chat.attachment.read читает текст и отправляет изображение как MCP-картинку. Туннель и текущая конфигурация сохраняются."
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Prune older agent binary releases

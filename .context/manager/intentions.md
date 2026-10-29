@@ -1,5 +1,12 @@
 # Manager intentions and commitments
 
+## Chat attachments v0.2.14 — accepted 29.10.2026
+- commitment_id: chat-window-attachments-2026-10-29
+- status: accepted/active; source implementation and local tests completed; release and physical owner-facing acceptance pending.
+- owner: project-manager. Source: direct owner order 29.10.2026.
+- outcome: file picker, multi-attachments preview/remove, Explorer drag/drop, Ctrl+V clipboard images, text+files or files-only message, MCP reading as real image/text blocks and local verified path for binary documents.
+- completion gate: stable Windows CI/installers, owner-controlled deployment, physical Ctrl+V and file selection verification, ChatGPT tool catalog refresh and native attachment read; preserve OpenAI tunnel identity and network configuration.
+
 ## Direct WAN deployment and physical acceptance, 29.10.2026
 - commitment_id: direct-wan-wss-2026-10-29
 - status: code, local tests and stable v0.2.8 release completed; owner-controlled physical deployment and verification remain active.
