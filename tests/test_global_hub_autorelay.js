@@ -24,6 +24,8 @@ const host={postMessage(msg){
   assert.equal(msg.params._meta["openai/message"].send,true);
   assert.ok(msg.params.content[0].text.includes(chatId));
   assert.ok(msg.params.content[0].text.includes(messageId));
+  assert.ok(msg.params.content[0].text.includes("АВТОЗАПУСК-21"),
+    "Global Hub did not restore prior logical chat context");
   callbacks.message({source:host,data:{jsonrpc:"2.0",id:msg.id,result:{ok:true}}});
   return;
  }
@@ -37,7 +39,8 @@ const host={postMessage(msg){
   }else if(name==="chat.ui.pending"){
    assert.equal(args.discover,true);
    assert.equal(args.chat_id,"0".repeat(32));
-   payload={ok:true,count:acknowledged?0:1,message:acknowledged?null:testMessage};
+   payload={ok:true,count:acknowledged?0:1,message:acknowledged?null:testMessage,
+    context:"Пользователь: Первый вопрос\nАссистент: АВТОЗАПУСК-21\n"};
   }else if(name==="chat.ui.ack"){
    assert.equal(args.new_chat,true);
    assert.equal(args.message_id,messageId);

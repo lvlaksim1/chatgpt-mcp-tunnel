@@ -91,6 +91,40 @@ public static class ChatUiTools
         return id == LegacyId ? "РСЃС‚РѕСЂРёСЏ РґРѕ РѕР±РЅРѕРІР»РµРЅРёСЏ" : "РќРѕРІС‹Р№ С‡Р°С‚";
     }
 
+    private static string HistoryFor(string chatId, string? excludeMessageId)
+    {
+        // Reconstruct logical chat context from local answered turns.
+        // Only recent turns are sent, with hard bounds on every field.
+        if (!IdPattern.IsMatch(chatId) || !Directory.Exists(MessageDir)) return "";
+        var answered = new List<RelayMessage>();
+        foreach (var file in Directory.EnumerateFiles(MessageDir, "*.json"))
+        {
+            try
+            {
+                var item = JsonSerializer.Deserialize<RelayMessage>(File.ReadAllText(file));
+                if (item is null || item.ChatId != chatId ||
+                    item.Id == excludeMessageId || item.Status != "answered" ||
+                    string.IsNullOrWhiteSpace(item.Reply)) continue;
+                answered.Add(item);
+            }
+            catch (Exception e) when (e is IOException or JsonException or UnauthorizedAccessException) { }
+        }
+        var recent = answered.OrderBy(x => x.CreatedUtc).TakeLast(5);
+        var sb = new StringBuilder();
+        foreach (var turn in recent)
+        {
+            if (sb.Length > 3600) break;
+            var input = turn.Text ?? "";
+            var reply = turn.Reply ?? "";
+            sb.Append("Пользователь: ");
+            sb.Append(input.Length > 700 ? input[..700] : input);
+            sb.Append("\nАссистент: ");
+            sb.Append(reply.Length > 700 ? reply[..700] : reply);
+            sb.Append("\n---\n");
+        }
+        return sb.Length > 4200 ? sb.ToString(0,4200) : sb.ToString();
+    }
+
     [McpServerTool(Name = "chat.ui.pending", Title = "Р§Р°С‚ В· РџСЂРѕРІРµСЂРёС‚СЊ РЅРµРѕС‚РїСЂР°РІР»РµРЅРЅРѕРµ", ReadOnly = true)]
     [McpMeta("ui", JsonValue = """{"visibility":["app"]}""")]
     [Description("Р’РЅСѓС‚СЂРµРЅРЅРёР№ РёРЅСЃС‚СЂСѓРјРµРЅС‚ MCP Apps: РїРѕРєР°Р·Р°С‚СЊ РѕРґРЅРѕ РѕР¶РёРґР°СЋС‰РµРµ Рё РµС‰С‘ РЅРµ РїРµСЂРµРїСЂР°РІР»РµРЅРЅРѕРµ РІ ChatGPT СЃРѕРѕР±С‰РµРЅРёРµ, Р±РµР· РёР·РјРµРЅРµРЅРёСЏ РµРіРѕ СЃРѕСЃС‚РѕСЏРЅРёСЏ.")]
@@ -132,6 +166,7 @@ public static class ChatUiTools
         {
             ok = true,
             count = candidates.Count,
+            context = discover && first is not null ? HistoryFor(first.ChatId ?? LegacyId, first.Id) : "",
             message = first is null ? null : new
             {
                 id = first.Id,
@@ -207,6 +242,7 @@ public static class ChatUiTools
         public DateTimeOffset CreatedUtc { get; set; }
         public string Text { get; set; } = "";
         public string Status { get; set; } = "pending";
+        public string Reply { get; set; } = "";
         public List<RelayAttachment> Attachments { get; set; } = new();
     }
     private sealed class RelayAttachment

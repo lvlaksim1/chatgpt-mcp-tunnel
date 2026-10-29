@@ -1,5 +1,10 @@
 # Manager beliefs
 
+## 2026-10-29: v0.2.22 local chat context recovery after Global cold start
+- Owner allowed closing all Yandex Browser windows/processes and does not value old tunnel test chats. v0.2.21 is INSTALLED and cold-started from Windows URI with browser.exe=0 before activation. Hide via ShowWindow SW_HIDE; user only used local WinForms chat. Real new local message eb8754a07f7841e9be2abd51a36bf55b / chat_id 810e129d5501471c9927630b033cf301 forwarded by Global Hub, ChatGPT answered АВТОЗАПУСК-21 via chat.reply, Status=answered. This PROVES full first-turn model loop with hidden browser host, NOT a no-browser-process inference mechanism.
+- Second local follow-up bdbfca780e364437bd8624eda5d1fa56 was forwarded by global again after old cloud thread route went stale. Separate new ChatGPT conversation displayed response «Точный текст предыдущего ответа в этом диалоге мне недоступен», did NOT call chat.reply; local status remains pending with ACK. Thus context continuity / assured tool reply remained unresolved.
+- v0.2.22 SOURCE: ChatUiTools.Pending(discover=true) now returns bounded last 5 answered local turns as context; Global Hub versioned hub-relay-v0222 prepends this transcript to target:new first prompt, strengthens requirement to use chat.reply before textual answer. C# + Python routing and JS hub tests PASS. Pending GitHub CI and practical re-test. Notes docs/mcp-global-hub-context-recovery-v0.2.22.md.
+
 ## 2026-10-29: v0.2.21 Global Hub cold-start and auto-relay experiment
 - User authorized full Yandex Browser closure, and explicitly says old local tunnel chats have no value: do not spend effort on special history backups/migrations.
 - On DOMKAT v0.2.20 actual browser cold launch PASSED: first closed visible Yandex Browser normally and all remaining browser.exe background processes, confirmed browser.exe=0 while tunnel readyz=200. From Windows Start-Process on observed global ChatGPT MCP Apps URI booted browser, authenticated ChatGPT and Global iframe; fresh instance ui-7uzwykoh05-mvu0g62v and tool-open/ui-initialize/ui-initialized in journal at 20:43:21-23 UTC. No manual browser actions.

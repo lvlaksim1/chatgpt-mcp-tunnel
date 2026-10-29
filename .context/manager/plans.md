@@ -1,5 +1,12 @@
 # Manager plans
 
+## 2026-10-29: v0.2.22 local chat context recovery after Global cold start
+1. DONE v0.2.21 cold browser no-process start and automatic first local chat model reply via hidden browser. Previous answer АВТОЗАПУСК-21 stored with chat.reply.
+2. OBSERVED second message forwarded into a new cloud thread after stale route, cloud model lacked prior answer and did not invoke chat.reply, so local stays pending with ui-forwarded ACK. Need server-side context recovery.
+3. DONE v0.2.22 source: bounded history field on Pending(discover), Global target:new prompt adds previous local transcript and explicit chat.reply; isolated tests pass. NEXT CI release/install.
+4. NEXT repeat existing second pending message after removing ONLY its ui-forwarded file (user says old test chats disposable), observe ChatGPT response АВТОЗАПУСК-21 and chat.reply Status=answered. Then sustained hidden / reboot.
+5. NEXT single-owner Global lease, retry/reconcile cloud responses, integrated Windows Host Activator. No Work/Codex/API/Sign in.
+
 ## 2026-10-29: v0.2.21 Global Hub cold-start and auto-relay experiment
 1. DONE Global and Thread actual iframe lifecycle on v0.2.20; global works in fullscreen, thread inline; deep link from Windows relaunches global with fresh instance. Browser hidden tab continues heartbeat.
 2. DONE full cold browser closure test: browser.exe=0, Global Windows URI starts Yandex and a brand-new authenticated ChatGPT MCP App (proof in event log).

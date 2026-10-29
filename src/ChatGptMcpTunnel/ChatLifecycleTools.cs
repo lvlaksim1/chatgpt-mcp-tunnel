@@ -9,7 +9,7 @@ using ModelContextProtocol.Server;
 [McpServerToolType]
 public static class ChatLifecycleTools
 {
-    public const string GlobalUri = "ui://chatgpt-mcp-tunnel/hub-relay-v0221";
+    public const string GlobalUri = "ui://chatgpt-mcp-tunnel/hub-relay-v0222";
     public const string ThreadUri = "ui://chatgpt-mcp-tunnel/lifecycle-thread-v0220";
     private static string Root => Environment.GetEnvironmentVariable("CHATGPT_MCP_CHAT_TEST_ROOT") ??
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -26,7 +26,7 @@ public static class ChatLifecycleTools
     };
 
     [McpServerTool(Name = "chat.hub.open", Title = "ChatGPT MCP Tunnel · Global Hub (diagnostic)", ReadOnly = true)]
-    [McpMeta("ui", JsonValue = """{"resourceUri":"ui://chatgpt-mcp-tunnel/hub-relay-v0221","visibility":["model","app"]}""")]
+    [McpMeta("ui", JsonValue = """{"resourceUri":"ui://chatgpt-mcp-tunnel/hub-relay-v0222","visibility":["model","app"]}""")]
     [McpMeta("openai/ui", JsonValue = """{"entrypoints":[{"type":"global"}]}""")]
     [Description("Experimental global MCP Apps lifecycle entrypoint. It records technical handshake events only; it does not send user messages or replace the existing relay.")]
     public static string OpenHub()

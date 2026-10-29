@@ -37,7 +37,7 @@ with tempfile.TemporaryDirectory(prefix="mcp-lifecycle-probe-") as temp:
   tools={x["name"]:x for x in request("tools/list")["tools"]}
   assert len(tools)==56,len(tools)
   for name,mode,uri in (
-   ("chat.hub.open","global","ui://chatgpt-mcp-tunnel/hub-relay-v0221"),
+   ("chat.hub.open","global","ui://chatgpt-mcp-tunnel/hub-relay-v0222"),
    ("chat.thread.open","thread","ui://chatgpt-mcp-tunnel/lifecycle-thread-v0220")
   ):
    meta=tools[name]["_meta"]

@@ -6,7 +6,7 @@ on:
       version:
         description: 'Stable numeric release version (X.Y.Z)'
         required: true
-        default: '0.2.21'
+        default: '0.2.22'
         type: string
 
 permissions:

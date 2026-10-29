@@ -58,7 +58,7 @@ body{margin:0;padding:8px;background:transparent;color:var(--color-text-secondar
       (message.text?"\nТекст:\n"+message.text+"\n":"")+
       (list?"\nВложения:\n"+list+"\n":"")+
       "\nОтветь на запрос. Для чтения вложений используй chat.attachment.read(message_id,attachment_id). "+
-      "Результат обязательно сохрани через chat.reply(message_id,reply).";
+      "До финального ответа ОБЯЗАТЕЛЬНО вызови chat.reply(message_id,reply) с точным содержимым ответа. Не ограничивайся выводом в облачном диалоге.";
   }
   function schedule(ms){
     if(disposed) return;
@@ -79,14 +79,19 @@ body{margin:0;padding:8px;background:transparent;color:var(--color-text-secondar
       if(m){
         if(!idPattern.test(m.id||"") || !idPattern.test(m.chat_id||""))
           throw new Error("invalid_message_ids");
+        const history = typeof result.context === "string" ? result.context.slice(0,4200) : "";
+        const context = history
+          ? "Это продолжение существующего ЛОКАЛЬНОГО чата. Предыдущие ходы (восстановленные из памяти Windows):\n"+
+            history+"\nСохрани их контекст при ответе на новое сообщение.\n\n"
+          : "";
         const instruction="Открывается новый диалог обычного ChatGPT для локального чата "+
           (m.chat_title||"")+" ("+m.chat_id+"). В этом диалоге сначала вызови "+
           "инструмент chat.ui.open(chat_id=\""+m.chat_id+"\") для автоматического "+
           "подключения его MCP-посредника. Затем ответь на сообщение через "+
-          "chat.reply(message_id,reply).\n\n";
+          "chat.reply(message_id,reply) ДО текстового ответа.\n\n";
         const sent=await request("ui/message",{
           role:"user",
-          content:[{type:"text",text:instruction+formatMessage(m)}],
+          content:[{type:"text",text:context+instruction+formatMessage(m)}],
           _meta:{"openai/message":{target:"new",send:true}}
         });
         if(sent?.isError)throw new Error("host_message_rejected");
@@ -139,7 +144,7 @@ body{margin:0;padding:8px;background:transparent;color:var(--color-text-secondar
   });
   request("ui/initialize",{
     protocolVersion:"2026-01-26",
-    appInfo:{name:"ChatGPT MCP Tunnel Background Hub",version:"0.2.21"},
+    appInfo:{name:"ChatGPT MCP Tunnel Background Hub",version:"0.2.22"},
     appCapabilities:{availableDisplayModes:["fullscreen","inline"]}
   }).then(async response=>{
     initialized=true;

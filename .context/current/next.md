@@ -1,5 +1,11 @@
 # Next actions
 
+## 2026-10-29: v0.2.22 local chat context recovery after Global cold start
+1. Commit/release v0.2.22 context-enhanced Global resource, run CI, controlled install and plugin refresh.
+2. Close all Yandex, cold start via Windows Global app URI; remove ACK only for existing failed bdbfca780e364437bd8624eda5d1fa56 so it reenters queue with stored prior answered turn. Observe real reply and status.
+3. Test new local chat one-turn and follow-up once more, then lease and host activation, hidden-window reconnect.
+4. Keep user-visible surface only WinForms, no special old chat backups, no Work/Codex/API/cloud hourly planner.
+
 ## 2026-10-29: v0.2.21 Global Hub cold-start and auto-relay experiment
 1. Publish v0.2.21 from source: Global Hub auto-polls unbound chats and ui/message target:new with existing chat.ui.open(chat_id) handoff, test JS/contract.
 2. Install verified Windows release DOMKAT, refresh plugins, ensure official URI now hub-relay-v0221.

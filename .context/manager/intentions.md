@@ -1,5 +1,8 @@
 # Manager intentions and commitments
 
+## 2026-10-29: v0.2.22 local chat context recovery after Global cold start
+- Validate v0.2.22 cross-thread context recovery with real local Windows messenger and model. Keep browser invisible to user while running host in background; don't promise inference with browser.exe=0. Ensure stale/orphaned cloud replies eventually recover, then implement per-hub instance lease and automatic URI Host Activator.
+
 ## 2026-10-29: v0.2.21 Global Hub cold-start and auto-relay experiment
 - Prove completely unattended handoff from Windows local chat to normal ChatGPT and back, using Global MCP App auto-relay. Browser executable may be started by Windows, but no user browser interactions permitted. Keep one tunnel; no Work/Codex/API/Sign in with ChatGPT/cloud planner.
 

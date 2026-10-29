@@ -1,5 +1,8 @@
 # Current state
 
+## 2026-10-29: v0.2.22 local chat context recovery after Global cold start
+- DOMKAT installed v0.2.21. Successfully closed all Yandex processes, cold-started Global from OS URI, then used local GUI to send test; hidden browser host produced real ChatGPT reply АВТОЗАПУСК-21 via chat.reply in matching chat. Follow-up into new cloud conversation lacked previous context and no chat.reply; pending ACK retained. v0.2.22 source context-restoring Global prepared/tested, not deployed yet. Report docs/mcp-global-hub-context-recovery-v0.2.22.md.
+
 ## 2026-10-29: v0.2.21 Global Hub cold-start and auto-relay experiment
 - DOMKAT installed v0.2.20, readyz=200, both computers connected; user authorized closure of all Yandex Browser processes. Successfully closed all browser.exe (zero) and cold-started ChatGPT Global via system URL with fresh iframe initialize. Source v0.2.21 auto Global Hub exists, local isolated tests pass, pending CI. Detail: docs/mcp-global-hub-autorelay-v0.2.21.md.
 

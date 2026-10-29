@@ -1,5 +1,8 @@
 # Current blockers and open risks
 
+## 2026-10-29: v0.2.22 local chat context recovery after Global cold start
+- v0.2.21 second cloud thread forgotten previous answer and omitted mandatory chat.reply, leaving one pending forwarded message bdbfca780e364437bd8624eda5d1fa56. v0.2.22 sends bounded local history but live success not yet proven. Need host-only callback repair eventually (retries/reconciliation), plus multiple Global instance ownership to avoid duplicates. Browser process still required technically, though window can be entirely hidden.
+
 ## 2026-10-29: v0.2.21 Global Hub cold-start and auto-relay experiment
 - Host cold launch PROVEN (fresh global iframe after all browser.exe terminated), but user-message-to-real-model and chat.reply from automatic Hub remain untested until v0.2.21 deploy. A browser process was automatically launched: do not describe this as browserless inference, only no manual browser operation. Existing Yandex browser user tabs can now be closed per explicit user permission. Old local test chats disposable by user directive.
 

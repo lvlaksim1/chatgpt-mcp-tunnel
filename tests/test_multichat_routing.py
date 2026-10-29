@@ -27,6 +27,13 @@ with tempfile.TemporaryDirectory(prefix="multi-chat-routes-") as tmp:
     new_msg = uuid.uuid4().hex
     message(legacy_msg, None, "old chat")
     message(new_msg, new_id, "new local chat")
+    answered_id = uuid.uuid4().hex
+    (data/"messages"/(answered_id+".json")).write_text(json.dumps({
+        "Id":answered_id, "ChatId":new_id,
+        "CreatedUtc":"2026-10-28T12:00:00+00:00",
+        "Text":"Первый вопрос пользователя", "Status":"answered",
+        "Reply":"АВТОЗАПУСК-21", "Attachments":[]
+    },ensure_ascii=False),encoding="utf-8")
     (data/"sessions"/(new_id+".json")).write_text(
         json.dumps({"Id":new_id,"Title":"РЎРїРµС†РёР°Р»СЊРЅС‹Р№ С‡Р°С‚"}),
         encoding="utf-8")
@@ -65,6 +72,8 @@ with tempfile.TemporaryDirectory(prefix="multi-chat-routes-") as tmp:
         assert own["message"]["id"]==legacy_msg,own
         other=call("chat.ui.pending",{"chat_id":legacy,"discover":True})
         assert other["message"]["chat_id"]==new_id,other
+        assert "АВТОЗАПУСК-21" in other["context"],other
+        assert "Первый вопрос пользователя" in other["context"],other
         assert other["message"]["chat_title"]=="РЎРїРµС†РёР°Р»СЊРЅС‹Р№ С‡Р°С‚",other
         ack=call("chat.ui.ack",{"message_id":new_msg,"new_chat":True})
         assert ack["ok"],ack

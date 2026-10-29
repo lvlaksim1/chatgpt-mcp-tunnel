@@ -1,5 +1,9 @@
 # Latest handoff
 
+## 2026-10-29: v0.2.22 local chat context recovery after Global cold start
+- v0.2.21 deployed and first fully automated answer proven (browser.exe initially 0; Windows URI starts host, browser hidden; new local chat message eb875... answered АВТОЗАПУСК-21). Second follow-up bdbf... was forwarded by Global into a fresh cloud thread but ChatGPT responded it lacked prior context and did not invoke chat.reply. Local pending/ACK.
+- v0.2.22 source prepends bounded local history from answered JSON messages on Global target:new, requires model chat.reply before text. Isolated tests PASS, GitHub CI/release/deploy pending. Next retry second message by deleting only its ui-forwarded ACK with user approval to discard old test chat data, verify continuity. User explicitly authorized closing Yandex and no old history backups.
+
 ## 2026-10-29: v0.2.21 Global Hub cold-start and auto-relay experiment
 - v0.2.20 cold-browser Global initialization proven after all 35+ Yandex Browser processes closed. Host restored from Windows URI automatically; new ui-initialize in server log. User authorized browser closure, says old tunnel chats disposable.
 - v0.2.21 source creates real automatic Global Hub transport in separate ChatGlobalHubApp.html, ui://.../hub-relay-v0221. It discovers queued local chat messages and requests ui/message target:new, ACK, existing chat.ui.open(chat_id) for thread relay. Local mock and MCP contract tests pass. Next CI/install, real cold-browser + local chat message -> model reply.
