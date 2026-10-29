@@ -89,7 +89,7 @@ try:
 
     # All computer-bound tools must expose the optional target selector.
     remote_tools = {n for n in names if n.startswith(("fs.", "process.", "shell.", "desktop.")) or n == "system.info"}
-    assert len(remote_tools) == 23, sorted(remote_tools)
+    assert len(remote_tools) == 24, sorted(remote_tools)
     for tool in listing:
         if tool["name"] in remote_tools:
             assert "computer" in tool["inputSchema"]["properties"], tool["name"]
