@@ -165,7 +165,14 @@ jobs:
           if (-not (Test-Path (Join-Path $expectedServerDir 'OpenAI\tunnel-client.exe'))) { throw 'Server tunnel-client not bundled' }
           if ((Get-ItemProperty HKCU:\Software\ChatGPTMCPAgent).Role -ne 'server') { throw 'Server role not selected in installer' }
           if (-not (Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name 'ChatGPTMCPAgent' -ErrorAction SilentlyContinue)) { throw 'Autostart checkbox not applied' }
-          if (-not (Get-ScheduledTask -TaskName "ChatGPT MCP Tunnel Recovery" -ErrorAction SilentlyContinue)) { throw "Installed server watchdog task missing" }
+          if (-not (Get-ScheduledTask -TaskName "ChatGPT MCP Tunnel Recovery" -ErrorAction SilentlyContinue)) {
+            $logFile = Join-Path $env:LOCALAPPDATA 'ChatGPTMCPAgent\Watchdog\watchdog.log'
+            if (Test-Path $logFile) { Get-Content $logFile -Tail 30 }
+            $diagnostic = Start-Process -FilePath $exe -ArgumentList '--watchdog-register' -Wait -PassThru
+            Write-Host "WATCHDOG_MANUAL_REGISTER_EXIT=$($diagnostic.ExitCode)"
+            if (Test-Path $logFile) { Get-Content $logFile -Tail 30 }
+            throw "Installed server watchdog task missing"
+          }
           $recovery = Get-ScheduledTask -TaskName "ChatGPT MCP Tunnel Recovery"
           if (($recovery.Actions | Out-String) -notmatch '--watchdog-check') { throw "Recovery task does not invoke built-in watchdog mode" }
           Start-ScheduledTask -TaskName "ChatGPT MCP Tunnel Recovery"
