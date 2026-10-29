@@ -65,7 +65,7 @@ with tempfile.TemporaryDirectory(prefix="multi-chat-routes-") as tmp:
         process.stdin.write('{"jsonrpc":"2.0","method":"notifications/initialized"}\n')
         process.stdin.flush()
         tools=req("tools/list")["tools"]
-        assert len(tools)==57
+        assert len(tools)==58
         current=call("chat.ui.open")
         assert current["chat_id"]==legacy,current
         own=call("chat.ui.pending",{"chat_id":legacy})
