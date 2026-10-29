@@ -1,5 +1,11 @@
 # Next actions
 
+## 29.10.2026: v0.2.18 real ordinary ChatGPT multi-chat acceptance PASSED
+1. v0.2.18 DOMKAT live MCP Apps relay-v0218, new local chat -> new ChatGPT thread -> chat.reply PASS; next follow-up answered and history switching PASS.
+2. Test two separate local chats mapped to separate ChatGPT threads with interleaved user messages.
+3. Test MKATUSHONOK local GUI with per-computer origin + reply routing; browser restarts and concurrent iframes.
+4. Keep Windows watchdog and existing tunnel; do not re-enable hourly ChatGPT automation or use second tunnel.
+
 ## 29.10.2026: v0.2.18 MCP Apps cache-bust after live 0.2.17 test
 1. Commit v0.2.18 UI resource cache fix (new ui://.../relay-v0218) and publish verified Windows CI release.
 2. Controlled update DOMKAT v0.2.17 -> v0.2.18, ensuring 142+ message files and Windows watchdog intact.

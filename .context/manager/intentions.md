@@ -1,5 +1,8 @@
 # Manager intentions and commitments
 
+## 29.10.2026: v0.2.18 real ordinary ChatGPT multi-chat acceptance PASSED
+- v0.2.18 new-chat handoff and continuing responses now live-accepted in ordinary ChatGPT. Next harden recovery when browser closes, concurrent iframes and routing across remote MKATUSHONOK. Preserve disabled hourly cloud automation.
+
 ## 29.10.2026: v0.2.18 MCP Apps cache-bust after live 0.2.17 test
 - Publish v0.2.18 as cache-busting MCP Apps resource update, verify CI release, deploy DOMKAT, refresh browser tool catalog and test real ui/message target:new handoff. Local multi-chat UI from 0.2.17 already working in production, cloud new-chat handoff not yet empirically accepted.
 

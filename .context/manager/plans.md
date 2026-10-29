@@ -1,5 +1,11 @@
 # Manager plans
 
+## 29.10.2026: v0.2.18 real ordinary ChatGPT multi-chat acceptance PASSED
+1. DONE v0.2.18 CI, install, UI cache fix and live normal ChatGPT ui/message target:new test with two successive answered messages and isolated chat histories.
+2. NEXT test multiple live chats interleaved with independent ChatGPT thread contexts and auto iframe startup. Prioritize initialization robustness and duplicate forwarding prevention.
+3. NEXT native installed tray ShowChat test, then MKATUSHONOK local chats and per-computer routing.
+4. NEXT browser lifecycle recovery without hourly automation; primary/standby iframe leases and reattachment.
+
 ## 29.10.2026: v0.2.18 MCP Apps cache-bust after live 0.2.17 test
 1. DONE v0.2.17 CI and DOMKAT install; no data loss, alive and bridged. Real new-ChatGPT session successfully invoked chat.ui.open, but browser rendered stale HTML (0.2.16) despite updated server.
 2. DONE source v0.2.18 versioned MCP Apps UI resource URI and tests; local builds and protocol tests clean.

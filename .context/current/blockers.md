@@ -1,5 +1,8 @@
 # Current blockers and open risks
 
+## 29.10.2026: v0.2.18 real ordinary ChatGPT multi-chat acceptance PASSED
+- Live target:new cloud handoff is now proven on DOMKAT v0.2.18 using two separate successful messages in one newly created local chat. No blocker to basic multi-chat. Remaining unverified: multiple concurrent new threads/iframes, browser suspension/closure, remote MKATUSHONOK own local chats and atomic iframe lease for concurrency.
+
 ## 29.10.2026: v0.2.18 MCP Apps cache-bust after live 0.2.17 test
 - v0.2.17 host cache reused stale MCP Apps iframe HTML after server update and plugin tool refresh; hence actual target:new code could not run. v0.2.18 versioned URI source addresses this; live test after deploy pending.
 - No claim of target:new real ChatGPT acceptance until observing new thread, chat.ui.open(chat_id) and chat.reply. Current multi-chat local UI working, MKATUSHONOK remote routing pending.

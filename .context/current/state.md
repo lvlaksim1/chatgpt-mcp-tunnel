@@ -1,5 +1,13 @@
 # Current state
 
+## 29.10.2026: v0.2.18 real ordinary ChatGPT multi-chat acceptance PASSED
+- DOMKAT verified on v0.2.18.0 after controlled update; GitHub Actions Windows release 40926899682 SUCCESS; readyz=200, ChatGPT MCP Tunnel bridge_ping OK, computers.list DOMKAT and MKATUSHONOK connected, Windows Recovery watchdog Ready, all prior 142 message files retained.
+- Authenticated Yandex Browser: ChatGPT MCP Tunnel > Manage > Refresh tools performed. In a new ordinary ChatGPT conversation the model invoked chat.ui.open. Model output and rendered app confirmed new resource URI ui://chatgpt-mcp-tunnel/relay-v0218 (cache fixed).
+- Clicked Begin Forwarding in real MCP Apps, then started installed 0.2.18 GUI in preview-chat-window mode against real local Chat data and clicked New Chat. New local chat_id c8d881eb8f0f4ff1aac24dcfe21a0a0c persisted. Submitted test message marker 42F6, message_id 28d970531bc3438991bfb08816c94358. Sent via ui/message to new ChatGPT thread, iframe route state ready, ui-forwarded durable ACK created. chat.reply wrote Status=answered, Reply=ПРИНЯТО into correct local message.
+- Second follow-up in same local chat marker C2A7, message_id 29d0c5d2b59b42bda27b3caf913ccbed: Reply=ПРОДОЛЖЕНИЕ, Status=answered, ui-forwarded present, same chat_id as first; verifies continuous relay after new-thread handoff.
+- Via UIA selected 'История до обновления' and observed historical diagnostic messages; selected new chat and read only the two new tests (ПРИНЯТО, ПРОДОЛЖЕНИЕ), no legacy content. Classic local new chat/list/switch works in real GUI.
+- Old per-hour ChatGPT automation stayed disabled, no Work/Codex/API used for transport. Active MCP Apps iframe still required; browser-closed recovery, remote MKATUSHONOK own local chats, multi-iframe robust lease remain future tasks.
+
 ## 29.10.2026: v0.2.18 MCP Apps cache-bust after live 0.2.17 test
 - v0.2.17 source and Windows release 40924254070 SUCCESS. Installed on DOMKAT version 0.2.17.0 with official SHA256 c971f2f0652ec8e766181bfad7394d31f5a72c053a4b08e09ba0b845a34148e9; MCP readyz 200, DOMKAT/MKATUSHONOK connected, 142 messages retained, Windows watchdog Ready, cloud hourly automation still disabled.
 - Ordinary ChatGPT tool refresh confirmed new chat.ui.open mode mcp_apps_multi_chat. However displayed MCP Apps iframe remained old 0.2.16 resource from ui://chatgpt-mcp-tunnel/relay; live target:new never actually ran. Server's installed HTML contained correct new JS.
