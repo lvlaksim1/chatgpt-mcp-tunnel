@@ -72,8 +72,8 @@ jobs:
       - name: Verify emergency STOP and GUI pacing in packaged Windows agent
         shell: pwsh
         run: |
-          & .\publish\ChatGptMcpAgent.exe --test-control
-          if ($LASTEXITCODE -ne 0) { throw "STOP and GUI pacing self-test failed: $LASTEXITCODE" }
+          $controlTest = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--test-control' -Wait -PassThru
+          if ($controlTest.ExitCode -ne 0) { throw "STOP and GUI pacing self-test failed: $($controlTest.ExitCode)" }
 
 
       - name: Bundle verified official OpenAI tunnel-client v0.0.18
