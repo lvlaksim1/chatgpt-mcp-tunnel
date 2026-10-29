@@ -1,5 +1,9 @@
 # Manager intentions and commitments
 
+## 29.10.2026: DOMKAT production update 0.2.16 and ChatGPT browser tool refresh
+- commitment ui-message-2026-10-29: DOMKAT installation 0.2.16 and explicit owner-requested browser action refresh now DONE. Remaining goal: real ChatGPT chat.ui.open availability in fresh host session, user-click ui/message versus automatic local queue, chat.reply, lifecycle behavior; claim no scheduler only after live proof.
+- Maintain separate issue: updater should automatically coordinate agent/watchdog shutdown to avoid silent Inno exit 5 on an active installation.
+
 ## 29.10.2026: v0.2.16 stable Windows release verified (not live ChatGPT accepted)
 - v0.2.16 Windows CI/release complete (40907216014 SUCCESS). Commitment remains ACTIVE until owner installs and refreshes connector, then validates user-click and automatic ui/message separately in real ordinary ChatGPT.
 

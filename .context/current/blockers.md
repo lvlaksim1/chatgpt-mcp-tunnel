@@ -1,5 +1,9 @@
 # Current blockers and open risks
 
+## 29.10.2026: DOMKAT production update 0.2.16 and ChatGPT browser tool refresh
+- Only open ui/message acceptance gate: real ordinary ChatGPT must expose chat.ui.open after browser refresh/new turn and permit the component to send messages. Need direct-click and automatic-poll tests separately, including chat.reply. The current tool catalogue in this ongoing ChatGPT turn may remain cached at 45.
+- Reproducible deployment problem: Inno Setup silent update v0.2.16 on live DOMKAT returns code 5 when agent/Router Lite/tunnel-client stay active or watchdog respawns children. Manual controlled stop worked. Add preflight stop/pause and regression test in next patch.
+
 ## 29.10.2026: v0.2.16 stable Windows release verified (not live ChatGPT accepted)
 - v0.2.16 installer published, but real ChatGPT acceptance awaits owner-managed update of DOMKAT and refresh of the custom MCP plugin action list (currently 45 versus new 52). No silent deployment: avoid disrupting the only operating tunnel during this conversation.
 

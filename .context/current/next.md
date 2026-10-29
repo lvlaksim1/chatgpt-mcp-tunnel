@@ -1,5 +1,10 @@
 # Next actions
 
+## 29.10.2026: DOMKAT production update 0.2.16 and ChatGPT browser tool refresh
+1. Verify action catalog is refreshed in a new ChatGPT turn; check chat.ui.open/52 tools. Do not assume a refresh UI click hot-reloads the tool catalog in a currently executing turn.
+2. Call chat.ui.open in ordinary ChatGPT and run user-click 'Тест ui/message' and background 'Начать передачу' separately; validate actual local chat -> ChatGPT -> chat.reply. Report exact host refusal if any.
+3. Fix installer to pause watchdog and gracefully stop running agent/runtime before Inno file replacement, then restore watchdog; add live-upgrade test.
+
 ## 29.10.2026: v0.2.16 stable Windows release verified (not live ChatGPT accepted)
 1. Owner installs Update v0.2.16 from GitHub release and refreshes action list for existing ChatGPT MCP Tunnel plugin.
 2. Invoke chat.ui.open, compare «Тест ui/message» immediate user-gesture test with «Начать передачу» automatic relay from local window. Test chat.reply after real model turn and iframe lifecycle. Report exact host error if rejected.

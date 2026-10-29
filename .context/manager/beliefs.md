@@ -1,5 +1,11 @@
 # Manager beliefs
 
+## 29.10.2026: DOMKAT production update 0.2.16 and ChatGPT browser tool refresh
+- Owner explicitly authorized installing v0.2.16 on DOMKAT and refreshing connected action catalog via browser.
+- Installed on DOMKAT with verified release SHA-256 FC05177A63EEC63E28BEE080247ED7B7835A3758098D77D072EFE9253696DBA0. Initially Inno Setup silently returned code 5 because RestartManager could not close running agent/runtime/tunnel-client (confirmed installation log); no files updated during those attempts. Successful controlled install paused only existing watchdog, invoked agent --shutdown (exit 0), waited for its own three processes to exit, ran official updater and restored existing watchdog.
+- Verified resulting file version 0.2.16.0, independent local readyz HTTP 200, bridge_ping OK, DOMKAT and MKATUSHONOK connected, watchdog Ready, ChatRelayApp.html installed. All other user apps and unrelated untracked TXT files untouched.
+- Via user's open Yandex browser (authenticated ChatGPT), navigated Plugins > ChatGPT MCP Tunnel > Manage and invoked 'Обновить инструменты'; button disabled during request then re-enabled without visible error. This confirms browser refresh action was invoked, NOT definitive proof this already-running chat switched from cached 45 to new 52. The actual 52-command runtime is source/CI-verified; live new-conversation availability pending.
+
 ## 29.10.2026: v0.2.16 stable Windows release verified (not live ChatGPT accepted)
 - Verified 29.10.2026: GitHub Actions 40907216014 SUCCESS; published stable v0.2.16 with Setup SHA256 efda9954ec9a519ebfca5f0364276e4c0bb58386b50bff63b1e690d11dca23ab and Update SHA256 fc05177a63eec63e28bee080247ed7b7835a3758098d77d072efe9253696dba0. Real ChatGPT host iframe remains untested, installed DOMKAT 0.2.13 as last observed.
 

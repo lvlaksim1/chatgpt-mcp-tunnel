@@ -1,5 +1,11 @@
 # Latest handoff
 
+## 29.10.2026: DOMKAT production update 0.2.16 and ChatGPT browser tool refresh
+- 29.10.2026 Owner directed DOMKAT install and browser action refresh. Completed v0.2.16.0 live deployment with SHA256 FC05177A63EEC63E28BEE080247ED7B7835A3758098D77D072EFE9253696DBA0. After two Inno code 5 due active processes, succeeded via watchdog pause + agent --shutdown + silent Inno. Current readyz 200, bridge_ping OK, both machines connected, watchdog Ready.
+- Authenticated Yandex Browser ChatGPT > Plugins > ChatGPT MCP Tunnel > Manage > 'Обновить инструменты': UI action performed, button disabled then re-enabled with no visible error. Current turn's host catalog may be cached at 45, runtime CI 52; must validate in fresh turn before claiming live new action exposure.
+- Remaining: real chat.ui.open and user-click versus automatic ui/message acceptance, local chat.reply. Deployment regression: silent updater currently cannot always shut down active tunnel without controlled preflight.
+- No alteration to unrelated files, no changes to tunnel ID, WSS credentials, other computers or other apps.
+
 ## 29.10.2026: v0.2.16 stable Windows release verified (not live ChatGPT accepted)
 - Stable release v0.2.16 published, GitHub Actions run 40907216014 SUCCESS; Setup/Update assets built, installation/upgrade/uninstallation preserved data. Source a853992; managers now track two-case diagnostic.
 - DOMKAT last checked v0.2.13, existing WSS connection stable; ChatGPT MCP tool catalog 45, runtime source 52. Owner-managed update and action refresh required to try actual ui/message in ordinary ChatGPT. No real host test performed or falsely claimed.

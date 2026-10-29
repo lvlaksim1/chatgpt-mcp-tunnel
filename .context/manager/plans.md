@@ -1,5 +1,11 @@
 # Manager plans
 
+## 29.10.2026: DOMKAT production update 0.2.16 and ChatGPT browser tool refresh
+1. DONE: Owner-authorized DOMKAT update v0.2.13 -> v0.2.16; SHA-256 validated; manual controlled stop/restart overcame Inno RestartManager failure.
+2. DONE: ChatGPT browser: Plugins > ChatGPT MCP Tunnel > Manage > 'Обновить инструменты'; UI returned to ready, no visible error.
+3. NEXT: fresh ChatGPT tool discovery confirms chat.ui.open, chat.ui.pending, chat.ui.ack and count 52. Invoke chat.ui.open, test direct-click and automatic ui/message, verify chat.reply in local window.
+4. NEXT: fix Inno update pre-install coordination to pause watchdog and gracefully shut agent before replacing binaries; regression test from running install.
+
 ## 29.10.2026: v0.2.16 stable Windows release verified (not live ChatGPT accepted)
 - Complete: stable v0.2.16 Windows Setup+Update verified in Actions 40907216014. Next is owner-controlled install, refreshed MCP tools and real click-vs-timer ui/message test, then chat.reply local GUI confirmation.
 
