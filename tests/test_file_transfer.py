@@ -85,7 +85,7 @@ with tempfile.TemporaryDirectory(prefix="mcp-file-transfer-") as tmp:
             expected=hashlib.sha256(src.read_bytes()).hexdigest()
             dst=folder/"transferred.bin"
             cmd = ["dotnet", str(DLL), "--transfer", "start",
-                   "DOMKAT", str(src), "TEST-FILE-AGENT", str(dst)]
+                   socket.gethostname(), str(src), "TEST-FILE-AGENT", str(dst)]
             started = subprocess.run(cmd, cwd=ROOT, env=base, capture_output=True, text=True, timeout=15)
             assert started.returncode == 0, started.stderr + started.stdout
             job = json.loads(started.stdout)["transfer_id"]
