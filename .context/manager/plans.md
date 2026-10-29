@@ -1,5 +1,8 @@
 # Manager plans
 
+## 29.10.2026: v0.2.16 stable Windows release verified (not live ChatGPT accepted)
+- Complete: stable v0.2.16 Windows Setup+Update verified in Actions 40907216014. Next is owner-controlled install, refreshed MCP tools and real click-vs-timer ui/message test, then chat.reply local GUI confirmation.
+
 ## v0.2.16 diagnostic two-case MCP acceptance
 1. Done: add explicit-click ui/message test which does not touch the local queue; show hostCapabilities message.text/openai/message. Simulator validates click success/failure with no queue ack.
 2. Done: local .NET builds zero warnings/errors; MCP resource and tool metadata tests pass.

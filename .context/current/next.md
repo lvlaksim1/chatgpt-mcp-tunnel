@@ -1,5 +1,9 @@
 # Next actions
 
+## 29.10.2026: v0.2.16 stable Windows release verified (not live ChatGPT accepted)
+1. Owner installs Update v0.2.16 from GitHub release and refreshes action list for existing ChatGPT MCP Tunnel plugin.
+2. Invoke chat.ui.open, compare «Тест ui/message» immediate user-gesture test with «Начать передачу» automatic relay from local window. Test chat.reply after real model turn and iframe lifecycle. Report exact host error if rejected.
+
 ## Next: v0.2.16 diagnostic release and owner UI check
 1. Publish stable v0.2.16 with two-case diagnostic and verify Windows GitHub Actions.
 2. Owner installs/update DOMKAT and refreshes action catalogue; preserve connection identity and user data.

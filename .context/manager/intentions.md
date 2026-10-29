@@ -1,5 +1,8 @@
 # Manager intentions and commitments
 
+## 29.10.2026: v0.2.16 stable Windows release verified (not live ChatGPT accepted)
+- v0.2.16 Windows CI/release complete (40907216014 SUCCESS). Commitment remains ACTIVE until owner installs and refreshes connector, then validates user-click and automatic ui/message separately in real ordinary ChatGPT.
+
 ## ui/message v0.2.16 diagnostic version pending production acceptance
 - commitment: ui-message-2026-10-29, active. Build/release extended probe, require physical owner update and refresh ChatGPT MCP actions, then test explicit-click message and timer-based queue forwarding separately. Do not claim either real behavior tested yet; preserve existing one-tunnel network.
 

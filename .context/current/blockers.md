@@ -1,5 +1,8 @@
 # Current blockers and open risks
 
+## 29.10.2026: v0.2.16 stable Windows release verified (not live ChatGPT accepted)
+- v0.2.16 installer published, but real ChatGPT acceptance awaits owner-managed update of DOMKAT and refresh of the custom MCP plugin action list (currently 45 versus new 52). No silent deployment: avoid disrupting the only operating tunnel during this conversation.
+
 ## 29.10.2026: actual ui/message acceptance still gated by host
 - ChatGPT runtime tool snapshot exposes 45 legacy tools; new chat.ui.open in runtime 52-tool manifest is not callable from this turn until plugin action refresh. Installed DOMKAT remains 0.2.13. Actual ChatGPT iframe ui/message click and timer acceptance are untested.
 - No server-only mechanism can prove host allows autonomous ui/message; simulated iframe confirms only protocol implementation. Owner must open UI in ordinary ChatGPT and inspect real outcome.

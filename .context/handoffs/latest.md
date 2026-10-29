@@ -1,5 +1,9 @@
 # Latest handoff
 
+## 29.10.2026: v0.2.16 stable Windows release verified (not live ChatGPT accepted)
+- Stable release v0.2.16 published, GitHub Actions run 40907216014 SUCCESS; Setup/Update assets built, installation/upgrade/uninstallation preserved data. Source a853992; managers now track two-case diagnostic.
+- DOMKAT last checked v0.2.13, existing WSS connection stable; ChatGPT MCP tool catalog 45, runtime source 52. Owner-managed update and action refresh required to try actual ui/message in ordinary ChatGPT. No real host test performed or falsely claimed.
+
 ## Handoff: ui/message two-case diagnostic (v0.2.16 source)
 - Prior 0.2.15 stable Windows build and MCP Apps relay published; working DOMKAT still 0.2.13 and visible plugin catalogue 45 tools. Owner requested continuation after stall.
 - Additional v0.2.16 source: direct-click «Тест ui/message» emits test user message, no ack to local queue; existing «Начать передачу» tests automatic timer forwarding. Host capability readout differentiates support claims. JS simulator and .NET MCP tests pass; real ChatGPT iframe behavior not verified, and installed hosts not changed.

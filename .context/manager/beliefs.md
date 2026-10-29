@@ -1,5 +1,8 @@
 # Manager beliefs
 
+## 29.10.2026: v0.2.16 stable Windows release verified (not live ChatGPT accepted)
+- Verified 29.10.2026: GitHub Actions 40907216014 SUCCESS; published stable v0.2.16 with Setup SHA256 efda9954ec9a519ebfca5f0364276e4c0bb58386b50bff63b1e690d11dca23ab and Update SHA256 fc05177a63eec63e28bee080247ed7b7835a3758098d77d072efe9253696dba0. Real ChatGPT host iframe remains untested, installed DOMKAT 0.2.13 as last observed.
+
 ## B26 — 29.10.2026: Independent ui/message diagnostic probe added
 - Source prototype v0.2.15 CI/release PASS, but installed DOMKAT still v0.2.13 and ChatGPT tool list 45. Added a separate explicit-click ui/message probe to differentiate host-level send support from timer-driven forwarding, plus host capability reporting. Local mocked host tests and 52-tool MCP protocol tests pass; real ChatGPT acceptance pending.
 

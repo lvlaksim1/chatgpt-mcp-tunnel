@@ -1,5 +1,8 @@
 # Current state
 
+## 29.10.2026: v0.2.16 stable Windows release verified (not live ChatGPT accepted)
+- v0.2.16 stable GitHub release SUCCESS: 40907216014; source commit a853992; setup SHA256 efda9954ec9a519ebfca5f0364276e4c0bb58386b50bff63b1e690d11dca23ab; update SHA256 fc05177a63eec63e28bee080247ed7b7835a3758098d77d072efe9253696dba0. Full/update installation-preservation acceptance passed. DOMKAT still last observed running v0.2.13; ChatGPT current tool catalogue stale 45. Actual ui/message host behavior not proven.
+
 ## 29.10.2026: ui/message two-case diagnostic source tested (v0.2.16)
 - 0.2.15 source + stable GitHub release confirmed; installed DOMKAT still v0.2.13, current ChatGPT exposed tool catalogue 45 not 52. Could not test real ChatGPT host with stale catalogue.
 - Added ui/message test button for direct user-click probing (no queue ack), capability advertisement display and independent automatic polling comparison. JS simulated-host tests verify both success/rejection. .NET builds 0 errors/warnings and MCP stdio 52 tools / HTML resources PASS.
