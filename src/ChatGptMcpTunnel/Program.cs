@@ -6,6 +6,11 @@ using ModelContextProtocol.Server;
 
 // One binary runs as the MCP router (default), a remote Windows agent, or
 // as a restricted local MCP extension for Goose.
+if (args.Length > 0 && args[0].Equals("--transfer", StringComparison.OrdinalIgnoreCase))
+{
+    Environment.ExitCode = await TransferControlPipe.RunClientAsync(args.Skip(1).ToArray());
+    return;
+}
 if (args.Length > 0 && args[0].Equals("--agent", StringComparison.OrdinalIgnoreCase))
 {
     using var cancel = new CancellationTokenSource();

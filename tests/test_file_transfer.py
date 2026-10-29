@@ -39,7 +39,8 @@ with tempfile.TemporaryDirectory(prefix="mcp-file-transfer-") as tmp:
     port = probe.getsockname()[1]
     probe.close()
     token = secrets.token_urlsafe(40)
-    base = {**os.environ, "CHATGPT_MCP_AGENT_TOKEN":token, "LOCALAPPDATA":str(folder / "appdata")}
+    base = {**os.environ, "CHATGPT_MCP_AGENT_TOKEN":token, "LOCALAPPDATA":str(folder / "appdata"),
+            "CHATGPT_MCP_TRANSFER_PIPE_NAME":"ChatGptMcpTunnel.Test."+secrets.token_hex(10)}
     router_env = {**base, "CHATGPT_MCP_ROUTER_ENABLED":"1",
                   "CHATGPT_MCP_ROUTER_LISTEN":f"http://127.0.0.1:{port}"}
     agent_env = {**base, "CHATGPT_MCP_COMPUTER_ID":"TEST-FILE-AGENT",
@@ -83,8 +84,11 @@ with tempfile.TemporaryDirectory(prefix="mcp-file-transfer-") as tmp:
             src.write_bytes(os.urandom(15*1024*1024+317))
             expected=hashlib.sha256(src.read_bytes()).hexdigest()
             dst=folder/"transferred.bin"
-            job=rpc("file.transfer.start",{"source_path":str(src),
-                "destination_path":str(dst),"destination_computer":"TEST-FILE-AGENT"})["transfer_id"]
+            cmd = ["dotnet", str(DLL), "--transfer", "start",
+                   "DOMKAT", str(src), "TEST-FILE-AGENT", str(dst)]
+            started = subprocess.run(cmd, cwd=ROOT, env=base, capture_output=True, text=True, timeout=15)
+            assert started.returncode == 0, started.stderr + started.stdout
+            job = json.loads(started.stdout)["transfer_id"]
             result=wait(job)
             assert result["status"]=="completed",result
             assert hashlib.sha256(dst.read_bytes()).hexdigest()==expected

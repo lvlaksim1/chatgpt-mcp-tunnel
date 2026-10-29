@@ -389,12 +389,14 @@ public sealed class RouterLiteHost : IHostedService
 {
     private CancellationTokenSource? _cancel;
     private Task? _server;
+    private Task? _controlPipe;
     public Task StartAsync(CancellationToken cancellationToken)
     {
         if (Environment.GetEnvironmentVariable("CHATGPT_MCP_ROUTER_ENABLED") != "1")
             return Task.CompletedTask;
         _cancel = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         _server = Task.Run(() => RouterLite.ServeAsync(_cancel.Token), CancellationToken.None);
+        _controlPipe = Task.Run(() => TransferControlPipe.ServeAsync(_cancel.Token), CancellationToken.None);
         return Task.CompletedTask;
     }
     public async Task StopAsync(CancellationToken cancellationToken)
@@ -404,6 +406,11 @@ public sealed class RouterLiteHost : IHostedService
         if (_server is not null)
         {
             try { await _server.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken); }
+            catch (Exception e) when (e is OperationCanceledException or TimeoutException) { }
+        }
+        if (_controlPipe is not null)
+        {
+            try { await _controlPipe.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken); }
             catch (Exception e) when (e is OperationCanceledException or TimeoutException) { }
         }
         _cancel.Dispose();
