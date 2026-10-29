@@ -1,5 +1,11 @@
 # Manager beliefs
 
+## 29.10.2026: v0.2.17 multi-chat source implemented, pending Windows CI and real ChatGPT
+- Owner approved v0.2.17 MCP autonomous chat manager and explicitly requested classic chat UI: '+ Новый чат', per-computer chat list, switch and separate histories. Implemented ChatSessionStore with 32hex chat IDs and on-disk sessions/active-chat records. New ChatWindow includes left sidebar, owner-drawn chat titles/previews, chat selection and isolated in-memory drafts/attachments; old message files without ChatId stay untouched and appear in 'История до обновления'. Replies remain tied to original message IDs.
+- MCP route updated: chat.receive now includes chat_id; chat.ui.open(chat_id), pending(chat_id,discover) and ack(new_chat) support new ChatGPT thread handoff via ui/message target:new and new iframe auto-start via ui/notifications/tool-input. Existing unscoped widget calls only see legacy chat so cannot silently consume messages from unrelated local chats. Route heartbeats and bootstrap waiting markers retained under Chat/ui-routes.
+- Local .NET Agent and MCP Server build with 0 warnings/errors. Isolated --test-chat-sessions PASS, Python routing PASS, Node target:new PASS, previous bridge tests PASS. Also manually opened preview process on DOMKAT isolated temp root, created two chats, sent messages, switched back through UIA and verified displayed selected history. Preview process and temp data cleaned. Production DOMKAT remains v0.2.16 untouched.
+- Real ChatGPT acceptance of ui/message target:new and new chat iframe auto-start not yet done; do not claim completed without user-facing browser test. Remaining reliability: cross-machine shared chats, browser-closed bootstrap, longer-lifetime recovery.
+
 ## 29.10.2026: REAL ordinary ChatGPT ui/message acceptance 19:36-19:42 MSK
 - Actual ordinary ChatGPT fresh browser session exposed new 52-tool catalog, invoked chat.ui.open and rendered real MCP Apps iframe with hostCapabilities.message.text and experimental.openai/message.
 - Manual click probe sent user message nonce 58ewppk5 and ChatGPT answered with matching nonce, proving real ui/message new model turn.

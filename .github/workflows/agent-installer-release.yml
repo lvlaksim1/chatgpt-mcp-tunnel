@@ -6,7 +6,7 @@ on:
       version:
         description: 'Stable numeric release version (X.Y.Z)'
         required: true
-        default: '0.2.16'
+        default: '0.2.17'
         type: string
 
 permissions:
@@ -110,6 +110,8 @@ jobs:
           if ($stagingTest.ExitCode -ne 0) { throw "Windows updater staging/rename test failed: $($stagingTest.ExitCode)" }
           $chatUi = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--test-chat-window' -Wait -PassThru
           if ($chatUi.ExitCode -ne 0) { throw "Chat window test failed: $($chatUi.ExitCode)" }
+          $chatSessions = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--test-chat-sessions' -Wait -PassThru
+          if ($chatSessions.ExitCode -ne 0) { throw "Multi-chat integration selftest failed: $($chatSessions.ExitCode)" }
           $chatAttachments = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--test-chat-attachments' -Wait -PassThru
           if ($chatAttachments.ExitCode -ne 0) { throw "Chat attachment GUI / persistence test failed: $($chatAttachments.ExitCode)" }
           $transferUi = Start-Process -FilePath (Resolve-Path publish/ChatGptMcpAgent.exe) -ArgumentList '--test-transfer-window' -Wait -PassThru
@@ -129,6 +131,8 @@ jobs:
           python tests/test_chat_ui_mcp.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node tests/test_chat_ui_bridge.js
+          node tests/test_multichat_widget.js
+          python tests/test_multichat_routing.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python tests/test_router_lite.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

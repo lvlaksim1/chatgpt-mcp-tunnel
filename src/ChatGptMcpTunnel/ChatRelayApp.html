@@ -47,6 +47,8 @@ pre { font-size:11px; overflow-wrap:anywhere; white-space:pre-wrap; }
   let serial = 0;
   const calls = new Map();
   let initialized = false, running = false, busy = false, disposed = false;
+  let boundChatId = null, autoStart = false;
+  const chatIdPattern = /^[a-f0-9]{32}$/i;
   let timer = null, count = 0;
   const tell = (message) => { status.textContent = message; };
   const report = (message) => { details.textContent = message; };
@@ -56,6 +58,26 @@ pre { font-size:11px; overflow-wrap:anywhere; white-space:pre-wrap; }
     if (event.source !== window.parent) return;
     const value = event.data;
     if (!value || value.jsonrpc !== "2.0") return;
+    if (value.method === "ui/notifications/tool-input") {
+      const args = value.params?.arguments || value.params?.input || {};
+      if (chatIdPattern.test(args.chat_id || "")) {
+        boundChatId = args.chat_id;
+        autoStart = true;
+        if (initialized && !running) begin();
+      }
+      return;
+    }
+    if (value.method === "ui/notifications/tool-result") {
+      const payload = value.params?.result || value.params;
+      const content = payload?.content?.find?.(item => item.type === "text");
+      if (content) {
+        try {
+          const parsed = JSON.parse(content.text);
+          if (chatIdPattern.test(parsed.chat_id || "")) boundChatId = parsed.chat_id;
+        } catch (_) {}
+      }
+      return;
+    }
     if (value.method === "ui/resource-teardown") {
       disposed = true; running = false;
       if (timer !== null) clearTimeout(timer);
@@ -95,6 +117,8 @@ pre { font-size:11px; overflow-wrap:anywhere; white-space:pre-wrap; }
     const line = attachments.map(a => "- " + a.name + " (" + a.media_type +
        "), идентификатор " + a.id).join("\n");
     return "Сообщение пользователя из локального окна ChatGPT MCP Tunnel.\n" +
+      "Локальный чат: " + (message.chat_title || "Чат") + "\n" +
+      "ID локального чата: " + (message.chat_id || "") + "\n" +
       "ID сообщения: " + message.id + "\n" +
       (message.text ? "\nТекст:\n" + message.text + "\n" : "") +
       (line ? "\nВложения:\n" + line + "\n" : "") +
@@ -107,20 +131,43 @@ pre { font-size:11px; overflow-wrap:anywhere; white-space:pre-wrap; }
     if (!initialized || !running || busy || disposed) return;
     busy = true;
     try {
-      const next = await tool("chat.ui.pending");
-      count = next.count;
-      if (next.message) {
-        tell("Передаю сообщение " + next.message.id + " через ui/message…");
+      // Each iframe forwards the conversation to which it is bound.
+      const current = await tool("chat.ui.pending", {
+        chat_id: boundChatId || ""
+      });
+      // The existing component may bootstrap a NEW ChatGPT thread for
+      // another local chat. The new thread receives chat.ui.open(chat_id).
+      const different = !current.message && boundChatId
+        ? await tool("chat.ui.pending", {chat_id:boundChatId, discover:true})
+        : null;
+      const next = current.message ? current : different;
+      count = next?.count || 0;
+      if (next?.message) {
+        const message = next.message;
+        const needsNew = !!boundChatId && message.chat_id !== boundChatId;
+        tell((needsNew ? "Создаю новый диалог для " : "Передаю сообщение ") +
+          message.id + " через ui/message…");
+        const instruction = needsNew
+          ? "Открывается новый диалог ChatGPT для локального чата " +
+            (message.chat_title || "") + " (" + message.chat_id + "). " +
+            "В этом новом диалоге сразу вызови MCP-инструмент " +
+            "chat.ui.open(chat_id=\"" + message.chat_id + "\") " +
+            "чтобы автоматически включить доставку следующих сообщений " +
+            "этого локального чата. Затем ответь на запрос ниже " +
+            "через chat.reply(message_id,reply).\n\n"
+          : "";
         const sent = await request("ui/message", {
           role:"user",
-          content:[{ type:"text", text:formatMessage(next.message) }],
-          _meta:{ "openai/message":{ target:"active", send:true } }
+          content:[{ type:"text", text:instruction + formatMessage(message) }],
+          _meta:{ "openai/message":{ target:needsNew ? "new" : "active", send:true } }
         });
         if (sent?.isError) throw new Error("Хост отклонил ui/message");
-        await tool("chat.ui.ack", { message_id:next.message.id });
-        tell("Сообщение передано в ChatGPT. Осталось в очереди: " + Math.max(0,next.count-1));
+        await tool("chat.ui.ack", { message_id:message.id, new_chat:needsNew });
+        tell(needsNew ? "Запущен новый диалог ChatGPT для «" +
+          (message.chat_title || "Новый чат") + "»." :
+          "Сообщение передано в ChatGPT.");
       } else {
-        tell("Ожидание сообщений. Неотправленных: 0.");
+        tell("Ожидание сообщений чата " + (boundChatId || "") + ".");
       }
       report("Последний опрос: " + new Date().toLocaleTimeString("ru-RU") +
           "\nОтправка: " + (running ? "включена" : "выключена"));
@@ -135,12 +182,13 @@ pre { font-size:11px; overflow-wrap:anywhere; white-space:pre-wrap; }
       if (running && !disposed) delay(count ? 1000 : 1800);
     }
   }
-  start.addEventListener("click", () => {
-    if (!initialized || disposed) return;
+  function begin() {
+    if (!initialized || disposed || running) return;
     running = true; start.disabled = true; stop.disabled = false;
-    tell("Передача включена. Проверяю сообщения…");
+    tell("Передача включена для чата " + (boundChatId || "по умолчанию") + ".");
     delay(0);
-  });
+  }
+  start.addEventListener("click", begin);
   stop.addEventListener("click", () => {
     running = false; start.disabled = false; stop.disabled = true;
     if (timer !== null) clearTimeout(timer);
@@ -167,19 +215,21 @@ pre { font-size:11px; overflow-wrap:anywhere; white-space:pre-wrap; }
   });
   check.addEventListener("click", async () => {
     try {
-      const next = await tool("chat.ui.pending");
-      tell("В очереди: " + next.count + ". " + (next.message ? "Следующий ID: "+next.message.id : ""));
+      const next = await tool("chat.ui.pending", {chat_id:boundChatId || ""});
+      tell("В этом чате в очереди: " + next.count + ". " +
+        (next.message ? "Следующий ID: "+next.message.id : ""));
     } catch (e) { tell("Ошибка проверки: " + e.message); }
   });
   request("ui/initialize", {
     protocolVersion:"2026-01-26",
-    appInfo:{name:"ChatGPT MCP Tunnel Chat Relay",version:"0.2.15"},
+    appInfo:{name:"ChatGPT MCP Tunnel Chat Relay",version:"0.2.17"},
     appCapabilities:{availableDisplayModes:["inline","fullscreen"]}
   }).then((response) => {
     initialized = true;
     probe.disabled = false;
     window.parent.postMessage({jsonrpc:"2.0",method:"ui/notifications/initialized"}, "*");
     const caps = response?.hostCapabilities || {};
+    if (autoStart) begin();
     report("Хост: " + (response?.hostInfo?.name || "неизвестен") +
         "\nВозможности: " + JSON.stringify(caps));
     const standard = !!caps.message?.text;

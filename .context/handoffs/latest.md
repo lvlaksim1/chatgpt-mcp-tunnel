@@ -1,5 +1,10 @@
 # Latest handoff
 
+## 29.10.2026: v0.2.17 multi-chat source implemented, pending Windows CI and real ChatGPT
+- v0.2.17 in working tree pending CI: classic WinForms multi-chat UI with create/list/select, local per-chat message mapping and migration-safe legacy chat; MCP Apps ui/message target:new experimental handoff, chat.ui.open(chat_id), per-chat polling and routing.
+- Local builds/selftests and preview with two chats on DOMKAT PASS. Preview app PID 11116 and temp directory removed, production DOMKAT v0.2.16 still running. Hourly cloud task disabled as owner requested, Windows watchdog remains.
+- Need source commit, CI release, controlled install, browser tool refresh, live target:new / auto-component/chat.reply acceptance. Real browser closed behavior and MKATUSHONOK multi-chat remain untested; two user-owned untracked TXT files remain untouched.
+
 ## 29.10.2026: REAL ordinary ChatGPT ui/message acceptance 19:36-19:42 MSK
 - 29.10.2026 19:36-19:42 MSK real ordinary ChatGPT user interface and MCP Apps iframe acceptance PASS. New chat exposed 52 tools, chat.ui.open rendered iframe; manual ui/message nonce 58ewppk5 generated and returned exact model turn.
 - Started relay once. DOMKAT queue nonce 43830fd3, actual ChatWindow GUI nonce GUI8C42 and background-tab GUI nonce BGTAB42 all caused automatic ChatGPT turns, with chat.reply writing responses and durable ACK. Displayed answer verified visually in local UI.

@@ -1,5 +1,11 @@
 # Next actions
 
+## 29.10.2026: v0.2.17 multi-chat source implemented, pending Windows CI and real ChatGPT
+1. Commit approved v0.2.17 source, full Windows CI run plus release and hash checks; keep source manager capsule synced.
+2. Install verified v0.2.17 update on DOMKAT, pause watchdog/stop active agent only for installation and re-enable; preserve all Chat directory content, existing Router Lite transport and identities.
+3. Browser ChatGPT refresh app tools, open new MCP App in ordinary ChatGPT. Create local chat via GUI, send a real message; confirm ui/message target:new creates new ChatGPT conversation, invokes chat.ui.open(chat_id), automatic forwarding and chat.reply writes into correct local session. Confirm no cross-chat history leak.
+4. After acceptance, test MKATUSHONOK using local chat and link server-side routing, then evaluate browser lifecycle persistence and auto-recovery.
+
 ## 29.10.2026: REAL ordinary ChatGPT ui/message acceptance 19:36-19:42 MSK
 1. Update ChatWindow footer state calculation to use message RepliedUtc and successful ui relay forwarding as stronger evidence of active ChatGPT responses; preserve historic cycle diagnostics separately.
 2. Validate actual iframe lifecycle across inactive/minimized browser, closed/reopened browser, thread changes and suspension, with queue recovery tests. No assumption of perpetual background operation.

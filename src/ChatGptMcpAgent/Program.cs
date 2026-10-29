@@ -78,6 +78,19 @@ internal static class Program
             Environment.ExitCode = AgentStorage.RunSelfTest();
             return;
         }
+        if (args.Length == 1 && args[0] == "--preview-chat-window")
+        {
+            ApplicationConfiguration.Initialize();
+            using var preview = new ChatWindow();
+            Application.Run(preview);
+            return;
+        }
+        if (args.Length == 1 && args[0] == "--test-chat-sessions")
+        {
+            Application.EnableVisualStyles();
+            Environment.ExitCode = ChatWindow.SelfTestSessions();
+            return;
+        }
         if (args.Length == 1 && args[0] == "--test-chat-attachments")
         {
             Application.EnableVisualStyles();

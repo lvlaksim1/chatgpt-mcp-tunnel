@@ -1,5 +1,10 @@
 # Current blockers and open risks
 
+## 29.10.2026: v0.2.17 multi-chat source implemented, pending Windows CI and real ChatGPT
+- No blocker for local multi-chat GUI; isolated tests pass. Real ordinary ChatGPT ui/message target:new + auto-open next iframe is not yet live-tested; mock protocol and code pass. Avoid calling this proven before installed test.
+- MKATUSHONOK chat messages live on that computer and are not yet merged into DOMKAT server queue; distinct routing phase needed.
+- Multiple simultaneous iframe leases do not have a full atomic per-message claim; future hardening should avoid parallel duplicate deliveries across many iframe instances. Browser-closed recovery remains unproven.
+
 ## 29.10.2026: REAL ordinary ChatGPT ui/message acceptance 19:36-19:42 MSK
 - Active-iframe ordinary ChatGPT ui/message feasibility is now confirmed by REAL host, not only mocks. No live relay protocol blocker.
 - Remaining always-on limitation: if ChatGPT component is closed/suspended, no proven way yet for local MCP server to wake ordinary ChatGPT. Browser-closed availability not accepted.

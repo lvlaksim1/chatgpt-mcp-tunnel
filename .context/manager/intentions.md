@@ -1,5 +1,9 @@
 # Manager intentions and commitments
 
+## 29.10.2026: v0.2.17 multi-chat source implemented, pending Windows CI and real ChatGPT
+- Deliver v0.2.17 with a usable per-computer multi-chat WinForms UI and MCP chat_id model without disturbing legacy history. Keep automatic target:new handoff experimental until actual ordinary ChatGPT acceptance.
+- Publish/verify Windows Setup and Update CI, deploy cautiously to DOMKAT using independently verified update, refresh tool catalog (tool count remains 52), test real new-chat transfer from GUI and chat.reply. Do not reenable hourly cloud automation; preserve Windows tunnel watchdog.
+
 ## 29.10.2026: REAL ordinary ChatGPT ui/message acceptance 19:36-19:42 MSK
 - Live ui-message-2026-10-29 active host acceptance now PASS on DOMKAT 0.2.16 for manual, queued, real GUI, background-tab. Commitment remains OPEN for persistent iframe lifetime and reliable always-available behavior when browser closed/suspended.
 - Fix misleading local chat footer and verify remote MKATUSHONOK GUI roundtrip in next phase. Hourly task may be disabled only after owner decision and full persistence acceptance.

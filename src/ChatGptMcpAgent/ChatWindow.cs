@@ -41,6 +41,27 @@ internal sealed class ChatWindow : Form
         Dock = DockStyle.Bottom, Height = 43, ForeColor = Color.DimGray
     };
     private readonly System.Windows.Forms.Timer _refresh = new() { Interval = 1000 };
+    private readonly ListBox _chatList = new() {
+        Dock = DockStyle.Fill, BorderStyle = BorderStyle.None,
+        Font = new Font("Segoe UI", 9.5f), IntegralHeight = false,
+        BackColor = Color.FromArgb(242, 245, 249), HorizontalScrollbar = false,
+        DrawMode = DrawMode.OwnerDrawFixed, ItemHeight = 66
+    };
+    private readonly Label _header = new()
+    {
+        Dock = DockStyle.Top, Height = 48, Padding = new Padding(13, 11, 10, 0),
+        Text = "Чат с ChatGPT · обычный режим, через MCP Tunnel",
+        Font = new Font("Segoe UI Semibold", 11)
+    };
+    private readonly Button _newChat = new() {
+        Text = "＋ Новый чат", Dock = DockStyle.Top, Height = 44,
+        Font = new Font("Segoe UI Semibold", 10), FlatStyle = FlatStyle.Flat
+    };
+    private string _activeChatId = "";
+    private string _chatListSnapshot = "";
+    private bool _changingChat;
+    private readonly Dictionary<string, (string Text, PendingAttachment[] Attachments)> _drafts = new();
+    private DateTimeOffset? _lastReplyUtc;
     private readonly List<PendingAttachment> _pending = new();
     private string _snapshot = "";
     private string _messageStatus = "Сообщений в очереди нет.";
@@ -55,18 +76,12 @@ internal sealed class ChatWindow : Form
     {
         Text = "ChatGPT MCP Tunnel — Чат";
         Icon = TrayIcons.AppIcon();
-        MinimumSize = new Size(580, 450);
-        Size = new Size(790, 685);
+        MinimumSize = new Size(770, 450);
+        Size = new Size(1030, 685);
         StartPosition = FormStartPosition.CenterScreen;
         Font = new Font("Segoe UI", 10);
         AllowDrop = true;
 
-        var header = new Label
-        {
-            Dock = DockStyle.Top, Height = 48, Padding = new Padding(13, 11, 10, 0),
-            Text = "Чат с ChatGPT  ·  обычный режим, через MCP Tunnel",
-            Font = new Font("Segoe UI Semibold", 11)
-        };
         var entry = new Panel { Dock = DockStyle.Bottom, Height = 222, Padding = new Padding(12, 6, 12, 7) };
         var inputAndButton = new Panel { Dock = DockStyle.Fill };
         inputAndButton.Controls.Add(_input);
@@ -75,9 +90,30 @@ internal sealed class ChatWindow : Form
         entry.Controls.Add(inputAndButton);
         entry.Controls.Add(_attachmentStrip);
         entry.Controls.Add(_status);
+        var sidebar = new Panel {
+            Dock = DockStyle.Left, Width = 224,
+            Padding = new Padding(8), BackColor = Color.FromArgb(242, 245, 249)
+        };
+        var caption = new Label {
+            Text = "Чаты этого компьютера", Dock = DockStyle.Top, Height = 30,
+            Font = new Font("Segoe UI Semibold", 9.5f),
+            ForeColor = Color.FromArgb(65, 75, 93)
+        };
+        sidebar.Controls.Add(_chatList);
+        sidebar.Controls.Add(caption);
+        sidebar.Controls.Add(_newChat);
+        _newChat.FlatAppearance.BorderSize = 0;
+        _newChat.Click += (_, _) => CreateChat();
+        _chatList.DrawItem += DrawChatItem;
+        _chatList.SelectedIndexChanged += (_, _) => {
+            if (!_changingChat && _chatList.SelectedItem is ChatListItem item)
+                SwitchChat(item.Id);
+        };
+        _activeChatId = ChatSessionStore.Active();
         Controls.Add(_history);
+        Controls.Add(sidebar);
         Controls.Add(entry);
-        Controls.Add(header);
+        Controls.Add(_header);
 
         _attach.Click += (_, _) => SelectFiles();
         _send.Click += (_, _) => SendMessage();
@@ -98,8 +134,108 @@ internal sealed class ChatWindow : Form
         DragDrop += FileDragDrop;
         _refresh.Tick += (_, _) => RefreshMessages();
         _refresh.Start();
-        Shown += (_, _) => { RefreshMessages(); _input.Focus(); };
+        Shown += (_, _) => { RefreshSessions(); RefreshMessages(); _input.Focus(); };
         FormClosed += (_, _) => _refresh.Dispose();
+    }
+
+    private sealed record ChatListItem(string Id, string Title, string Preview, DateTimeOffset Updated) {
+        public override string ToString() => Title;
+    }
+
+    private void DrawChatItem(object? sender, DrawItemEventArgs e)
+    {
+        if (e.Index < 0 || e.Index >= _chatList.Items.Count) return;
+        var item = (ChatListItem)_chatList.Items[e.Index]!;
+        var selected = (e.State & DrawItemState.Selected) != 0;
+        using var bg = new SolidBrush(selected
+            ? Color.FromArgb(216, 232, 253) : Color.FromArgb(242, 245, 249));
+        e.Graphics.FillRectangle(bg, e.Bounds);
+        var r = e.Bounds;
+        var w = Math.Max(30, r.Width - 18);
+        using var titleFont = new Font("Segoe UI Semibold", 9.5f);
+        TextRenderer.DrawText(e.Graphics, item.Title, titleFont,
+            new Rectangle(r.X + 8, r.Y + 6, w, 23),
+            Color.FromArgb(32, 43, 57),
+            TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
+        var preview = string.IsNullOrWhiteSpace(item.Preview)
+            ? item.Updated.ToLocalTime().ToString("dd.MM HH:mm") : item.Preview;
+        TextRenderer.DrawText(e.Graphics, preview, Font,
+            new Rectangle(r.X + 8, r.Y + 32, w, 23),
+            Color.FromArgb(103, 114, 128),
+            TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
+        if (selected) e.DrawFocusRectangle();
+    }
+
+    private void RefreshSessions()
+    {
+        try
+        {
+            var sessions = ChatSessionStore.List();
+            var snapshot = JsonSerializer.Serialize(sessions.Select(s =>
+                new { s.Id, s.Title, s.UpdatedUtc, s.LastPreview }));
+            if (snapshot == _chatListSnapshot) return;
+            _chatListSnapshot = snapshot;
+            _changingChat = true;
+            try
+            {
+                _chatList.BeginUpdate();
+                _chatList.Items.Clear();
+                foreach (var session in sessions)
+                    _chatList.Items.Add(new ChatListItem(session.Id, session.Title,
+                        session.LastPreview, session.UpdatedUtc));
+                for (var i = 0; i < _chatList.Items.Count; i++)
+                    if (((ChatListItem)_chatList.Items[i]!).Id == _activeChatId) {
+                        _chatList.SelectedIndex = i;
+                        break;
+                    }
+            }
+            finally { _chatList.EndUpdate(); _changingChat = false; }
+            var active = sessions.FirstOrDefault(s => s.Id == _activeChatId);
+            if (active is not null)
+                _header.Text = "Чат: " + active.Title + "  ·  ChatGPT MCP Tunnel";
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException) {
+            _status.Text = "Ошибка списка чатов: " + ex.GetType().Name;
+        }
+    }
+
+    private void SaveDraft()
+    {
+        if (!string.IsNullOrWhiteSpace(_activeChatId))
+            _drafts[_activeChatId] = (_input.Text, _pending.ToArray());
+    }
+
+    private void SwitchChat(string id)
+    {
+        if (_sending || id == _activeChatId) return;
+        SaveDraft();
+        ChatSessionStore.Select(id);
+        _activeChatId = id;
+        _input.Text = _drafts.TryGetValue(id, out var draft) ? draft.Text : "";
+        _pending.Clear();
+        if (_drafts.TryGetValue(id, out draft)) _pending.AddRange(draft.Attachments);
+        UpdateAttachmentStrip();
+        _snapshot = "";
+        _lastReplyUtc = null;
+        RefreshSessions();
+        RefreshMessages();
+        _input.Focus();
+    }
+
+    private void CreateChat()
+    {
+        if (_sending) return;
+        SaveDraft();
+        var session = ChatSessionStore.Create();
+        _activeChatId = session.Id;
+        _input.Clear();
+        _pending.Clear();
+        UpdateAttachmentStrip();
+        _snapshot = "";
+        _lastReplyUtc = null;
+        RefreshSessions();
+        RefreshMessages();
+        _input.Focus();
     }
 
     private void SelectFiles()
@@ -264,18 +400,21 @@ internal sealed class ChatWindow : Form
             return;
         }
         _sending = true;
-        _send.Enabled = _attach.Enabled = false;
+        _send.Enabled = _attach.Enabled = _newChat.Enabled = _chatList.Enabled = false;
         _messageStatus = "Сохранение вложений…";
         UpdateCycleStatus();
         var attachments = _pending.ToArray();
+        var chatId = _activeChatId;
         try
         {
-            await Task.Run(() => PersistMessage(text, attachments));
+            await Task.Run(() => PersistMessage(text, attachments, chatId));
             if (IsDisposed) return;
             _input.Clear();
             _pending.Clear();
+            _drafts.Remove(chatId);
             UpdateAttachmentStrip();
             _snapshot = "";
+            RefreshSessions();
             RefreshMessages();
         }
         catch (Exception ex)
@@ -288,12 +427,14 @@ internal sealed class ChatWindow : Form
         finally
         {
             _sending = false;
-            if (!IsDisposed) _send.Enabled = _attach.Enabled = true;
+            if (!IsDisposed) _send.Enabled = _attach.Enabled = _newChat.Enabled = _chatList.Enabled = true;
         }
     }
 
-    private static void PersistMessage(string text, PendingAttachment[] attachments)
+    private static void PersistMessage(string text, PendingAttachment[] attachments, string chatId)
     {
+        if (!ChatSessionStore.Valid(chatId))
+            throw new ArgumentException("Не указан идентификатор чата.", nameof(chatId));
         var id = Guid.NewGuid().ToString("N");
         var destination = Path.Combine(AttachmentFolder, id);
         var saved = new List<ChatAttachment>();
@@ -322,7 +463,7 @@ internal sealed class ChatWindow : Form
             Directory.CreateDirectory(ChatFolder);
             var message = new ChatRecord
             {
-                Id = id, CreatedUtc = DateTimeOffset.UtcNow,
+                Id = id, ChatId = chatId, CreatedUtc = DateTimeOffset.UtcNow,
                 Text = text, Status = "pending", Attachments = saved
             };
             var filePath = Path.Combine(ChatFolder, id + ".json");
@@ -331,6 +472,7 @@ internal sealed class ChatWindow : Form
             {
                 File.WriteAllText(temp, JsonSerializer.Serialize(message), new UTF8Encoding(false));
                 File.Move(temp, filePath);
+                ChatSessionStore.Touch(chatId, text.Length > 0 ? text : "📎 Вложения");
             }
             finally { if (File.Exists(temp)) File.Delete(temp); }
         }
@@ -352,6 +494,7 @@ internal sealed class ChatWindow : Form
 
     private void RefreshMessages()
     {
+        RefreshSessions();
         UpdateCycleStatus();
         try
         {
@@ -363,7 +506,8 @@ internal sealed class ChatWindow : Form
                         catch (IOException) { return null; }
                         catch (JsonException) { return null; }
                     })
-                    .Where(m => m is not null)
+                    .Where(m => m is not null &&
+                        (string.IsNullOrWhiteSpace(m.ChatId) ? ChatSessionStore.LegacyId : m.ChatId) == _activeChatId)
                     .OrderBy(m => m!.CreatedUtc)
                     .TakeLast(100)
                     .ToArray()
@@ -374,6 +518,8 @@ internal sealed class ChatWindow : Form
             _snapshot = snapshot;
             _history.SuspendLayout();
             _history.Clear();
+            _lastReplyUtc = rows.Where(m => m?.Status == "answered" && m.RepliedUtc is not null)
+                .Max(m => m?.RepliedUtc);
             foreach (var row in rows)
             {
                 if (row is null) continue;
@@ -405,8 +551,8 @@ internal sealed class ChatWindow : Form
             _history.ResumeLayout();
             var waiting = rows.Count(m => m is { Status: "pending" });
             _messageStatus = waiting > 0
-                ? $"В очереди: {waiting}. ChatGPT заберёт сообщения при следующей проверке."
-                : "Все сообщения обработаны. Для нового сообщения нажмите Enter.";
+                ? $"Ожидают ответа в этом чате: {waiting}."
+                : "Сообщения этого чата обработаны.";
             UpdateCycleStatus();
         }
         catch (Exception ex) { _status.Text = "Ошибка чтения очереди: " + ex.GetType().Name; }
@@ -414,23 +560,10 @@ internal sealed class ChatWindow : Form
 
     private void UpdateCycleStatus()
     {
-        var cycle = "Планировщик запускает проверку каждый час.";
-        try
-        {
-            if (File.Exists(CycleStatusPath))
-            {
-                using var doc = JsonDocument.Parse(File.ReadAllText(CycleStatusPath));
-                var state = doc.RootElement;
-                var lastSeen = state.GetProperty("LastSeenUtc").GetDateTimeOffset();
-                var number = state.GetProperty("CycleNumber").GetInt32();
-                var age = DateTimeOffset.UtcNow - lastSeen;
-                cycle = age <= TimeSpan.FromSeconds(120)
-                    ? $"Диагностика №{number}: модель отвечает, последнее обращение {age.TotalSeconds:F0} сек. назад."
-                    : $"Нет ответа от модели {age.TotalMinutes:F0} мин. Ожидается следующий почасовой запуск.";
-            }
-        }
-        catch (Exception ex) when (ex is IOException or JsonException or InvalidOperationException or KeyNotFoundException) { }
-        _status.Text = _messageStatus + Environment.NewLine + cycle;
+        var delivery = _lastReplyUtc.HasValue
+            ? "Ответ ChatGPT получен " + _lastReplyUtc.Value.ToLocalTime().ToString("dd.MM HH:mm:ss") + " · через MCP"
+            : "MCP Apps · ожидает новые сообщения (компонент должен быть открыт в ChatGPT).";
+        _status.Text = _messageStatus + Environment.NewLine + delivery;
     }
 
     private void Append(string text, Color color, bool bold)
@@ -439,6 +572,69 @@ internal sealed class ChatWindow : Form
         using var font = new Font(_history.Font, bold ? FontStyle.Bold : FontStyle.Regular);
         _history.SelectionFont = font;
         _history.AppendText(text + Environment.NewLine);
+    }
+
+    // Windows Forms integration, isolated on a temporary chat directory.
+    internal static int SelfTestSessions()
+    {
+        var previous = Environment.GetEnvironmentVariable("CHATGPT_MCP_CHAT_TEST_ROOT");
+        var root = Path.Combine(Path.GetTempPath(), "mcp-chat-sessions-" + Guid.NewGuid().ToString("N"));
+        Environment.SetEnvironmentVariable("CHATGPT_MCP_CHAT_TEST_ROOT", root);
+        try
+        {
+            var messages = Path.Combine(root, "messages");
+            Directory.CreateDirectory(messages);
+            // Simulate an old user message without ChatId: it must remain intact.
+            var original = new ChatRecord {
+                Id = Guid.NewGuid().ToString("N"), Text = "LEGACY_MESSAGE",
+                CreatedUtc = DateTimeOffset.UtcNow.AddDays(-1), Status = "answered",
+                Reply = "LEGACY_REPLY", RepliedUtc = DateTimeOffset.UtcNow.AddDays(-1)
+            };
+            var oldPath = Path.Combine(messages, original.Id + ".json");
+            var oldBytes = JsonSerializer.Serialize(original);
+            File.WriteAllText(oldPath, oldBytes);
+            using var window = new ChatWindow();
+            if (window._activeChatId != ChatSessionStore.LegacyId) return 70;
+            if (ChatSessionStore.List().Count != 1) return 71;
+            window.RefreshSessions();
+            window.RefreshMessages();
+            if (!window._history.Text.Contains("LEGACY_MESSAGE")) return 72;
+
+            window.CreateChat();
+            var first = window._activeChatId;
+            if (first == ChatSessionStore.LegacyId) return 73;
+            window._input.Text = "DRAFT_ONE";
+            PersistMessage("FIRST_CHAT_MESSAGE", Array.Empty<PendingAttachment>(), first);
+            window.RefreshMessages();
+            if (!window._history.Text.Contains("FIRST_CHAT_MESSAGE") ||
+                window._history.Text.Contains("LEGACY_MESSAGE")) return 74;
+            window.CreateChat();
+            var second = window._activeChatId;
+            if (first == second) return 75;
+            PersistMessage("SECOND_CHAT_MESSAGE", Array.Empty<PendingAttachment>(), second);
+            window.RefreshMessages();
+            if (window._history.Text.Contains("FIRST_CHAT_MESSAGE") ||
+                !window._history.Text.Contains("SECOND_CHAT_MESSAGE")) return 76;
+            window.SwitchChat(first);
+            if (window._input.Text != "DRAFT_ONE" ||
+                !window._history.Text.Contains("FIRST_CHAT_MESSAGE") ||
+                window._history.Text.Contains("SECOND_CHAT_MESSAGE")) return 77;
+            window.SwitchChat(ChatSessionStore.LegacyId);
+            if (!window._history.Text.Contains("LEGACY_REPLY")) return 78;
+            if (File.ReadAllText(oldPath) != oldBytes) return 79;
+            if (ChatSessionStore.List().Count != 3) return 80;
+            if (ChatSessionStore.List().All(s => s.Id != first || !s.Title.Contains("FIRST"))) return 81;
+            window.SwitchChat(second);
+            using var reopened = new ChatWindow();
+            if (reopened._activeChatId != second) return 82;
+            if (Directory.EnumerateFiles(messages, "*.json").Count() != 3) return 83;
+            return 0;
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("CHATGPT_MCP_CHAT_TEST_ROOT", previous);
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
+        }
     }
 
     // Isolated GUI and attachment persistence test. Does not touch the real queue or clipboard.
@@ -465,7 +661,7 @@ internal sealed class ChatWindow : Form
             });
             window.UpdateAttachmentStrip();
             if (window._pending.Count != 2 || window._attachmentStrip.Controls.Count != 2) return 41;
-            PersistMessage("", window._pending.ToArray());
+            PersistMessage("", window._pending.ToArray(), ChatSessionStore.Active());
             var messages = Directory.GetFiles(ChatFolder, "*.json");
             if (messages.Length != 1) return 42;
             using var doc = JsonDocument.Parse(File.ReadAllText(messages[0]));
@@ -510,6 +706,7 @@ internal sealed class ChatWindow : Form
     private sealed class ChatRecord
     {
         public string Id { get; set; } = "";
+        public string? ChatId { get; set; }
         public DateTimeOffset CreatedUtc { get; set; }
         public string Text { get; set; } = "";
         public string Source { get; set; } = "user";

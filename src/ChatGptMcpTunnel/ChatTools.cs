@@ -42,6 +42,7 @@ public static class ChatTools
             messages = pending.Select(m => new
             {
                 id = m.Id,
+                chat_id = m.ChatId ?? "00000000000000000000000000000000",
                 created_utc = m.CreatedUtc,
                 text = m.Text,
                 attachments = (m.Attachments ?? new()).Select(a => new
@@ -211,6 +212,7 @@ public static class ChatTools
     private sealed class ChatRecord
     {
         public string Id { get; set; } = "";
+        public string? ChatId { get; set; }
         public DateTimeOffset CreatedUtc { get; set; }
         public string Text { get; set; } = "";
         public string Status { get; set; } = "pending";

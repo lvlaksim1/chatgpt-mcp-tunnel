@@ -1,5 +1,13 @@
 # Manager plans
 
+## 29.10.2026: v0.2.17 multi-chat source implemented, pending Windows CI and real ChatGPT
+1. DONE: ChatSessionStore per-local-computer session index; backward-compatible legacy chat; WinForms New Chat, list, session selection, isolated drafts and history, last MCP reply display.
+2. DONE: ChatId in chat.receive and chat.ui.pending, ui/message target:new with chat.ui.open(chat_id) bootstrap, per-session heartbeat metadata and routing, legacy widget compatibility.
+3. DONE: local builds, isolated UI selftest, browser protocol simulators and live WinForms preview on DOMKAT with two chats.
+4. NEXT: Windows GitHub Actions v0.2.17 full/update builds/installer acceptance and code signing/hash verification; do not disrupt active 0.2.16 until verified.
+5. NEXT: DOMKAT update with chat history preservation, refresh MCP tools in authenticated ChatGPT browser, real target:new cloud conversation -> new iframe -> chat.reply test; test two-way switching and file attachments.
+6. LATER: MKATUSHONOK local GUI and cross-computer chat routing, concurrent iframe ownership/duplicate claim, closed-browser recovery.
+
 ## 29.10.2026: REAL ordinary ChatGPT ui/message acceptance 19:36-19:42 MSK
 1. DONE: ordinary ChatGPT 52 tools; chat.ui.open renders real MCP Apps iframe.
 2. DONE: manual nonce 58ewppk5, synthetic queue 43830fd3, GUI GUI8C42 and inactive-tab GUI BGTAB42; all generated ChatGPT model replies, and queued/GUI messages were saved via chat.reply.

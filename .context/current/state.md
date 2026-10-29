@@ -1,5 +1,10 @@
 # Current state
 
+## 29.10.2026: v0.2.17 multi-chat source implemented, pending Windows CI and real ChatGPT
+- 29 Oct 2026 owner-approved v0.2.17 code implementation completed for classic multi-chat on each computer. ChatWindow sidebar has '＋ Новый чат', titled session list with previews, click selection, separate message histories and retained local drafts/attachments. ChatSessionStore stores session metadata separately; existing messages unchanged in 'История до обновления'. GUI footer now reports the latest actual MCP chat.reply response instead of stale hourly scheduler.
+- Server sends chat_id on chat.receive; chat.ui.open(chat_id), pending(chat_id,discover), ack(new_chat) and new iframe auto-start support ui/message target:new handoff without changing total 52 MCP tool names. Legacy no-chat-id widgets restricted to legacy chat.
+- Selftests + .NET builds PASS; WinForms preview tested on DOMKAT in isolated root with two chats sent and switched; production DOMKAT still v0.2.16. v0.2.17 source pending commit/CI/deployment and real ChatGPT automatic new-cloud-chat acceptance.
+
 ## 29.10.2026: REAL ordinary ChatGPT ui/message acceptance 19:36-19:42 MSK
 - Live 0.2.16 acceptance PASS: ordinary ChatGPT new session after plugin tool refresh exposed 52 tools; invoked chat.ui.open, real iframe opened, host advertised ui/message text plus OpenAI extension.
 - Manual probe 58ewppk5 triggered model turn and exact answer. Auto relay enabled once: queue nonce 43830fd3 forwarded with durable ACK, answered via chat.reply; real DOMKAT WinForms text message GUI8C42 forwarded and replied; answer visibly displayed in GUI. Inactive ChatGPT browser tab: GUI message BGTAB42 also forwarded/acked/replied. All JSON statuses answered.
