@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
+using System.Security.Principal;
 
 namespace ChatGptMcpAgent;
 
@@ -76,6 +77,106 @@ internal static class Program
         if (args.Contains("--selftest", StringComparer.OrdinalIgnoreCase))
         {
             Environment.ExitCode = AgentStorage.RunSelfTest();
+            return;
+        }
+        if (args.Length == 1 && args[0] == "--uac-elevated-check")
+        {
+            Environment.ExitCode = new WindowsPrincipal(WindowsIdentity.GetCurrent())
+                .IsInRole(WindowsBuiltInRole.Administrator) ? 0 : 5;
+            return;
+        }
+        if (args.Length == 1 && args[0] == "--test-webview-network-live")
+        {
+            var previous = Environment.GetEnvironmentVariable("CHATGPT_MCP_CHAT_TEST_ROOT");
+            var scratch = Path.Combine(Path.GetTempPath(), "WebViewMcpProxyTest-" + Guid.NewGuid().ToString("N"));
+            Environment.SetEnvironmentVariable("CHATGPT_MCP_CHAT_TEST_ROOT", scratch);
+            try
+            {
+                ApplicationConfiguration.Initialize();
+                using var loop = new ApplicationContext();
+                using var timer = new System.Windows.Forms.Timer { Interval = 18000 };
+                timer.Tick += (_, _) =>
+                {
+                    timer.Stop();
+                    Environment.ExitCode = 99;
+                    var navPath = Path.Combine(scratch, "webview-bridge", "navigation.json");
+                    try
+                    {
+                        if (File.Exists(navPath))
+                        {
+                            using var nav = System.Text.Json.JsonDocument.Parse(File.ReadAllText(navPath));
+                            if (nav.RootElement.GetProperty("success").GetBoolean())
+                                Environment.ExitCode = 0;
+                        }
+                    }
+                    catch (Exception ex) when (ex is IOException or System.Text.Json.JsonException)
+                    { Environment.ExitCode = 100; }
+                    AgentStorage.Log("WebView2 proxy navigation test exit=" + Environment.ExitCode);
+                    WebViewChatHost.Shutdown();
+                    loop.ExitThread();
+                };
+                WebViewChatHost.Start();
+                timer.Start();
+                Application.Run(loop);
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("CHATGPT_MCP_CHAT_TEST_ROOT", previous);
+                try { if (Directory.Exists(scratch)) Directory.Delete(scratch, true); }
+                catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
+            }
+            return;
+        }
+        if (args.Length == 1 && args[0] == "--test-webview-startup")
+        {
+            var prior = Environment.GetEnvironmentVariable("CHATGPT_MCP_CHAT_TEST_ROOT");
+            var temp = Path.Combine(Path.GetTempPath(), "ChatGPT-MCP-WebView-Live-" + Guid.NewGuid().ToString("N"));
+            Environment.SetEnvironmentVariable("CHATGPT_MCP_CHAT_TEST_ROOT", temp);
+            try
+            {
+                ApplicationConfiguration.Initialize();
+                using var previewContext = new ApplicationContext();
+                using var timeout = new System.Windows.Forms.Timer { Interval = 14000 };
+                timeout.Tick += (_, _) =>
+                {
+                    timeout.Stop();
+                    Environment.ExitCode = WebViewChatHost.Status == "starting" ? 91 : 0;
+                    WebViewChatHost.Shutdown();
+                    previewContext.ExitThread();
+                };
+                WebViewChatHost.Start();
+                timeout.Start();
+                Application.Run(previewContext);
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("CHATGPT_MCP_CHAT_TEST_ROOT", prior);
+                try { if (Directory.Exists(temp)) Directory.Delete(temp, true); } catch (IOException) { }
+            }
+            return;
+        }
+        if (args.Length == 1 && args[0] == "--test-settings-hub")
+        {
+            ApplicationConfiguration.Initialize();
+            using var dialog = new SettingsHubDialog(() => { }, () => Task.CompletedTask,
+                () => { }, () => { });
+            Environment.ExitCode = dialog.Controls.OfType<TabControl>().Any(t => t.TabPages.Count >= 6) ? 0 : 92;
+            return;
+        }
+        if (args.Length == 1 && args[0] == "--test-webview-network")
+        {
+            Environment.ExitCode = WebViewNetworkProxy.SelfTest() ? 0 : 98;
+            return;
+        }
+        if (args.Length == 1 && args[0] == "--test-webview-transport")
+        {
+            Environment.ExitCode = WebViewChatHost.SelfTestConfig() ? 0 : 96;
+            return;
+        }
+        if (args.Length == 1 && args[0] == "--test-theme")
+        {
+            ApplicationConfiguration.Initialize();
+            Environment.ExitCode = AppTheme.SelfTest() ? 0 : 97;
             return;
         }
         if (args.Length == 1 && args[0] == "--test-webview-auth")
@@ -285,7 +386,6 @@ internal sealed class TrayContext : ApplicationContext
     private readonly System.Windows.Forms.Timer _timer = new() { Interval = 1500 };
     // Reopen verified ordinary ChatGPT threads when local delivery stalls.
     private readonly ChatThreadActivator _chatThreadActivator = new();
-    private readonly BrowserChatWorker _browserChatWorker = new();
     private readonly bool _diagnosticMode;
     private readonly ControlOverlay _controlOverlay = new();
     internal bool ControlOverlayVisible => _controlOverlay.NativeVisible;
@@ -359,19 +459,13 @@ internal sealed class TrayContext : ApplicationContext
         _diagnosticMode = diagnosticMode;
         if (_diagnosticMode) _controlOverlay.DisableOwnTimerForIntegrationTest();
         var menu = new ContextMenuStrip();
-        menu.Items.Add("Настройки подключения", null, (_, _) => ShowSettings());
-        menu.Items.Add("Переподключиться", null, (_, _) => RestartAgent());
-        menu.Items.Add("Проверить обновления", null, async (_, _) => await CheckUpdatesAsync(true));
-        menu.Items.Add("Чат", null, (_, _) => ShowChat());
-        menu.Items.Add("Вход в ChatGPT (WebView2)", null,
-            (_, _) => ChatGptWebViewAuthForm.ShowOrActivate());
-        menu.Items.Add("Передача файлов", null, (_, _) => ShowTransfers());
+        menu.Items.Add("Настройки", null, (_, _) => ShowSettings());
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("Выход", null, (_, _) => { AgentWatchdog.PauseForManualExit(); ExitThread(); });
         _tray = new NotifyIcon
         {
             Icon = _icons.ForStatus(_connection),
-            Text = "ChatGPT MCP Tunnel",
+            Text = "Подключение…",
             Visible = true,
             ContextMenuStrip = menu
         };
@@ -404,13 +498,12 @@ internal sealed class TrayContext : ApplicationContext
                 AgentStorage.SelectedRole == "server" &&
                 !_serverProbePending && DateTime.UtcNow >= _nextServerProbe)
                 _ = PollServerStatusAsync();
-            if (!_diagnosticMode && !_stopping && !_updating &&
-                !ControlState.IsStopped)
-                _browserChatWorker.EnsureRunning();
-            // MCP Apps are host-owned. Never launch the deprecated DOM/browser
-            // sender, and never trigger hidden browser clicks to create messages.
-            var label = "ChatGPT MCP Tunnel — " + _connection;
-            _tray.Text = label.Length > 63 ? label[..63] : label;
+            // Chat messages are handled by the in-process WebView2 host.
+            // Never start a second Chromium, Node.js or browser-based sender.
+            var status = _connection.Contains("подключ", StringComparison.OrdinalIgnoreCase) &&
+                !_connection.Contains("переподключ", StringComparison.OrdinalIgnoreCase)
+                ? "Подключено" : _connection;
+            _tray.Text = status.Length > 63 ? status[..63] : status;
             var displayIcon = _icons.ForStatus(_connection);
             if (!ReferenceEquals(_tray.Icon, displayIcon))
                 _tray.Icon = displayIcon;
@@ -422,6 +515,8 @@ internal sealed class TrayContext : ApplicationContext
     private void OnIdle(object? sender, EventArgs e)
     {
         Application.Idle -= OnIdle;
+        WebViewChatHost.Start();
+        ShowChat();
         if (!File.Exists(AgentStorage.SettingsPath) || !AgentStorage.HasCredential() ||
             (AgentStorage.SelectedRole == "server" && !AgentStorage.HasServerApiKey()))
             ShowSettings();
@@ -441,6 +536,7 @@ internal sealed class TrayContext : ApplicationContext
             return;
         }
         var chat = new ChatWindow();
+        AppTheme.Apply(chat);
         _chatWindow = chat;
         chat.FormClosed += (_, _) =>
         {
@@ -474,9 +570,9 @@ internal sealed class TrayContext : ApplicationContext
             EnsureSettingsWindowVisible(existing);
             return;
         }
-        Form form = AgentStorage.SelectedRole == "server"
-            ? new ServerSettingsDialog(AgentStorage.Load())
-            : new SettingsDialog(AgentStorage.Load());
+        Form form = new SettingsHubDialog(RestartAgent,
+            () => CheckUpdatesAsync(true), ShowTransfers, _controlOverlay.ShowStatus);
+        AppTheme.Apply(form);
         _settingsWindow = form;
         form.FormClosed += (_, _) =>
         {
@@ -662,8 +758,7 @@ internal sealed class TrayContext : ApplicationContext
     private void RestartAgent()
     {
         if (_updating || _stopping) return;
-        if (_transferWindow is { IsDisposed: false } transfers) transfers.Close();
-        if (_chatWindow is { IsDisposed: false } chat) chat.Close();
+        // Network reconnect does not close the primary ChatGPT UI or disrupt WebView2.
         StopAgent();
         _connection = "Переподключение…";
         _nextStart = DateTime.MinValue;
@@ -746,7 +841,8 @@ internal sealed class TrayContext : ApplicationContext
         if (_stopping) return;
         _stopping = true;
         _timer.Stop();
-        _browserChatWorker.Stop();
+        WebViewChatHost.Shutdown();
+        if (_chatWindow is ChatWindow chat) chat.CloseForExit();
         if (_settingsWindow is { IsDisposed: false } window)
             window.Close();
         if (_transferWindow is { IsDisposed: false } transfers) transfers.Close();

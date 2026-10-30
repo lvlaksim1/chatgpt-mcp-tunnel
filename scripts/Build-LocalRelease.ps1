@@ -32,13 +32,9 @@ try {
   foreach($file in @('AutomationWorker.ps1','ChatRelayApp.html','ChatGlobalHubApp.html','ChatLifecycleApp.html','ChatBootstrapApp.html')){
     if(-not (Test-Path (Join-Path $runtime $file))){throw "Missing resource: $file"}
   }
-  $node = (Get-Command node.exe -ErrorAction Stop).Source
-  Copy-Item $node (Join-Path $publish 'OpenAI\node.exe')
-  Copy-Item (Join-Path $repo 'src\ChatGptMcpAgent\NodeRuntimeLicense.txt') (Join-Path $publish 'OpenAI\LICENSE.node.txt')
-  Copy-Item (Join-Path $repo 'src\ChatGptMcpAgent\BrowserChatBridge.js') (Join-Path $runtime 'BrowserChatBridge.js')
-  & node (Join-Path $runtime 'BrowserChatBridge.js') --selftest
-  if($LASTEXITCODE -ne 0) { throw 'Browser transport selftest failed' }
-  if((Get-FileHash $node -Algorithm SHA256).Hash -ne (Get-FileHash (Join-Path $publish 'OpenAI\node.exe') -Algorithm SHA256).Hash) { throw 'Node hash mismatch' }
+  # Browser engine is WebView2 in the agent. Keep the legacy JS only in Git for rollback.
+  & node (Join-Path $repo 'src\ChatGptMcpAgent\BrowserChatBridge.js') --selftest
+  if($LASTEXITCODE -ne 0) { throw 'Legacy bridge regression test failed' }
   Copy-Item $client (Join-Path $publish 'OpenAI\tunnel-client.exe')
   $cloudflared=Join-Path $ClientSource 'cloudflared.exe'
   if(Test-Path $cloudflared){Copy-Item $cloudflared (Join-Path $publish 'OpenAI\cloudflared.exe')}
@@ -49,7 +45,7 @@ try {
     $uacTest=Start-Process -FilePath $runtimeExe -ArgumentList '--test-uac-shell' -Wait -PassThru
     if($uacTest.ExitCode -ne 0){throw "UAC shell local IPC selftest failed: $($uacTest.ExitCode)"}
     $app=Join-Path $publish 'ChatGptMcpAgent.exe'
-    foreach($flag in @('--selftest','--test-control','--test-overlay-auto','--test-overlay-tray','--test-chat-window','--test-chat-sessions','--test-chat-attachments','--test-transfer-window','--test-icons','--test-chat-thread-activator','--test-webview-auth')){
+    foreach($flag in @('--selftest','--test-control','--test-overlay-auto','--test-overlay-tray','--test-chat-window','--test-chat-sessions','--test-chat-attachments','--test-transfer-window','--test-icons','--test-chat-thread-activator','--test-webview-auth','--test-webview-transport','--test-webview-network','--test-theme')){
       Write-Output "SELFTEST $flag"
       $process=Start-Process -FilePath $app -ArgumentList $flag -Wait -PassThru
       if($process.ExitCode -ne 0){throw "Packaged selftest $flag failed code $($process.ExitCode)"}

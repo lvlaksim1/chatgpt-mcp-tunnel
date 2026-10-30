@@ -72,6 +72,19 @@ Type: files; Name: "{userdesktop}\ChatGPT MCP Agent.lnk"
 Filename: "{app}\{#AppExeName}"; Flags: nowait runhidden
 
 [Code]
+var
+  AdminPage: TInputOptionWizardPage;
+
+procedure InitializeWizard;
+begin
+  AdminPage := CreateInputOptionPage(wpWelcome,
+    'Полномочия обновления', 'Способ обновления',
+    'По умолчанию обновление выполняется без повышения прав.',
+    False, False);
+  AdminPage.Add('Установить с правами администратора');
+  AdminPage.Values[0] := False;
+end;
+
 function GetInstalledDir(Param: String): String;
 begin
   Result := '';
@@ -112,4 +125,36 @@ procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 begin
   if CurUninstallStep = usUninstall then
     RegDeleteValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Run', 'ChatGPTMCPAgent');
+end;
+
+
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+var
+  ExitCode: Integer;
+  InstalledExe: String;
+  ParamLine: String;
+begin
+  Result := '';
+  if not WizardSilent and AdminPage.Values[0] and not IsAdminLoggedOn then
+  begin
+    ParamLine := '/ADMIN_RESTART /DIR="' + WizardDirValue + '"';
+
+    if not ShellExec('runas', ExpandConstant('{srcexe}'), ParamLine, '',
+       SW_SHOW, ewNoWait, ExitCode) then
+      Result := 'Не удалось запросить повышение прав: ' + SysErrorMessage(ExitCode)
+    else
+      Result := 'Запущен установщик с правами администратора. Закройте это окно.';
+    exit;
+  end;
+  // Solve Inno Setup's endless wait for a running Tunnel:
+  // stop the agent by its IPC event, wait for mutex release, then install.
+  InstalledExe := AddBackslash(GetInstalledDir('')) + '{#AppExeName}';
+  if FileExists(InstalledExe) then
+  begin
+    if not Exec(InstalledExe, '--shutdown', '', SW_HIDE,
+       ewWaitUntilTerminated, ExitCode) then
+      Result := 'Не удалось закрыть MCP Tunnel: ' + SysErrorMessage(ExitCode)
+    else if ExitCode <> 0 then
+      Result := 'MCP Tunnel не завершился, код ' + IntToStr(ExitCode);
+  end;
 end;

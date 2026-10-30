@@ -26,6 +26,7 @@ internal sealed class ChatCloudImportDialog : Form
     {
         Text = "ChatGPT MCP Tunnel — Импорт диалога";
         StartPosition = FormStartPosition.CenterParent;
+        Shown += (_, _) => AppTheme.Apply(this);
         Size = new Size(680, 510);
         MinimumSize = new Size(500, 330);
         Font = new Font("Segoe UI", 10);
@@ -64,7 +65,7 @@ internal sealed class ChatCloudImportDialog : Form
         LoadCatalog();
     }
 
-    private static string Catalog => Path.Combine(AgentStorage.DataFolder, "Chat", "browser-bridge", "catalog.json");
+    private static string Catalog => Path.Combine(AgentStorage.DataFolder, "Chat", "webview-bridge", "catalog.json");
 
     private void LoadCatalog()
     {

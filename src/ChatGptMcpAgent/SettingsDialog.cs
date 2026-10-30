@@ -25,6 +25,7 @@ internal sealed class SettingsDialog : Form
         MaximizeBox = false;
         MinimizeBox = false;
         StartPosition = FormStartPosition.CenterScreen;
+        Shown += (_, _) => AppTheme.Apply(this);
         Font = new Font("Segoe UI", 10);
         Icon = TrayIcons.AppIcon();
 

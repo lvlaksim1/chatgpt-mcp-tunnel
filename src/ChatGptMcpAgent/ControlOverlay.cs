@@ -16,6 +16,7 @@ internal sealed class ControlOverlay : Form
     private readonly Button _stop = new();
     private readonly System.Windows.Forms.Timer _refresh = new() { Interval = 350 };
     // The tray owns this window for its entire lifetime: X hides, not disposes.
+    private bool _manualVisible;
     private bool _hiddenByUser;
     private HashSet<string> _activeWhenHidden = new(StringComparer.Ordinal);
 
@@ -39,6 +40,7 @@ internal sealed class ControlOverlay : Form
             _activeWhenHidden = ControlState.Read().Active.Select(x => x.Id)
                 .ToHashSet(StringComparer.Ordinal);
             _hiddenByUser = true;
+            _manualVisible = false;
             Hide();
             return;
         }
@@ -55,8 +57,8 @@ internal sealed class ControlOverlay : Form
         MinimizeBox = false;
         TopMost = true;
         ClientSize = new Size(388, 300);
-        BackColor = Color.FromArgb(33, 39, 49);
-        ForeColor = Color.White;
+        BackColor = AppTheme.Background;
+        ForeColor = AppTheme.Text;
         Font = new Font("Segoe UI", 9.5f);
         StartPosition = FormStartPosition.Manual;
         AutoScaleMode = AutoScaleMode.Font;
@@ -85,6 +87,7 @@ internal sealed class ControlOverlay : Form
         Controls.AddRange(new Control[] { _header, _executor, _current, _history, _stop, _version });
         _refresh.Tick += (_, _) => RefreshFromControl();
         _refresh.Start();
+        AppTheme.Apply(this);
     }
 
     private static string Friendly(string tool, string? activity = null) =>
@@ -136,7 +139,9 @@ internal sealed class ControlOverlay : Form
                 _hiddenByUser = false;
                 _activeWhenHidden.Clear();
             }
-            var visible = active || s.Stopped || Recent(s);
+            if (!UiPreferences.Load().ShowControlNotifications && !_manualVisible && !s.Stopped)
+            { if (Visible) Hide(); return; }
+            var visible = _manualVisible || active || s.Stopped || Recent(s);
             if (!visible) { if (Visible) Hide(); return; }
             var status = s.Stopped ? "ОСТАНОВЛЕНО ПОЛЬЗОВАТЕЛЕМ" :
                 active ? "Управление активно" : "Управление завершено";
@@ -159,6 +164,10 @@ internal sealed class ControlOverlay : Form
             _stop.Text = s.Stopped ? "ВОЗОБНОВИТЬ УПРАВЛЕНИЕ" : "СТОП — ПРЕКРАТИТЬ УПРАВЛЕНИЕ";
             _stop.BackColor = s.Stopped ? Color.FromArgb(48, 119, 89) :
                 Color.FromArgb(174, 48, 54);
+        if (_header.ForeColor == Color.White)
+            _header.ForeColor = AppTheme.Text;
+        _history.ForeColor = AppTheme.Secondary;
+        _version.ForeColor = AppTheme.Secondary;
             if (!NativeVisible)
             {
                 var area = (Screen.PrimaryScreen ?? Screen.FromPoint(Cursor.Position)).WorkingArea;
@@ -204,6 +213,7 @@ internal sealed class ControlOverlay : Form
     internal void ShowStatus()
     {
         _hiddenByUser = false;
+        _manualVisible = true;
         _activeWhenHidden.Clear();
         RefreshFromControl();
         if (!Visible) Show();

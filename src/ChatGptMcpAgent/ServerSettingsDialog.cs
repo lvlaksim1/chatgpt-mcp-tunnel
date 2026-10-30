@@ -27,6 +27,7 @@ internal sealed class ServerSettingsDialog : Form
         ClientSize = new Size(530, 430);
         FormBorderStyle = FormBorderStyle.FixedDialog;
         StartPosition = FormStartPosition.CenterScreen;
+        Shown += (_, _) => AppTheme.Apply(this);
         MaximizeBox = false;
         MinimizeBox = false;
         Font = new Font("Segoe UI", 10);

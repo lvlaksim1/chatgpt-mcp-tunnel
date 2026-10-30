@@ -20,6 +20,7 @@ internal sealed class SecretInputDialog : Form
         Text = "Указать значение";
         Icon = TrayIcons.AppIcon();
         StartPosition = FormStartPosition.CenterParent;
+        Shown += (_, _) => AppTheme.Apply(this);
         ClientSize = new Size(450, 164);
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;

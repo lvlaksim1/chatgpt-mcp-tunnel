@@ -69,6 +69,7 @@ internal sealed class ChatGptWebViewAuthForm : Form
         Size = new Size(1120, 800);
         MinimumSize = new Size(720, 560);
         StartPosition = FormStartPosition.CenterScreen;
+        Shown += (_, _) => AppTheme.Apply(this);
         Icon = TrayIcons.AppIcon();
         Font = new Font("Segoe UI", 10);
         _toolbar.Padding = new Padding(5);

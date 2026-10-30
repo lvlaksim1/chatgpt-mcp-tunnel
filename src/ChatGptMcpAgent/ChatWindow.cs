@@ -47,6 +47,7 @@ internal sealed class ChatWindow : Form
         BackColor = Color.FromArgb(242, 245, 249), HorizontalScrollbar = false,
         DrawMode = DrawMode.OwnerDrawFixed, ItemHeight = 66
     };
+    private Panel? _sidebar;
     private readonly Label _header = new()
     {
         Dock = DockStyle.Top, Height = 48, Padding = new Padding(13, 11, 10, 0),
@@ -70,6 +71,8 @@ internal sealed class ChatWindow : Form
     private string _snapshot = "";
     private string _messageStatus = "Сообщений в очереди нет.";
     private bool _sending;
+    private bool _allowClose;
+    private bool _lastThemeDark = AppTheme.Dark;
     private static string ChatRoot => Environment.GetEnvironmentVariable("CHATGPT_MCP_CHAT_TEST_ROOT") ??
         Path.Combine(AgentStorage.DataFolder, "Chat");
     private static string CycleStatusPath => Path.Combine(ChatRoot, "cycle-status.json");
@@ -78,7 +81,7 @@ internal sealed class ChatWindow : Form
 
     public ChatWindow()
     {
-        Text = "ChatGPT MCP Tunnel — Чат";
+        Text = "ChatGPT MCP Tunnel v" + Application.ProductVersion.Split('+')[0] + " — Чат";
         Icon = TrayIcons.AppIcon();
         MinimumSize = new Size(770, 450);
         Size = new Size(1030, 685);
@@ -98,6 +101,7 @@ internal sealed class ChatWindow : Form
             Dock = DockStyle.Left, Width = 224,
             Padding = new Padding(8), BackColor = Color.FromArgb(242, 245, 249)
         };
+        _sidebar = sidebar;
         var caption = new Label {
             Text = "Чаты этого компьютера", Dock = DockStyle.Top, Height = 30,
             Font = new Font("Segoe UI Semibold", 9.5f),
@@ -124,7 +128,7 @@ internal sealed class ChatWindow : Form
         login.Controls.Add(_signIn);
         Controls.Add(login);
         login.BringToFront();
-        _signIn.Click += (_, _) => BrowserChatWorker.ShowSignIn(this);
+        _signIn.Click += (_, _) => WebViewChatHost.ShowSignIn(this);
 
         _attach.Click += (_, _) => SelectFiles();
         _send.Click += (_, _) => SendMessage();
@@ -145,8 +149,35 @@ internal sealed class ChatWindow : Form
         DragDrop += FileDragDrop;
         _refresh.Tick += (_, _) => RefreshMessages();
         _refresh.Start();
+        AppTheme.Apply(this);
+        RefreshTheme();
         Shown += (_, _) => { RefreshSessions(); RefreshMessages(); _input.Focus(); };
+        FormClosing += (_, e) =>
+        {
+            // User's X minimizes to tray; the only explicit application exit is via
+            // tray -> Exit, which disposes the entire application context.
+            if (!_allowClose && e.CloseReason == CloseReason.UserClosing)
+            { e.Cancel = true; Hide(); }
+        };
         FormClosed += (_, _) => _refresh.Dispose();
+    }
+
+    private void RefreshTheme()
+    {
+        if (_sidebar is not null) _sidebar.BackColor = AppTheme.Sidebar;
+        _chatList.BackColor = AppTheme.Sidebar;
+        _history.BackColor = AppTheme.Background;
+        _history.ForeColor = AppTheme.Text;
+        _input.BackColor = AppTheme.Surface;
+        _input.ForeColor = AppTheme.Text;
+        _status.ForeColor = AppTheme.Secondary;
+        _attachmentStrip.BackColor = AppTheme.Surface;
+        _chatList.Invalidate();
+    }
+    internal void CloseForExit()
+    {
+        _allowClose = true;
+        Close();
     }
 
     private sealed record ChatListItem(string Id, string Title, string Preview, DateTimeOffset Updated) {
@@ -158,21 +189,20 @@ internal sealed class ChatWindow : Form
         if (e.Index < 0 || e.Index >= _chatList.Items.Count) return;
         var item = (ChatListItem)_chatList.Items[e.Index]!;
         var selected = (e.State & DrawItemState.Selected) != 0;
-        using var bg = new SolidBrush(selected
-            ? Color.FromArgb(216, 232, 253) : Color.FromArgb(242, 245, 249));
+        using var bg = new SolidBrush(selected ? AppTheme.Selected : AppTheme.Sidebar);
         e.Graphics.FillRectangle(bg, e.Bounds);
         var r = e.Bounds;
         var w = Math.Max(30, r.Width - 18);
         using var titleFont = new Font("Segoe UI Semibold", 9.5f);
         TextRenderer.DrawText(e.Graphics, item.Title, titleFont,
             new Rectangle(r.X + 8, r.Y + 6, w, 23),
-            Color.FromArgb(32, 43, 57),
+            AppTheme.Text,
             TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
         var preview = string.IsNullOrWhiteSpace(item.Preview)
             ? item.Updated.ToLocalTime().ToString("dd.MM HH:mm") : item.Preview;
         TextRenderer.DrawText(e.Graphics, preview, Font,
             new Rectangle(r.X + 8, r.Y + 32, w, 23),
-            Color.FromArgb(103, 114, 128),
+            AppTheme.Secondary,
             TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
         if (selected) e.DrawFocusRectangle();
     }
@@ -517,6 +547,13 @@ internal sealed class ChatWindow : Form
 
     private void RefreshMessages()
     {
+        if (_lastThemeDark != AppTheme.Dark)
+        {
+            _lastThemeDark = AppTheme.Dark;
+            RefreshTheme();
+            _snapshot = "";
+            _chatList.Invalidate();
+        }
         RefreshSessions();
         UpdateCycleStatus();
         try
@@ -569,8 +606,8 @@ internal sealed class ChatWindow : Form
                             if (role is not ("assistant" or "user") || body.Length == 0) continue;
                             Append(role == "assistant" ? "ChatGPT · история" : "Вы · история",
                                 role == "assistant" ? Color.FromArgb(24,125,86) :
-                                Color.FromArgb(24,95,160), true);
-                            Append(body, Color.Black, false);
+                                AppTheme.Accent, true);
+                            Append(body, AppTheme.Text, false);
                             Append("", Color.Gray, false);
                         }
                 }
@@ -584,27 +621,27 @@ internal sealed class ChatWindow : Form
                 if (row.Source == "system")
                 {
                     Append("ChatGPT · " + row.Text + " · " + row.CreatedUtc.ToLocalTime().ToString("HH:mm"),
-                        Color.FromArgb(24, 125, 86), true);
-                    Append(row.Reply ?? "", Color.Black, false);
+                        AppTheme.Assistant, true);
+                    Append(row.Reply ?? "", AppTheme.Text, false);
                     Append("", Color.Gray, false);
                     continue;
                 }
                 Append("Вы  ·  " + row.CreatedUtc.ToLocalTime().ToString("dd.MM HH:mm"),
-                    Color.FromArgb(24, 95, 160), true);
-                if (!string.IsNullOrEmpty(row.Text)) Append(row.Text, Color.Black, false);
+                    AppTheme.Accent, true);
+                if (!string.IsNullOrEmpty(row.Text)) Append(row.Text, AppTheme.Text, false);
                 foreach (var attachment in row.Attachments ?? new())
                     Append("📎 " + attachment.Name + " (" + FormatSize(attachment.SizeBytes) + ")",
-                        Color.FromArgb(75, 89, 111), false);
+                        AppTheme.Secondary, false);
                 if (row.Status == "answered" && row.Reply is not null)
                 {
                     Append("ChatGPT  ·  " + (row.RepliedUtc?.ToLocalTime().ToString("dd.MM HH:mm") ?? ""),
-                        Color.FromArgb(24, 125, 86), true);
-                    Append(row.Reply, Color.Black, false);
+                        AppTheme.Assistant, true);
+                    Append(row.Reply, AppTheme.Text, false);
                 }
                 else if (partials.TryGetValue(row.Id, out var draftReply) && draftReply.Length != 0)
                 {
-                    Append("ChatGPT · печатает…", Color.FromArgb(24,125,86), true);
-                    Append(draftReply, Color.Black, false);
+                    Append("ChatGPT · печатает…", AppTheme.Assistant, true);
+                    Append(draftReply, AppTheme.Text, false);
                 }
                 else Append("Ожидает ответа", Color.Gray, false);
                 Append("", Color.Gray, false);
@@ -623,7 +660,7 @@ internal sealed class ChatWindow : Form
 
     private void UpdateCycleStatus()
     {
-        var heartbeatPath = Path.Combine(ChatRoot, "browser-bridge", "heartbeat.json");
+        var heartbeatPath = Path.Combine(ChatRoot, "webview-bridge", "heartbeat.json");
         try
         {
             if (File.Exists(heartbeatPath))
@@ -633,14 +670,14 @@ internal sealed class ChatWindow : Form
                 var at = heartbeat.RootElement.GetProperty("at").GetDateTimeOffset();
                 var fresh = DateTimeOffset.UtcNow - at < TimeSpan.FromSeconds(12);
                 _status.Text = _messageStatus + Environment.NewLine +
-                    (fresh ? (mode == "browser" ? "Браузерный транспорт работает · ChatGPT" :
-                        "Ожидается вход в ChatGPT: нажмите «Вход в ChatGPT»") :
-                        "Браузерный транспорт отключён");
+                    (fresh ? (mode == "webview" ? "WebView2 подключён · ChatGPT" :
+                        "Ожидается авторизация в WebView2: нажмите «Вход в ChatGPT»") :
+                        "WebView2 не отвечает");
                 return;
             }
         }
         catch (Exception e) when (e is JsonException or IOException or UnauthorizedAccessException) { }
-        _status.Text = _messageStatus + Environment.NewLine + "Браузерный транспорт пока не запущен.";
+        _status.Text = _messageStatus + Environment.NewLine + "WebView2 запускается…";
         return;
     }
 
