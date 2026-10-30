@@ -25,13 +25,13 @@ pre { font-size:11px; overflow-wrap:anywhere; white-space:pre-wrap; }
 <h2>Связь локального чата с ChatGPT</h2>
 <p>Сообщения из окна <b>ChatGPT MCP Tunnel</b> будут передаваться в этот диалог через <code>ui/message</code>. Никаких API-ключей, Codex и планировщика.</p>
 <div class="controls">
-<button id="start" type="button">Начать передачу</button>
+<button id="start" type="button">Возобновить передачу</button>
 <button class="secondary" id="stop" type="button" disabled>Остановить</button>
 <button class="secondary" id="check" type="button">Проверить очередь</button>
 <button class="secondary" id="probe" type="button" disabled>Тест ui/message</button>
 </div>
 <div role="status" aria-live="polite" class="status" id="status">Подключение к MCP Apps…</div>
-<p class="detail">Кнопка «Тест ui/message» отправляет отдельное диагностическое сообщение непосредственно из компонента по вашему нажатию. «Начать передачу» проверяет автоматическую отправку из локальной очереди. Сравнение покажет, разрешает ли ChatGPT передачу без нажатия именно в момент отправки.</p>
+<p class="detail">Передача начинается автоматически, когда ChatGPT открывает этот MCP Apps-компонент. Отдельное нажатие «Начать передачу» не нужно. Кнопка теста — только для диагностики.</p>
 <p class="detail">Эксперимент: компонент должен оставаться открытым в ChatGPT. Если ChatGPT приостановит или закроет его, передача сообщений остановится. Неотправленные сообщения сохранятся в локальной очереди.</p>
 <pre id="details"></pre>
 </main>
@@ -76,7 +76,11 @@ pre { font-size:11px; overflow-wrap:anywhere; white-space:pre-wrap; }
       if (content) {
         try {
           const parsed = JSON.parse(content.text);
-          if (chatIdPattern.test(parsed.chat_id || "")) boundChatId = parsed.chat_id;
+          if (chatIdPattern.test(parsed.chat_id || "")) {
+            boundChatId = parsed.chat_id;
+            autoStart = true;
+            if (initialized && !running) begin();
+          }
         } catch (_) {}
       }
       return;
@@ -124,17 +128,29 @@ pre { font-size:11px; overflow-wrap:anywhere; white-space:pre-wrap; }
   function formatMessage(message) {
     const attachments = Array.isArray(message.attachments) ? message.attachments : [];
     const files = attachments.map(a => a.name).join(", ");
-    // The cloud thread already preserves conversation history. Do not paste
-    // that history, diagnostic JSON, chat titles or long MCP instructions
-    // into the user's visible conversation.
-    const body = String(message.text || "").trim() ||
-       (files ? "Вложения: " + files : "");
-    const reference = "\\n\\n[ChatGPT MCP Tunnel: \\u043e\\u0442\\u0432\\u0435\\u0442 " +
-      "\\u0432 \\u043b\\u043e\\u043a\\u0430\\u043b\\u044c\\u043d\\u043e\\u0435 \\u043e\\u043a\\u043d\\u043e \\u0447\\u0435\\u0440\\u0435\\u0437 " +
-      "chat.reply(message_id=" + JSON.stringify(message.id) + ", reply=...) ]";
-    const fileNote = files
-      ? "\n[Вложения: " + files + "; для просмотра chat.attachment.read]" : "";
-    return body + fileNote + reference;
+    const body = String(message.text || "").trim();
+    return body || (files ? "Вложения: " + files : "");
+  }
+  // Per OpenAI's MCP Apps extension, assistant-audience blocks are hidden
+  // from the user but visible to the model. They carry the precise MCP reply
+  // route so no technical text is rendered in the normal chat.
+  function routingContext(message, newThread) {
+    const id = JSON.stringify(message.id);
+    const chat = JSON.stringify(message.chat_id);
+    const directive = "MCP Tunnel route for this user message: " +
+      "send your final answer to the local chat by calling the installed " +
+      "MCP tool chat.reply with message_id=" + id + " and reply=(your answer). " +
+      "Do not narrate this routing metadata to the user.";
+    const opening = newThread
+      ? " This is an explicitly new local chat. In this conversation, invoke " +
+        "chat.ui.open with chat_id=" + chat + " to attach this MCP Apps relay " +
+        "for subsequent local messages."
+      : "";
+    return {
+      type:"text",
+      text:directive + opening,
+      annotations:{audience:["assistant"]}
+    };
   }
   async function poll() {
     timer = null;
@@ -172,15 +188,14 @@ pre { font-size:11px; overflow-wrap:anywhere; white-space:pre-wrap; }
           } else {
             tell((needsNew ? "Создаю новый диалог для " : "Передаю сообщение ") +
               message.id + " через ui/message:");
-            const instruction = needsNew
-              ? "[\\u041d\\u043e\\u0432\\u044b\\u0439 \\u043b\\u043e\\u043a\\u0430\\u043b\\u044c\\u043d\\u044b\\u0439 \\u0447\\u0430\\u0442. " +
-                "chat.ui.open(chat_id=" + JSON.stringify(message.chat_id) + ").]\\n"
-              : "";
             let sent;
             try {
               sent = await request("ui/message", {
                 role:"user",
-                content:[{ type:"text", text:instruction + formatMessage(message) }],
+                content:[
+                  {type:"text", text:formatMessage(message)},
+                  routingContext(message, needsNew)
+                ],
                 _meta:{ "openai/message":{ target:needsNew ? "new" : "active", send:true } }
               });
               if (sent?.isError) {
@@ -273,7 +288,7 @@ pre { font-size:11px; overflow-wrap:anywhere; white-space:pre-wrap; }
   });
   request("ui/initialize", {
     protocolVersion:"2026-01-26",
-    appInfo:{name:"ChatGPT MCP Tunnel Chat Relay",version:"0.2.18"},
+    appInfo:{name:"ChatGPT MCP Tunnel Chat Relay",version:"0.2.37"},
     appCapabilities:{availableDisplayModes:["inline","fullscreen"]}
   }).then((response) => {
     initialized = true;
@@ -285,7 +300,7 @@ pre { font-size:11px; overflow-wrap:anywhere; white-space:pre-wrap; }
         "\nВозможности: " + JSON.stringify(caps));
     const standard = !!caps.message?.text;
     const extension = !!caps.experimental?.["openai/message"];
-    tell("MCP подключён. Отправка текста: "+(standard?"объявлена":"не объявлена")+"; расширение OpenAI: "+(extension?"объявлено":"не объявлено")+". Сначала проверьте «Тест ui/message», затем «Начать передачу».");
+    tell("MCP подключён. Отправка текста: "+(standard?"объявлена":"не объявлена")+"; расширение OpenAI: "+(extension?"объявлено":"не объявлено")+". Ожидаю привязку локального чата от Host.");
   }).catch((err) => { tell("Хост не поддерживает MCP Apps: " + err.message); start.disabled = true; });
 })();
 </script>

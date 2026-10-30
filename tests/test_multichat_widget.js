@@ -37,7 +37,10 @@ const host={postMessage(msg){
  }else if(msg.method==="ui/message"){
    assert.equal(msg.params._meta["openai/message"].target,"new");
    const sent=msg.params.content[0].text;
-   assert.ok(sent.includes("chat.ui.open(chat_id=\""+newId+"\")"),sent);
+   assert.ok(msg.params.content[1].text.includes("chat.ui.open"),msg.params.content[1].text);
+   assert.ok(msg.params.content[1].text.includes(newId));
+   assert.equal(msg.params.content[1].annotations.audience[0],"assistant");
+   assert.ok(!sent.includes("chat.ui.open"),"Technical content leaked");
    assert.ok(sent.includes("Привет из нового чата"));
    done=true;
  }else throw Error("unexpected method "+msg.method);
@@ -51,7 +54,7 @@ vm.runInNewContext(script,fake);
  for(let i=0;i<12;i++)await Promise.resolve();
  listeners.message({source:host,data:{jsonrpc:"2.0",method:"ui/notifications/tool-result",
    params:{result:{content:[{type:"text",text:JSON.stringify({ok:true,chat_id:legacy})}]}}}});
- buttons.get("start").click();
+ assert.equal(buttons.get("start").disabled,true,"auto-start expected");
  for(let c=0;c<3;c++){
    const t=timeouts.find(t=>t.on&&t.at<=clock);
    if(!t)break;

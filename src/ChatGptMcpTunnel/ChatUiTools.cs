@@ -7,7 +7,8 @@ using ModelContextProtocol.Server;
 [McpServerToolType]
 public static class ChatUiTools
 {
-    public const string ResourceUri = "ui://chatgpt-mcp-tunnel/relay-v0235";
+    public const string ResourceUri = "ui://chatgpt-mcp-tunnel/relay-v0237";
+    public const string LegacyV0235ResourceUri = "ui://chatgpt-mcp-tunnel/relay-v0235";
     public const string LegacyV0232ResourceUri = "ui://chatgpt-mcp-tunnel/relay-v0232";
     public const string LegacyV0231ResourceUri = "ui://chatgpt-mcp-tunnel/relay-v0231";
     public const string LegacyResourceUri = "ui://chatgpt-mcp-tunnel/relay-v0218";
@@ -25,7 +26,7 @@ public static class ChatUiTools
     private static readonly object AckGate = new();
 
     [McpServerTool(Name = "chat.ui.open", Title = "ChatGPT MCP Tunnel - Chat relay", ReadOnly = true)]
-    [McpMeta("ui", JsonValue = """{"resourceUri":"ui://chatgpt-mcp-tunnel/relay-v0235","visibility":["model","app"]}""")]
+    [McpMeta("ui", JsonValue = """{"resourceUri":"ui://chatgpt-mcp-tunnel/relay-v0237","visibility":["model","app"]}""")]
     [Description("Открывает ретранслятор MCP Apps для сообщений из локального чата. Используется в обычной беседе ChatGPT; после активации отправляет запросы через ui/message.")]
     public static string Open(string chat_id = "")
     {
@@ -38,7 +39,7 @@ public static class ChatUiTools
         resource = ResourceUri,
         chat_id = id,
 
-        note = "Привязка к локальному чату задаётся параметром chat_id; активируйте передачу в обычной беседе ChatGPT."
+        note = "MCP Apps начнёт передачу автоматически после открытия компонента хостом ChatGPT."
     });
     }
 
@@ -342,6 +343,11 @@ public static class ChatUiResources
     [Description("Интерактивная доставка локальных сообщений в обычный ChatGPT через MCP Apps.")]
     public static string Relay() =>
         File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "ChatRelayApp.html"), Encoding.UTF8);
+
+    [McpServerResource(UriTemplate = ChatUiTools.LegacyV0235ResourceUri,
+        Name = "chat_ui_relay_legacy_v0235", MimeType = "text/html;profile=mcp-app")]
+    [Description("Compatibility alias for v0.2.35 MCP Apps widgets.")]
+    public static string RelayLegacyV0235() => Relay();
 
     [McpServerResource(UriTemplate = ChatUiTools.LegacyV0232ResourceUri,
         Name = "chat_ui_relay_legacy_v0232", MimeType = "text/html;profile=mcp-app")]

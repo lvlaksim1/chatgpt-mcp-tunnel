@@ -45,6 +45,11 @@ VersionInfoDescription=ChatGPT MCP Tunnel universal installer
 Name: "autostart"; Description: "Запускать автоматически при входе в Windows"; Flags: checkedonce
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
+[InstallDelete]
+Type: files; Name: "{app}\Runtime\BrowserChatBridge.js"
+Type: files; Name: "{app}\OpenAI\node.exe"
+Type: files; Name: "{app}\OpenAI\LICENSE.node.txt"
+
 [Files]
 Source: "{#PublishDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "ServerStart.ps1"; DestDir: "{app}"; Flags: ignoreversion

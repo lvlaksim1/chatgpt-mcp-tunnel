@@ -29,6 +29,9 @@ const parent={postMessage(req){
    assert.ok(req.params.content[0].text.includes("NEW_USER_MESSAGE"));
    assert.ok(!req.params.content[0].text.includes("LOCAL_PRIOR_"));
    assert.ok(req.params.content[0].text.length<550);
+   assert.equal(req.params.content[1].annotations.audience[0],"assistant");
+   assert.ok(req.params.content[1].text.includes(messageId));
+   assert.ok(!req.params.content[0].text.includes(messageId));
    result={};
  }else throw Error(req.method);
  listeners.message({source:parent,data:{jsonrpc:"2.0",id:req.id,result}});
@@ -45,7 +48,7 @@ const sandbox={
  for(let i=0;i<10;i++)await Promise.resolve();
  listeners.message({source:parent,data:{jsonrpc:"2.0",method:"ui/notifications/tool-result",
   params:{result:{content:[{type:"text",text:JSON.stringify({chat_id:bound})}]}}}});
- buttons.get("start").click();
+ assert.equal(buttons.get("start").disabled,true,"host tool-result should auto-start");
  const t=timers.find(x=>x.active && x.at===0);assert.ok(t);t.active=false;t.fn();
  for(let i=0;i<30;i++)await Promise.resolve();
  assert.equal(calls.filter(x=>x.method==="ui/message").length,1);

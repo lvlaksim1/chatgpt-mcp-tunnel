@@ -42,7 +42,9 @@ async function check(mode){
     }
     if(req.method==="ui/message"){
       assert.ok(req.params.content[0].text.includes("Проверка"),"User text missing");
-      assert.ok(req.params.content[0].text.includes(mid),"Reply route marker missing");
+      assert.equal(req.params.content[1].annotations.audience[0],"assistant");
+      assert.ok(req.params.content[1].text.includes(mid),"MCP reply route marker missing");
+      assert.ok(!req.params.content[0].text.includes(mid),"MCP route leaked into visible chat");
       assert.ok(!req.params.content[0].text.includes("LOCAL_PRIOR_TEXT_803"),"History leaked into visible chat");
       assert.ok(!req.params.content[0].text.includes("LOCAL_PRIOR_REPLY_803"),"History leaked into visible chat");
       assert.equal(req.params._meta["openai/message"].target,"active","Wrong cloud thread");
@@ -81,7 +83,7 @@ async function check(mode){
     method:"ui/notifications/tool-result",params:{result:{content:[{
       type:"text",text:JSON.stringify({chat_id:cid})
     }]}}}});
-  elements.get("start").click();
+  assert.equal(elements.get("start").disabled,true,"relay should auto-start");
   await advance(0);
   assert.equal(acceptedMessages,1);
   assert.equal(elements.get("start").disabled,true,"relay stopped after first attempt");

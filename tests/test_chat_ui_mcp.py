@@ -10,7 +10,7 @@ from pathlib import Path
 repo = Path(__file__).resolve().parents[1]
 dll = Path(os.environ.get("CHATGPT_MCP_TEST_DLL", str(repo/"src"/"ChatGptMcpTunnel"/"bin"/"Release"/"net8.0"/"ChatGptMcpTunnel.dll")))
 assert dll.is_file(), dll
-resource_uri = "ui://chatgpt-mcp-tunnel/relay-v0235"
+resource_uri = "ui://chatgpt-mcp-tunnel/relay-v0237"
 
 with tempfile.TemporaryDirectory(prefix="mcp-chat-ui-contract-") as temp:
     root = Path(temp)
@@ -85,8 +85,10 @@ with tempfile.TemporaryDirectory(prefix="mcp-chat-ui-contract-") as temp:
         legacy_uri = "ui://chatgpt-mcp-tunnel/relay-v0218"
         previous_uri = "ui://chatgpt-mcp-tunnel/relay-v0231"
         prev_0232_uri = "ui://chatgpt-mcp-tunnel/relay-v0232"
+        prev_0235_uri = "ui://chatgpt-mcp-tunnel/relay-v0235"
         assert any(x["uri"]==previous_uri for x in resources)
         assert any(x["uri"]==prev_0232_uri for x in resources)
+        assert any(x["uri"]==prev_0235_uri for x in resources)
         assert any(x["uri"]==legacy_uri for x in resources), "Legacy URI removed"
         content = request("resources/read",{"uri":resource_uri})
         contents = content["contents"]
@@ -98,6 +100,7 @@ with tempfile.TemporaryDirectory(prefix="mcp-chat-ui-contract-") as temp:
         prior = request("resources/read",{"uri":previous_uri})["contents"][0]["text"]
         assert prior==html
         assert request("resources/read",{"uri":prev_0232_uri})["contents"][0]["text"]==html
+        assert request("resources/read",{"uri":prev_0235_uri})["contents"][0]["text"]==html
         old = request("resources/read",{"uri":legacy_uri})["contents"][0]["text"]
         assert old==html, "Legacy URI does not serve current safe relay"
         print("MCP_APP_HTML_RESOURCE_READ_OK")

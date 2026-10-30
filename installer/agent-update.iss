@@ -43,6 +43,11 @@ VersionInfoVersion={#AppVersion}
 VersionInfoProductName={#AppName}
 VersionInfoDescription=ChatGPT MCP Tunnel update installer
 
+[InstallDelete]
+Type: files; Name: "{app}\Runtime\BrowserChatBridge.js"
+Type: files; Name: "{app}\OpenAI\node.exe"
+Type: files; Name: "{app}\OpenAI\LICENSE.node.txt"
+
 [Files]
 Source: "{#PublishDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "ServerStart.ps1"; DestDir: "{app}"; Flags: ignoreversion

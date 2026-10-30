@@ -38,8 +38,12 @@ async function scenario(denyMessage) {
         }else if(request.method==="ui/message"){
           assert.equal(request.params.role,"user");
           assert.equal(request.params._meta["openai/message"].send,true);
-          assert.ok(request.params.content[0].text.includes(pendingId) ||
+          assert.ok(request.params.content[1]?.text.includes(pendingId) ||
                     request.params.content[0].text.includes("Контрольный сигнал"));
+          if (request.params.content[1]) {
+            assert.equal(request.params.content[1].annotations.audience[0],"assistant");
+            assert.ok(!request.params.content[0].text.includes(pendingId));
+          }
           if(denyMessage){
             listeners.message({source:mock.window.parent,data:{jsonrpc:"2.0",id:request.id,error:{code:-32000,message:"Blocked by host"}}});
             return;
@@ -57,9 +61,6 @@ async function scenario(denyMessage) {
   assert.ok(posted.some(x=>x.method==="ui/initialize"),"initialize missing");
   assert.ok(posted.some(x=>x.method==="ui/notifications/initialized"),"initialized notify missing");
   assert.equal(elements.get("probe").disabled,false,"probe should enable after initialize");
-  listeners.message({source:mock.window.parent,
-    data:{jsonrpc:"2.0",method:"ui/notifications/tool-result",
-          params:{result:{content:[{type:"text",text:JSON.stringify({chat_id:chatId})}]}}}});
   await elements.get("probe").click();
   for(let i=0;i<12;i++)await Promise.resolve();
   assert.equal(posted.filter(x=>x.method==="ui/message").length,1,"manual message not requested");
@@ -67,7 +68,10 @@ async function scenario(denyMessage) {
     "probe must not acknowledge any queued message");
   if(denyMessage) assert.ok(elements.get("status").textContent.includes("отклонён"));
   else assert.ok(elements.get("status").textContent.includes("хост принял"));
-  elements.get("start").click();
+  listeners.message({source:mock.window.parent,
+    data:{jsonrpc:"2.0",method:"ui/notifications/tool-result",
+          params:{result:{content:[{type:"text",text:JSON.stringify({chat_id:chatId})}]}}}});
+  assert.equal(elements.get("start").disabled,true,"relay must autostart on MCP host tool result");
   const advance=async until=>{
     while(true){
       const next = queue.filter(x=>x.active && x.when<=until).sort((a,b)=>a.when-b.when)[0];

@@ -37,7 +37,7 @@ internal sealed class ChatWindow : Form
     };
     private readonly Label _status = new()
     {
-        Text = "Сообщения автоматически отправляются в обычный ChatGPT. При первом запуске войдите в открывшемся окне браузера один раз.",
+        Text = "Авторизация через WebView2; сообщения передаются исключительно через MCP Apps. Статус соединения определяется ChatGPT Host.",
         Dock = DockStyle.Bottom, Height = 43, ForeColor = Color.DimGray
     };
     private readonly System.Windows.Forms.Timer _refresh = new() { Interval = 1000 };
@@ -52,6 +52,9 @@ internal sealed class ChatWindow : Form
         Dock = DockStyle.Top, Height = 48, Padding = new Padding(13, 11, 10, 0),
         Text = "Чат с ChatGPT · обычный режим, через MCP Tunnel",
         Font = new Font("Segoe UI Semibold", 11)
+    };
+    private readonly Button _signIn = new() {
+        Text = "Вход в ChatGPT", Dock = DockStyle.Right, Width = 150
     };
     private readonly Button _newChat = new() {
         Text = "＋ Новый чат", Dock = DockStyle.Top, Height = 44,
@@ -114,6 +117,11 @@ internal sealed class ChatWindow : Form
         Controls.Add(sidebar);
         Controls.Add(entry);
         Controls.Add(_header);
+        var login = new Panel { Dock = DockStyle.Top, Height = 37 };
+        login.Controls.Add(_signIn);
+        Controls.Add(login);
+        login.BringToFront();
+        _signIn.Click += (_, _) => ChatGptWebViewAuthForm.ShowOrActivate(this);
 
         _attach.Click += (_, _) => SelectFiles();
         _send.Click += (_, _) => SendMessage();
@@ -561,8 +569,8 @@ internal sealed class ChatWindow : Form
     private void UpdateCycleStatus()
     {
         var delivery = _lastReplyUtc.HasValue
-            ? "Ответ ChatGPT получен " + _lastReplyUtc.Value.ToLocalTime().ToString("dd.MM HH:mm:ss")
-            : "Автоматическая доставка: при первом запуске войдите в ChatGPT в отдельном окне браузера один раз.";
+            ? "Ответ ChatGPT получен " + _lastReplyUtc.Value.ToLocalTime().ToString("dd.MM HH:mm:ss") + " · через MCP"
+            : "MCP: ожидается активная привязка Host к диалогу. Вход через WebView2 не запускает MCP Apps автоматически.";
         _status.Text = _messageStatus + Environment.NewLine + delivery;
     }
 

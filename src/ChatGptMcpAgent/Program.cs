@@ -78,6 +78,17 @@ internal static class Program
             Environment.ExitCode = AgentStorage.RunSelfTest();
             return;
         }
+        if (args.Length == 1 && args[0] == "--test-webview-auth")
+        {
+            Environment.ExitCode=ChatGptWebViewAuthForm.TestConfiguration() ? 0 : 86;
+            return;
+        }
+        if (args.Length == 1 && args[0] == "--preview-webview-auth")
+        {
+            ApplicationConfiguration.Initialize();
+            ChatGptWebViewAuthForm.RunPreview();
+            return;
+        }
         if (args.Length == 1 && args[0] == "--preview-chat-window")
         {
             ApplicationConfiguration.Initialize();
@@ -275,7 +286,6 @@ internal sealed class TrayContext : ApplicationContext
     private readonly System.Windows.Forms.Timer _timer = new() { Interval = 1500 };
     // Reopen verified ordinary ChatGPT threads when local delivery stalls.
     private readonly ChatThreadActivator _chatThreadActivator = new();
-    private readonly BrowserChatWorker _browserChatWorker = new();
     private readonly bool _diagnosticMode;
     private readonly ControlOverlay _controlOverlay = new();
     internal bool ControlOverlayVisible => _controlOverlay.NativeVisible;
@@ -351,6 +361,8 @@ internal sealed class TrayContext : ApplicationContext
         menu.Items.Add("Переподключиться", null, (_, _) => RestartAgent());
         menu.Items.Add("Проверить обновления", null, async (_, _) => await CheckUpdatesAsync(true));
         menu.Items.Add("Чат", null, (_, _) => ShowChat());
+        menu.Items.Add("Вход в ChatGPT (WebView2)", null,
+            (_, _) => ChatGptWebViewAuthForm.ShowOrActivate());
         menu.Items.Add("Передача файлов", null, (_, _) => ShowTransfers());
         menu.Items.Add(ControlMenuCaption, null, (_, _) => ShowControlOverlay());
         menu.Items.Add(new ToolStripSeparator());
@@ -391,12 +403,8 @@ internal sealed class TrayContext : ApplicationContext
                 AgentStorage.SelectedRole == "server" &&
                 !_serverProbePending && DateTime.UtcNow >= _nextServerProbe)
                 _ = PollServerStatusAsync();
-            if (!_diagnosticMode && !_stopping && !_updating &&
-                AgentStorage.SelectedRole == "server" && !ControlState.IsStopped)
-                if (!BrowserChatWorker.HasPackagedFiles(AppContext.BaseDirectory))
-                    _chatThreadActivator.Tick(_child is { HasExited: false });
-            if (!_diagnosticMode && !_stopping && !_updating && !ControlState.IsStopped)
-                _browserChatWorker.EnsureRunning();
+            // MCP Apps are host-owned. Never launch the deprecated DOM/browser
+            // sender, and never trigger hidden browser clicks to create messages.
             var label = "ChatGPT MCP Tunnel — " + _connection;
             _tray.Text = label.Length > 63 ? label[..63] : label;
             var displayIcon = _icons.ForStatus(_connection);
@@ -737,7 +745,6 @@ internal sealed class TrayContext : ApplicationContext
         if (_settingsWindow is { IsDisposed: false } window)
             window.Close();
         if (_transferWindow is { IsDisposed: false } transfers) transfers.Close();
-        _browserChatWorker.Stop();
         StopAgent();
         _controlOverlay.Dispose();
         _tray.Visible = false;
