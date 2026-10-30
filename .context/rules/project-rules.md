@@ -31,3 +31,8 @@ No project-specific rules have been captured yet.
 
 Owner decision, 30.10.2026: Model plans one bounded batch, DOMKAT executes its predefined commands, then returns one substantial result. Consecutive GUI controls are approximately one second apart, while PowerShell, CMD, Git, filesystem, builds and tests have no artificial delays. On unexpected errors the computer stops the affected unsafe operation and returns diagnostics. The MODEL decides whether to repair, revise a batch, skip optional work or ask Owner if authorization or significant risk requires this. Previous STOP or fail-fast wording applies to the unsafe operation, not automatically to all development. Detailed standard: .context/rules/batch-development-standard.md.
 Local-first default: DOMKAT, D:/Dev/ChatGPT-MCP-Tunnel. GitHub is the versioned remote and verified fallback; direct GitHub development remains permitted when justified. Detailed policy: .context/rules/local-first-workspace.md.
+
+
+## Принцип приоритета возможностей (OWNER-POSSIBILITY-FIRST-2026-10-30)
+
+При исследовании начинать с возможностей, первичной спецификации, исходников и собственных воспроизводимых проверок. Рассматривать нестандартные сочетания протоколов, MCP tools/resources/prompts/apps/transport, локальных инструментов и host-интеграций. Не объявлять цель невозможной из-за отсутствия стандартной функции или чужого неподтверждённого опыта. Отличать гипотезу от проверенного результата; соблюдать полномочия и безопасность. Полный стандарт: .context/rules/possibility-first-research.md.

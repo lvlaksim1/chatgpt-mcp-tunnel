@@ -45,7 +45,8 @@
   "rules": [
     ".context/rules/project-rules.md",
     ".context/rules/batch-development-standard.md",
-    ".context/rules/local-first-workspace.md"
+    ".context/rules/local-first-workspace.md",
+    ".context/rules/possibility-first-research.md"
   ],
   "decisions": [
     ".context/decisions/router-lite-2026-10-28.md",
@@ -58,7 +59,8 @@
     ".context/decisions/mcp-ui-message-2026-10-29.md",
     ".context/decisions/operating-model-2026-10-30.md",
     ".context/decisions/executor-attribution-2026-10-30.md",
-    ".context/decisions/owner-development-model-2026-10-30.md"
+    ".context/decisions/owner-development-model-2026-10-30.md",
+    ".context/decisions/owner-possibility-first-2026-10-30.md"
   ],
   "dialogues": [],
   "history": [],
