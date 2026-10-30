@@ -74,7 +74,7 @@ try:
     expected.update({"chat.receive", "chat.reply", "chat.cycle", "chat.attachment.read",
                      "chat.ui.open", "chat.ui.pending", "chat.ui.ack",
                      "chat.bootstrap.open", "chat.hub.open", "chat.thread.open",
-                     "chat.lifecycle.event", "chat.lifecycle.status"})
+                     "chat.lifecycle.event", "chat.lifecycle.status", "chat.thread.relay.probe"})
     assert len(github_tools) == 17
     assert {t["name"] for t in tools} == expected, tools
     print("TOOL_DISCOVERY_OK", sorted(expected), flush=True)
