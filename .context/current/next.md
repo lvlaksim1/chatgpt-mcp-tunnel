@@ -1,5 +1,9 @@
 # Next actions
 
+## 2026-10-30: post-release v0.2.35
+Owner-authorized controlled installation, then check DOMKAT actual version and MCP connectivity, test two consecutive local messages in a bound ordinary existing ChatGPT conversation, then explicitly new chat from '+ New Chat', then MKATUSHONOK. Confirm replies appear in correct local chat and no other chat is created. Report exact result and retain all local messages. If installation not authorized, do not interrupt v0.2.33.
+
+
 ## 2026-10-30 05:25 MSK: stable v0.2.18 relay restoration
 Verify packaged v0.2.30 installation and live two-message ordinary ChatGPT E2E using chat.ui.open and Start; protect old queued messages. Then verify multichat and MKATUSHONOK. Keep new Hub automatic dispatch isolated until stable relay is accepted.
 

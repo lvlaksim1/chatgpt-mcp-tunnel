@@ -1,5 +1,9 @@
 # Manager beliefs
 
+## Verified 30 Oct 2026: v0.2.35 chat routing release
+Source commit 729838e was pushed to main; GitHub stable release v0.2.35 has two installer assets and SHA256 manifest. Packaged integration tests passed. Old-session discovery had incorrectly created new ChatGPT conversations; a new cloud dialog is now only dispatched from an explicitly newly created local chat. The visible message is shorter but still has a compact reply marker. Actual ChatGPT ordinary-mode E2E has NOT been verified. Installed DOMKAT remains 0.2.33.
+
+
 ## 2026-10-30 05:25 MSK: stable v0.2.18 relay restoration
 Owner directed return to working v0.2.18 chat. Git comparison proves current ChatRelayApp.html is unchanged from accepted eb1845f. Subsequent Bootstrap/HostActivator routing created non-delivery and false-ready states. Local candidate v0.2.30 disables competing automatic dispatch and tray activation, preserving unrelated MCP tools. Two dotnet builds, ten isolated tests and packaged release tests passed, but live acceptance remains open.
 

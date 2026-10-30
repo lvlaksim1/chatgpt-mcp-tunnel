@@ -1,5 +1,9 @@
 # Manager intentions and commitments
 
+## 30 Oct 2026: v0.2.35
+Completed and verified: local source correction, packed tests, direct stable GitHub release v0.2.35, full/update installers and SHA256. Active: install with Owner authority and confirm actual ordinary ChatGPT new/existing dialogue continuity with two turns and reply in local window. Active backlog: robust updater with confirmed reconnection/rollback, not claimed completed.
+
+
 ## 2026-10-30 05:25 MSK: stable v0.2.18 relay restoration
 Complete local restoration of v0.2.18 manual relay and v0.2.30 packaging, then safely install and run genuine two-turn E2E in an existing ordinary ChatGPT conversation. Only after live acceptance investigate robust automatic activation. Never route through Work or Codex.
 

@@ -1,5 +1,12 @@
 # Manager plans
 
+## 30 Oct 2026: next engineering plan
+1. Do not reinstall solely from context restore. DOMKAT is on v0.2.33; v0.2.35 published and downloadable.
+2. After authorized installation, compare installed ProductVersion, bridge_ping, agent/router processes and run new/existing chat two-turn E2E, visually confirm normal ChatGPT not Work.
+3. If mode, ACK, binding, or delivery fails, retain local pending messages; record sanitized host results before patching. Only then consider automatic host activation.
+4. Continue local-first development and GitHub storage/release only, Actions off.
+
+
 ## 2026-10-30 05:25 MSK: stable v0.2.18 relay restoration
 First validate compiled local v0.2.30 candidate, restore only the proven v0.2.18 manual chat.ui.open relay, isolate experimental Hub, and preserve pending messages. Next install under owner authorization and verify two consecutive local messages and replies in ordinary ChatGPT, then multichat. Keep auto-start separate.
 

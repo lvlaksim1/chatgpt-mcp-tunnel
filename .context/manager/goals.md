@@ -1,5 +1,9 @@
 # Manager goals
 
+## 30 Oct 2026 continuity
+Keep existing-chat target:active and explicit-new-chat target:new as independent acceptance criteria. Do not claim success from isolated tests alone. Preserve current connections until controlled install.
+
+
 ## Актуальные цели — 30.10.2026
 - Стабильный один MCP Tunnel для управления Windows и локального чата через **обычный ChatGPT** (не Work/Codex/API), с Router Lite и сохранением VPN Happ.
 - Быстрая работа: вначале цельный план, затем один локальный сценарий правок, сборки, проверок и краткий результат, вместо десятков микрозапросов.

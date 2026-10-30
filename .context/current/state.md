@@ -1,5 +1,9 @@
 # Current state
 
+## 2026-10-30 MSK: stable GitHub v0.2.35 release
+PUBLISHED: git commit 729838e, branch main, GitHub release v0.2.35 (full and update EXE, verified SHA256 manifest). Packaged dotnet, WinForms, MCP, Unicode, new/existing chat route, retry/ACK tests PASS. Source includes explicit new-cloud session marker, atomic discovery lease, shortened visible return marker, encoding fixes, overlay close fix and version label. LIVE ChatGPT UI E2E pending. DOMKAT runtime v0.2.33 deliberately untouched.
+
+
 ## 2026-10-30 05:25 MSK: stable v0.2.18 relay restoration
 LOCAL v0.2.30 stable-mode candidate compiled and packaged on 30 October 2026. The accepted v0.2.18 ChatRelayApp.html is source-equivalent to Git eb1845f. Concurrent bootstrap dispatch and tray host activation were disabled. Manual chat.ui.open is the sole sender; the installed DOMKAT remains v0.2.29 until an update. Ten regression suites and packaged tests passed. See docs/STABLE-CHAT-RESTORE-2026-10-30.md.
 

@@ -1,5 +1,9 @@
 # Current blockers and open risks
 
+## 2026-10-30 v0.2.35 acceptance gate
+Host E2E new/old ChatGPT dialogue is not verified. A successful MCP Apps ui/message acknowledgment does not prove ordinary ChatGPT vs Work or durable follow-up. A compact visible chat.reply message-id footer still exists; truly invisible routing metadata is not implemented. Updater fallback/rollback protocol is not fully verified; do not auto-install in single active tunnel without a recovery path.
+
+
 ## 2026-10-30 05:25 MSK: stable v0.2.18 relay restoration
 Manual chat.ui.open remains necessary. Complete real-host E2E has not yet been tested against packaged v0.2.30. The old DOMKAT pending message from 05:06 remains in queue. No fully unattended startup claim. In Cloudflare challenge, do not bypass host protections.
 

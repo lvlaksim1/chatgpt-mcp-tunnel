@@ -1,5 +1,9 @@
 # Latest handoff
 
+## 2026-10-30 MSK -- v0.2.35 released, live acceptance open
+Persistent manager project-manager, same identity. Source commit 729838e is on origin/main and stable GitHub Release v0.2.35 has ChatGPT_MCP_Tunnel_Setup_v0.2.35.exe, ChatGPT_MCP_Tunnel_Update_v0.2.35.exe and SHA256-v0.2.35.json. Packaged Windows/MCP/UTF-8/Node/GUI tests passed. Existing cloud route uses target:active; only explicit local '+ New Chat' may trigger target:new; discovery lease prevents dual creation. Visible content has only user text plus compact reply-ID footer. No real ChatGPT E2E accepted yet. Installed DOMKAT v0.2.33 unchanged (owner previously elected self-install); no Work/Codex/API, no GitHub Actions. Next: controlled install and E2E ordinary mode verification. docs/CHAT-ROUTING-V0235.md
+
+
 ## 2026-10-30 05:25 MSK: stable v0.2.18 relay restoration
 30.10.2026 owner instructed restoring accepted v0.2.18 text chat. Completed local source changes for v0.2.30: untouched ChatRelayApp.html, disabled competing Bootstrap and tray HostActivator, corrected Bootstrap Russian label, retained legacy resource aliases and version display. Ten targeted suites and packaged builds with SHA256 pass; installed runtime is still v0.2.29 until deployment. Live E2E acceptance not yet completed. No Work/Codex/API, GitHub Actions, or automatic release. docs/STABLE-CHAT-RESTORE-2026-10-30.md.
 
