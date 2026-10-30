@@ -48,16 +48,17 @@ public static class DesktopTools
 
     [McpServerTool(Name = "desktop.screen.info", Title = "Мультимедиа · Сведения об экране")]
     [Description("Категория «Мультимедиа» (multimedia): Get Windows desktop bounds in physical pixels, virtual desktop dimensions, mouse position and active window handle.")]
-    public static async Task<string> ScreenInfo([Description("Target computer from computers.list; omitted means local.")] string? computer = null)
+    public static async Task<string> ScreenInfo([Description("Target computer from computers.list; omitted means local.")] string? computer = null,
+        [Description("Display-only executor identity: project-manager, supervisor, chatgpt, or persona:Name. Defaults to ChatGPT; never used for authorization.")] string? executor = null)
     {
-        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.screen.info", new { });
-        using var control = ControlState.Begin("desktop.screen.info", guiAction: false, readOnly: true);
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.screen.info", new { executor });
+        using var control = ControlState.Begin("desktop.screen.info", guiAction: false, readOnly: true, executor: executor);
         RequireWindows();
         if (!GetCursorPos(out var cursor)) throw NativeError("GetCursorPos");
         var bounds = ScreenBounds();
         return AsJson(new
         {
-            virtual_screen = new { bounds.x, bounds.y, bounds.width, bounds.height },
+            virtual_screen = new { bounds.x, bounds.y, bounds.width, bounds.height, executor },
             primary_screen = new { width = GetSystemMetrics(0), height = GetSystemMetrics(1) },
             cursor = new { x = cursor.X, y = cursor.Y },
             foreground_hwnd = HandleToString(GetForegroundWindow()),
@@ -73,10 +74,11 @@ public static class DesktopTools
         [Description("Optional region width in pixels.")] int? width = null,
         [Description("Optional region height in pixels.")] int? height = null,
         [Description("Maximum returned image width in pixels, 320..4096 (default 1920).")] int max_width = 1920,
-        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null,
+        [Description("Display-only executor identity: project-manager, supervisor, chatgpt, or persona:Name. Defaults to ChatGPT; never used for authorization.")] string? executor = null)
     {
-        if (RouterLite.IsRemote(computer)) return await RouterLite.CallBlocksAsync(computer!, "desktop.screen.capture", new { x, y, width, height, max_width });
-        using var control = ControlState.Begin("desktop.screen.capture", guiAction: false, readOnly: true);
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallBlocksAsync(computer!, "desktop.screen.capture", new { x, y, width, height, max_width, executor });
+        using var control = ControlState.Begin("desktop.screen.capture", guiAction: false, readOnly: true, executor: executor);
         RequireWindows();
         if (max_width < 320 || max_width > 4096) throw new ArgumentOutOfRangeException(nameof(max_width));
         var screen = ScreenBounds();
@@ -128,10 +130,11 @@ public static class DesktopTools
     public static async Task<string> WindowList(
         [Description("Optional case-insensitive substring to filter window titles.")] string? title_filter = null,
         [Description("Include visible windows without titles (default false).")] bool include_untitled = false,
-        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null,
+        [Description("Display-only executor identity: project-manager, supervisor, chatgpt, or persona:Name. Defaults to ChatGPT; never used for authorization.")] string? executor = null)
     {
-        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.window.list", new { title_filter, include_untitled });
-        using var control = ControlState.Begin("desktop.window.list", guiAction: false, readOnly: true);
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.window.list", new { title_filter, include_untitled, executor });
+        using var control = ControlState.Begin("desktop.window.list", guiAction: false, readOnly: true, executor: executor);
         RequireWindows();
         var active = GetForegroundWindow();
         var windows = new List<object>();
@@ -168,10 +171,11 @@ public static class DesktopTools
     [McpServerTool(Name = "desktop.window.activate", Title = "Мультимедиа · Активировать окно")]
     [Description("Категория «Мультимедиа» (multimedia): Restore and bring a Windows application window to the foreground using a handle from desktop.window.list.")]
     public static async Task<string> WindowActivate([Description("Window handle as hex (0x...) or decimal string.")] string hwnd,
-        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null,
+        [Description("Display-only executor identity: project-manager, supervisor, chatgpt, or persona:Name. Defaults to ChatGPT; never used for authorization.")] string? executor = null)
     {
-        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.window.activate", new { hwnd });
-        using var control = ControlState.Begin("desktop.window.activate", guiAction: true, readOnly: false);
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.window.activate", new { hwnd, executor });
+        using var control = ControlState.Begin("desktop.window.activate", guiAction: true, readOnly: false, executor: executor);
         RequireWindows();
         var window = ParseWindow(hwnd);
         if (IsIconic(window)) ShowWindowAsync(window, SwRestore);
@@ -218,10 +222,11 @@ public static class DesktopTools
         [Description("New top position, physical pixels.")] int y,
         [Description("New window width in pixels.")] int width,
         [Description("New window height in pixels.")] int height,
-        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null,
+        [Description("Display-only executor identity: project-manager, supervisor, chatgpt, or persona:Name. Defaults to ChatGPT; never used for authorization.")] string? executor = null)
     {
-        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.window.move", new { hwnd, x, y, width, height });
-        using var control = ControlState.Begin("desktop.window.move", guiAction: true, readOnly: false);
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.window.move", new { hwnd, x, y, width, height, executor });
+        using var control = ControlState.Begin("desktop.window.move", guiAction: true, readOnly: false, executor: executor);
         RequireWindows();
         if (width < 50 || height < 50 || width > 20000 || height > 20000)
             throw new ArgumentOutOfRangeException(nameof(width), "Window size must be between 50 and 20000 pixels.");
@@ -240,10 +245,11 @@ public static class DesktopTools
     [McpServerTool(Name = "desktop.window.close", Title = "Мультимедиа · Закрыть окно")]
     [Description("Категория «Мультимедиа» (multimedia): Request graceful closing of a Windows application window. An application may display an unsaved-changes prompt.")]
     public static async Task<string> WindowClose([Description("Handle from desktop.window.list.")] string hwnd,
-        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null,
+        [Description("Display-only executor identity: project-manager, supervisor, chatgpt, or persona:Name. Defaults to ChatGPT; never used for authorization.")] string? executor = null)
     {
-        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.window.close", new { hwnd });
-        using var control = ControlState.Begin("desktop.window.close", guiAction: true, readOnly: false);
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.window.close", new { hwnd, executor });
+        using var control = ControlState.Begin("desktop.window.close", guiAction: true, readOnly: false, executor: executor);
         RequireWindows();
         var window = ParseWindow(hwnd);
         if (!PostMessageW(window, WmClose, IntPtr.Zero, IntPtr.Zero))
@@ -256,10 +262,11 @@ public static class DesktopTools
     [Description("Категория «Мультимедиа» (multimedia): Move the Windows pointer to exact physical screen coordinates without clicking.")]
     public static async Task<string> MouseMove([Description("Absolute x coordinate.")] int x,
         [Description("Absolute y coordinate.")] int y,
-        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null,
+        [Description("Display-only executor identity: project-manager, supervisor, chatgpt, or persona:Name. Defaults to ChatGPT; never used for authorization.")] string? executor = null)
     {
-        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.mouse.move", new { x, y });
-        using var control = ControlState.Begin("desktop.mouse.move", guiAction: true, readOnly: false);
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.mouse.move", new { x, y, executor });
+        using var control = ControlState.Begin("desktop.mouse.move", guiAction: true, readOnly: false, executor: executor);
         RequireWindows();
         CheckCoordinates(x, y);
         if (!SetCursorPos(x, y)) throw NativeError("SetCursorPos");
@@ -272,10 +279,11 @@ public static class DesktopTools
         [Description("Absolute y coordinate.")] int y,
         [Description("left, right, or middle (default left).")] string button = "left",
         [Description("1 or 2 clicks (default 1).")] int clicks = 1,
-        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null,
+        [Description("Display-only executor identity: project-manager, supervisor, chatgpt, or persona:Name. Defaults to ChatGPT; never used for authorization.")] string? executor = null)
     {
-        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.mouse.click", new { x, y, button, clicks });
-        using var control = ControlState.Begin("desktop.mouse.click", guiAction: true, readOnly: false);
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.mouse.click", new { x, y, button, clicks, executor });
+        using var control = ControlState.Begin("desktop.mouse.click", guiAction: true, readOnly: false, executor: executor);
         RequireWindows();
         CheckCoordinates(x, y);
         if (clicks is not (1 or 2)) throw new ArgumentOutOfRangeException(nameof(clicks));
@@ -304,10 +312,11 @@ public static class DesktopTools
     public static async Task<string> MouseScroll([Description("Wheel notches, positive=up, negative=down; range -100..100.")] int notches,
         [Description("Optional x coordinate of the target.")] int? x = null,
         [Description("Optional y coordinate of the target.")] int? y = null,
-        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null,
+        [Description("Display-only executor identity: project-manager, supervisor, chatgpt, or persona:Name. Defaults to ChatGPT; never used for authorization.")] string? executor = null)
     {
-        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.mouse.scroll", new { notches, x, y });
-        using var control = ControlState.Begin("desktop.mouse.scroll", guiAction: true, readOnly: false);
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.mouse.scroll", new { notches, x, y, executor });
+        using var control = ControlState.Begin("desktop.mouse.scroll", guiAction: true, readOnly: false, executor: executor);
         RequireWindows();
         if (notches == 0 || notches < -100 || notches > 100) throw new ArgumentOutOfRangeException(nameof(notches));
         if (x.HasValue != y.HasValue) throw new ArgumentException("Supply both x and y, or neither.");
@@ -323,10 +332,11 @@ public static class DesktopTools
     [McpServerTool(Name = "desktop.keyboard.type", Title = "Мультимедиа · Ввод текста")]
     [Description("Категория «Мультимедиа» (multimedia): Type arbitrary Unicode text into the current foreground Windows application without using the clipboard.")]
     public static async Task<string> KeyboardType([Description("Exact Unicode text to type.")] string text,
-        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null,
+        [Description("Display-only executor identity: project-manager, supervisor, chatgpt, or persona:Name. Defaults to ChatGPT; never used for authorization.")] string? executor = null)
     {
-        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.keyboard.type", new { text });
-        using var control = ControlState.Begin("desktop.keyboard.type", guiAction: true, readOnly: false);
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.keyboard.type", new { text, executor });
+        using var control = ControlState.Begin("desktop.keyboard.type", guiAction: true, readOnly: false, executor: executor);
         RequireWindows();
         if (text.Length > 20000) throw new ArgumentOutOfRangeException(nameof(text), "Maximum 20000 UTF-16 units.");
         // KEYEVENTF_UNICODE sends UTF-16 units, including surrogate pairs.
@@ -346,10 +356,11 @@ public static class DesktopTools
     [McpServerTool(Name = "desktop.keyboard.hotkey", Title = "Мультимедиа · Сочетание клавиш")]
     [Description("Категория «Мультимедиа» (multimedia): Send a keyboard shortcut to the foreground application: e.g. CTRL+S, ALT+TAB, CTRL+SHIFT+ESC or ENTER.")]
     public static async Task<string> KeyboardHotkey([Description("Hotkey string separated by +: CTRL+S, ALT+F4, ENTER, etc.")] string keys,
-        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null,
+        [Description("Display-only executor identity: project-manager, supervisor, chatgpt, or persona:Name. Defaults to ChatGPT; never used for authorization.")] string? executor = null)
     {
-        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.keyboard.hotkey", new { keys });
-        using var control = ControlState.Begin("desktop.keyboard.hotkey", guiAction: true, readOnly: false);
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "desktop.keyboard.hotkey", new { keys, executor });
+        using var control = ControlState.Begin("desktop.keyboard.hotkey", guiAction: true, readOnly: false, executor: executor);
         RequireWindows();
         var tokens = keys.Split('+', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
         if (tokens.Length is < 1 or > 6) throw new ArgumentException("Shortcut must have 1..6 keys.");

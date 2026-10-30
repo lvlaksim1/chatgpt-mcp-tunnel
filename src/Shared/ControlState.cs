@@ -7,6 +7,7 @@ public sealed class ControlActivity
     public string Id { get; set; } = "";
     public string Tool { get; set; } = "";
     public string Activity { get; set; } = "";
+    public string Executor { get; set; } = "chatgpt";
     public string StartedUtc { get; set; } = "";
     public string FinishedUtc { get; set; } = "";
     public int ProcessId { get; set; }
@@ -78,7 +79,7 @@ public static class ControlState
             "Computer control was stopped locally by the user.");
     }
     public static Operation Begin(string tool, bool guiAction = false, bool readOnly = false,
-        string? activity = null)
+        string? activity = null, string? executor = null)
     {
         if (string.IsNullOrWhiteSpace(tool) || tool.Length > 100 ||
             tool.Any(c => !(char.IsAsciiLetterOrDigit(c) || c is '.' or '_')))
@@ -99,6 +100,7 @@ public static class ControlState
             }
             s.Active.Add(new ControlActivity { Id = id, Tool = tool,
                 Activity = ControlActivityLabels.Display(tool, activity) is null ? "" : activity!,
+                Executor = ControlExecutor.Normalize(executor),
                 StartedUtc = DateTimeOffset.UtcNow.ToString("O"), ProcessId = Environment.ProcessId });
             return (remaining, true);
         });

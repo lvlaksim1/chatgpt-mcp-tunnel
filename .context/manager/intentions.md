@@ -1,5 +1,10 @@
 # Manager intentions and commitments
 
+## 30.10.2026 — маркировка исполнителя (active until deployed)
+- accepted/active: deliver user-requested executor line in the Windows control notification; per-call project-manager/supervisor or default ChatGPT, including remote and GUI batch; no global cross-chat leakage.
+- Source and integration tests v0.2.28 are locally passing. Release/production installation and host tool refresh are not yet proven; do not mark completed until verified.
+- Fix literal Russian UI question marks from the preceding v0.2.28 work in the same release; preserve previous owner directions on local build only.
+
 ## Действующие намерения после решения владельца 30.10.2026
 - **accepted/active:** исправить кириллические `????` в tray и классификаторе действий и проверить `v0.2.28`; текущие четыре незакоммиченные правки беречь. Устранить CS0162, проверить GUI-сообщения и регрессии. Не заявлять выпуска до успешных тестов/релиза.
 - **accepted/active:** перейти к выполнению целыми локальными пакетами по требованию владельца; сокращать время между мелкими действиями без потери контроля безопасности.

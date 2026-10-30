@@ -33,10 +33,10 @@ public static class ControlActivityLabels
         ["powershell_script"] = "Выполняю сценарий PowerShell",
         ["service_check"] = "Проверяю службы Windows",
         ["service_change"] = "Управляю службой Windows",
-        ["files_delete"] = "?????? ?????",
-        ["process_stop"] = "???????? ????????",
-        ["disk_change"] = "??????? ??????? ?????",
-        ["system_change"] = "??????? ????????? ?????????",
+        ["files_delete"] = "\u0423\u0434\u0430\u043b\u044f\u044e\u0020\u0444\u0430\u0439\u043b\u044b",
+        ["process_stop"] = "\u0417\u0430\u0432\u0435\u0440\u0448\u0430\u044e\u0020\u043f\u0440\u043e\u0446\u0435\u0441\u0441\u044b",
+        ["disk_change"] = "\u0418\u0437\u043c\u0435\u043d\u044f\u044e\u0020\u0440\u0430\u0437\u0434\u0435\u043b\u044b\u0020\u0434\u0438\u0441\u043a\u0430",
+        ["system_change"] = "\u0418\u0437\u043c\u0435\u043d\u044f\u044e\u0020\u0441\u0438\u0441\u0442\u0435\u043c\u043d\u044b\u0435\u0020\u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438",
         ["activity_probe"] = "Проверяю работу индикатора",
         ["diagnostic"] = "Выполняю диагностику",
         ["cli_command"] = "Выполняю команду на компьютере",
@@ -53,6 +53,12 @@ public static class ControlActivityLabels
         ["focus"] = "Перевожу фокус на элемент",
         ["scroll_into_view"] = "Перехожу к элементу",
     };
+
+    // Guards against corrupt user-facing resources (e.g. ????? caused by lossy encoding).
+    public static bool DisplayLabelsValid =>
+        ShellNames.Values.Concat(UiaNames.Values).All(value =>
+            !string.IsNullOrWhiteSpace(value) && !value.Contains('?') &&
+            value.Any(c => c >= '\u0400' && c <= '\u04ff'));
 
     public static string? Display(string tool, string? activity)
     {

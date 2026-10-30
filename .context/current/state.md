@@ -1,5 +1,10 @@
 # Current state
 
+## 30.10.2026 — новая функциональность исполнитель
+- Реализовано в локальных исходниках для v0.2.28: \`Executor\` в ControlActivity и подпись в WinForms overlay, необязательный \`executor\` во всех Windows MCP-вызовах, Router Lite, desktop.batch, передача файлов; fallback \`ChatGPT\`.
+- Тесты .NET/WinForms/Windows MCP/Router Lite проходят без предупреждений. Новое поле объявляется вызывающей моделью, Host сам не гарантирует персонализацию. Релиз/установка ещё под отдельным подтверждением.
+- Старая установленная v0.2.27 на DOMKAT не затронута в ходе текущей разработки. Прежняя Unicode-исправляющая работа v0.2.28 включена в этот код.
+
 ## ТЕКУЩЕЕ на 30.10.2026 — читать перед историей
 - Менеджер `project-manager` v2.1.0, Git `main`, проект `lvlaksim1/chatgpt-mcp-tunnel`, основная локальная папка `D:\Dev\ChatGPT-MCP-Tunnel`, `D:\ChatGPTMCPAgent` — установленный агент, `D:\ChatGPT-MCP-Tunnel` — прежняя копия.
 - DOMKAT установленная `v0.2.27`, агент/runtime/tunnel-client и bridge_ping после обновления подтверждены. MKATUSHONOK сейчас не перепроверялся. В GitHub v0.2.27 размещена прямой загрузкой локальных Inno установщиков; Actions (три workflow) выключены.

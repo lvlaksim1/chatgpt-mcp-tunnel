@@ -1,5 +1,11 @@
 # Manager plans
 
+## 30.10.2026 — executor attribution implementation
+1. Add per-tool optional \`executor\` metadata with default ChatGPT; normalize to display-only safe identifiers.
+2. Propagate over Router Lite, GUI batch nested calls and file transfer wire operations; display with active/recent event in overlay.
+3. Verify WinForms actual HWND + displayed label; tests for default/nonpersonalized, project-manager/supervisor, remote forwarding; preserve STOP and data secrecy.
+4. Build release locally on DOMKAT; push source and direct-release upload only, NEVER GitHub Actions. No production update without appropriately authorized controlled installation.
+
 ## Рабочий план от 30.10.2026 (актуальнее устаревших CI-планов)
 1. Продолжить незакоммиченные исправления Unicode v0.2.28, проверить все точные русские тексты, убрать CS0162. Одним локальным сценарием выполнить анализ → патч → `dotnet build` → WinForms/MCP тесты → краткий итог.
 2. При прямом поручении на выпуск: только локальный `scripts/Build-LocalRelease.ps1 -Version 0.2.28`, SHA-256, Git push исходников, прямой GitHub Release upload; без GitHub Actions.

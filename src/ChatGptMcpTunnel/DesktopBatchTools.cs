@@ -20,11 +20,12 @@ public static class DesktopBatchTools
     [Description("Категория «Мультимедиа»: Execute 1..16 allowlisted Windows GUI steps in one MCP call. Provide steps_json as a JSON array of {tool,arguments}. A UI Automation find may be followed by an action using path=\"$last.path\" to select the first matched element. Exactly one-second pacing between GUI mutations; STOP is checked before each step. Stops on first error. No arbitrary scripts.")]
     public static async Task<string> Batch(
         [Description("JSON array of 1..16 {tool,arguments} steps, max 20000 characters.")] string steps_json,
-        [Description("Target computer; omit for local.")] string? computer = null)
+        [Description("Target computer; omit for local.")] string? computer = null,
+        [Description("Display-only executor identity: project-manager, supervisor, chatgpt, or persona:Name. Defaults to ChatGPT; never used for authorization.")] string? executor = null)
     {
         if (RouterLite.IsRemote(computer))
-            return await RouterLite.CallStringAsync(computer!, "desktop.batch", new { steps_json });
-        using var control = ControlState.Begin("desktop.batch");
+            return await RouterLite.CallStringAsync(computer!, "desktop.batch", new { steps_json, executor });
+        using var control = ControlState.Begin("desktop.batch", executor: executor);
         if (steps_json.Length > 20000) throw new ArgumentOutOfRangeException(nameof(steps_json));
         using var doc = JsonDocument.Parse(steps_json);
         if (doc.RootElement.ValueKind != JsonValueKind.Array ||
@@ -48,12 +49,13 @@ public static class DesktopBatchTools
             var fields = new Dictionary<string, object?>();
             foreach (var prop in args.EnumerateObject())
             {
-                if (prop.Name == "computer") throw new ArgumentException("Nested computer target forbidden.");
+                if (prop.Name is "computer" or "executor") throw new ArgumentException("Nested computer target forbidden.");
                 fields[prop.Name] = prop.Value.ValueKind == JsonValueKind.String &&
                     prop.Value.GetString() == "$last.path"
                         ? lastPath ?? throw new ArgumentException("No previous UIA element path.")
                         : prop.Value.Clone();
             }
+            fields["executor"] = executor;
             var payload = JsonSerializer.SerializeToElement(fields);
             var result = await RouterLite.InvokeLocalAsync(name, payload);
             var serialized = result as string ?? throw new InvalidOperationException("Unexpected GUI result.");

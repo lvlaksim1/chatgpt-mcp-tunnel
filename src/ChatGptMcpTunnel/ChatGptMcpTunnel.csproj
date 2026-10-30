@@ -8,6 +8,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../Shared/ControlState.cs" Link="ControlState.cs" />
+    <Compile Include="../Shared/ControlExecutor.cs" Link="ControlExecutor.cs" />
     <Compile Include="../Shared/ControlActivityLabels.cs" Link="ControlActivityLabels.cs" />
   </ItemGroup>
   <ItemGroup>

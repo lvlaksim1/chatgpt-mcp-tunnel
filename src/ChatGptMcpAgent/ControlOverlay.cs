@@ -9,6 +9,7 @@ namespace ChatGptMcpAgent;
 internal sealed class ControlOverlay : Form
 {
     private readonly Label _header = new();
+    private readonly Label _executor = new();
     private readonly Label _current = new();
     private readonly Label _history = new();
     private readonly Button _stop = new();
@@ -25,6 +26,7 @@ internal sealed class ControlOverlay : Form
     private static extern bool ShowWindow(IntPtr hWnd, int command);
 
     internal bool NativeVisible => IsHandleCreated && IsWindowVisible(Handle);
+    internal string ExecutorCaption => _executor.Text;
     protected override bool ShowWithoutActivation => true;
 
     internal ControlOverlay()
@@ -36,7 +38,7 @@ internal sealed class ControlOverlay : Form
         MinimizeBox = false;
         TopMost = true;
         Width = 365;
-        Height = 265;
+        Height = 297;
         BackColor = Color.FromArgb(33, 39, 49);
         ForeColor = Color.White;
         Font = new Font("Segoe UI", 9.5f);
@@ -47,16 +49,19 @@ internal sealed class ControlOverlay : Form
 
         _header.SetBounds(16, 12, 330, 28);
         _header.Font = new Font(Font, FontStyle.Bold);
-        _current.SetBounds(16, 42, 330, 48);
-        _history.SetBounds(16, 92, 330, 85);
+        _executor.SetBounds(16, 41, 330, 25);
+        _executor.ForeColor = Color.FromArgb(246, 211, 143);
+        _executor.Font = new Font(Font, FontStyle.Bold);
+        _current.SetBounds(16, 68, 330, 48);
+        _history.SetBounds(16, 119, 330, 85);
         _history.ForeColor = Color.FromArgb(194, 203, 215);
         _history.Font = new Font("Segoe UI", 8.3f);
-        _stop.SetBounds(16, 188, 330, 35);
+        _stop.SetBounds(16, 216, 330, 35);
         _stop.Font = new Font(Font, FontStyle.Bold);
         _stop.FlatStyle = FlatStyle.Flat;
         _stop.FlatAppearance.BorderSize = 0;
         _stop.Click += (_, _) => ToggleStop();
-        Controls.AddRange(new Control[] { _header, _current, _history, _stop });
+        Controls.AddRange(new Control[] { _header, _executor, _current, _history, _stop });
         _refresh.Tick += (_, _) => RefreshFromControl();
         _refresh.Start();
     }
@@ -111,6 +116,12 @@ internal sealed class ControlOverlay : Form
             _header.ForeColor = s.Stopped ? Color.OrangeRed :
                 active ? Color.LightGreen : Color.LightSkyBlue;
             var current = s.Active.LastOrDefault();
+            // The label belongs to the current operation (or the most recent
+            // operation); it is never stored globally across independent chats.
+            var lastExecutor = current?.Executor ??
+                s.Recent.FirstOrDefault()?.Executor;
+            _executor.Text = "Исполнитель: " + ControlExecutor.Display(lastExecutor);
+
             _current.Text = current is not null ? "Сейчас: " + Friendly(current.Tool, current.Activity) :
                 s.Stopped ? "Новые команды заблокированы на этом ПК." :
                 "Все операции завершены.";

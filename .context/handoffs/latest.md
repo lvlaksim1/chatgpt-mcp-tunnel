@@ -1,5 +1,8 @@
 # Latest handoff
 
+## UPDATE 30.10.2026 — исполнитель в уведомлении
+Владелец распорядился добавить персонализированного исполнителя: «Менеджер проекта», «Супервизор», и для обычного чата «ChatGPT». Source v0.2.28: \`ControlExecutor\`, per-invocation \`executor\`, per-operation \`ControlState\`, WinForms строка «Исполнитель», Router Lite, batch, file transfer propagation. Local builds/WinForms/Python/Node/Router tests PASS. Нет проверенного автоматического определения identity из Host: новая схема зависит от явного параметра модели, без глобального состояния и без привязки к авторизации. Документ docs/EXECUTOR-ATTRIBUTION-2026-10-30.md, owner decision .context/decisions/executor-attribution-2026-10-30.md. Последние Unicode исправления v0.2.28 сохранены. GitHub Actions отключены; дальнейший выпуск только локально.
+
 ## АКТУАЛЬНАЯ ПЕРЕДАЧА 30.10.2026, ~03:15 MSK
 Продолжается тот же `manager_id=project-manager` v2.1.0. Владелец потребовал восстановить менеджера и передать весь разговор. **Прочитать прежде старой истории:** `.context/decisions/operating-model-2026-10-30.md` и `docs/PROJECT-MANAGER-HANDOFF-2026-10-30.md`.
 

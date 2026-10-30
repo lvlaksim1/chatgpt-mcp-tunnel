@@ -139,6 +139,16 @@ try:
                    for item in recent), recent
         assert secret not in json.dumps(snapshot), snapshot
         print("SHELL_ACTIVITY_REDACTION_OK", flush=True)
+        call("shell.exec", command="Write-Output 314159",
+             working_directory=str(location), executor="project-manager")
+        snapshot = json.loads((Path(control_root.name) / "state.json").read_text(encoding="utf-8"))
+        assert snapshot["Recent"][0]["Executor"] == "project-manager", snapshot
+        call("shell.exec", command="Write-Output 271828",
+             working_directory=str(location))
+        snapshot = json.loads((Path(control_root.name) / "state.json").read_text(encoding="utf-8"))
+        assert snapshot["Recent"][0]["Executor"] == "chatgpt", snapshot
+        print("SHELL_PER_INVOCATION_EXECUTOR_OK", flush=True)
+
 
 
         # shell.exec must close stdin: the MCP server's own stdio pipe stays

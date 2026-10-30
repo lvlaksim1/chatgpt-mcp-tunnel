@@ -19,8 +19,9 @@ public static class UiAutomationTools
         [Description("Traversal depth: 0..12, default 5.")] int max_depth = 5,
         [Description("Maximum controls to return: 1..500, default 150.")] int max_results = 150,
         [Description("Traversal view: control (default) or raw. RawView includes otherwise hidden provider nodes.")] string view = "control",
-        [Description("Target computer from computers.list; omitted means local.")] string? computer = null) => RouterLite.IsRemote(computer) ? RouterLite.CallStringAsync(computer!, "desktop.uia.tree", new { hwnd, max_depth, max_results, view }) :
-        Run(new { operation = "tree", hwnd, max_depth, max_results, view });
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null,
+        [Description("Display-only executor identity: project-manager, supervisor, chatgpt, or persona:Name. Defaults to ChatGPT; never used for authorization.")] string? executor = null) => RouterLite.IsRemote(computer) ? RouterLite.CallStringAsync(computer!, "desktop.uia.tree", new { hwnd, max_depth, max_results, view, executor }) :
+        Run(new { operation = "tree", hwnd, max_depth, max_results, view, executor });
 
     [McpServerTool(Name = "desktop.uia.find", Title = "Мультимедиа · Поиск элементов интерфейса")]
     [Description("Категория «Мультимедиа»: find UI elements inside a selected window by accessible name, AutomationId, control type (Button, Edit, CheckBox, etc.) or class. Returns stable-ish index paths to use in desktop.uia.get and desktop.uia.action. Paths may change when the UI changes.")]
@@ -33,8 +34,9 @@ public static class UiAutomationTools
         [Description("Maximum nesting depth (0..20, default 10).")] int max_depth = 10,
         [Description("Maximum search results (1..100, default 30).")] int max_results = 30,
         [Description("Traversal view: control or raw, default control.")] string view = "control",
-        [Description("Target computer from computers.list; omitted means local.")] string? computer = null) => RouterLite.IsRemote(computer) ? RouterLite.CallStringAsync(computer!, "desktop.uia.find", new { hwnd, name, automation_id, control_type, class_name, max_depth, max_results, view }) :
-        Run(new { operation = "find", hwnd, name, automation_id, control_type, class_name, max_depth, max_results, view });
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null,
+        [Description("Display-only executor identity: project-manager, supervisor, chatgpt, or persona:Name. Defaults to ChatGPT; never used for authorization.")] string? executor = null) => RouterLite.IsRemote(computer) ? RouterLite.CallStringAsync(computer!, "desktop.uia.find", new { hwnd, name, automation_id, control_type, class_name, max_depth, max_results, view, executor }) :
+        Run(new { operation = "find", hwnd, name, automation_id, control_type, class_name, max_depth, max_results, view, executor });
 
     [McpServerTool(Name = "desktop.uia.get", Title = "Мультимедиа · Свойства и текст элемента")]
     [Description("Категория «Мультимедиа»: read UI Automation properties, supported interaction patterns, values, available text, selection, toggle and expand states for one element identified by a path from desktop.uia.tree or desktop.uia.find.")]
@@ -42,8 +44,9 @@ public static class UiAutomationTools
         [Description("Window handle from desktop.window.list.")] string hwnd,
         [Description("Element path from desktop.uia.tree or desktop.uia.find. Empty string means the window itself.")] string path,
         [Description("View used when the path was discovered: control or raw (default control).")] string view = "control",
-        [Description("Target computer from computers.list; omitted means local.")] string? computer = null) => RouterLite.IsRemote(computer) ? RouterLite.CallStringAsync(computer!, "desktop.uia.get", new { hwnd, path, view }) :
-        Run(new { operation = "get", hwnd, path, view });
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null,
+        [Description("Display-only executor identity: project-manager, supervisor, chatgpt, or persona:Name. Defaults to ChatGPT; never used for authorization.")] string? executor = null) => RouterLite.IsRemote(computer) ? RouterLite.CallStringAsync(computer!, "desktop.uia.get", new { hwnd, path, view, executor }) :
+        Run(new { operation = "get", hwnd, path, view, executor });
 
     [McpServerTool(Name = "desktop.uia.action", Title = "Мультимедиа · Действие над элементом")]
     [Description("Категория «Мультимедиа»: perform a UI Automation action directly on a window element without mouse coordinates: invoke (press button), set_value (enter text), select, toggle, expand, collapse, focus or scroll_into_view. Use desktop.uia.get to see supported patterns; fall back to existing desktop.mouse and desktop.keyboard for unsupported UI elements.")]
@@ -53,8 +56,9 @@ public static class UiAutomationTools
         [Description("Action: invoke, set_value, select, toggle, expand, collapse, focus, scroll_into_view.")] string action,
         [Description("Required text only when action=set_value.")] string? value = null,
         [Description("View used to find the element path: control or raw (default control).")] string view = "control",
-        [Description("Target computer from computers.list; omitted means local.")] string? computer = null) => RouterLite.IsRemote(computer) ? RouterLite.CallStringAsync(computer!, "desktop.uia.action", new { hwnd, path, action, value, view }) :
-        Run(new { operation = "action", hwnd, path, action, value, view });
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null,
+        [Description("Display-only executor identity: project-manager, supervisor, chatgpt, or persona:Name. Defaults to ChatGPT; never used for authorization.")] string? executor = null) => RouterLite.IsRemote(computer) ? RouterLite.CallStringAsync(computer!, "desktop.uia.action", new { hwnd, path, action, value, view, executor }) :
+        Run(new { operation = "action", hwnd, path, action, value, view, executor });
 
     private static readonly SemaphoreSlim WorkerGate = new(1, 1);
     private static Process? Worker;
@@ -111,9 +115,11 @@ public static class UiAutomationTools
         string? actionName = operation == "action" &&
             requestJson.TryGetProperty("action", out var actionJson)
             ? actionJson.GetString() : null;
+        string? executor = requestJson.TryGetProperty("executor", out var identityJson)
+            && identityJson.ValueKind == JsonValueKind.String ? identityJson.GetString() : null;
         using var control = ControlState.Begin("desktop.uia." + operation,
             guiAction: operation == "action", readOnly: operation != "action",
-            activity: actionName);
+            activity: actionName, executor: executor);
 
         var workerFile = Path.Combine(AppContext.BaseDirectory, "AutomationWorker.ps1");
         if (!File.Exists(workerFile))

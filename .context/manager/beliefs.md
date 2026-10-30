@@ -1,5 +1,11 @@
 # Manager beliefs
 
+## 30.10.2026 — атрибуция исполнителя MCP-вызовов
+- Owner: в уведомлении показывать «Исполнитель: Менеджер проекта / Супервизор / ChatGPT», в зависимости от персонализированности вызывающего чата.
+- Verified implementation v0.2.28 in local source: optional per-call \`executor\` for 24 Windows MCP tools and file.transfer.start; ControlState stores sanitized identity, overlay displays last active/recent identity, Router Lite/desktop.batch/transfer wire forward it. Unknown or absent => ChatGPT. Local build/Windows/router selftests pass, not yet deployed.
+- Limitation: MCP Host does not offer verified chat persona identity; the model must supply \`executor\` per call. This is non-authoritative informational attribution, never identity-based access control.
+- Source: owner-directive 30.10.2026 and verified local tests. Specification docs/EXECUTOR-ATTRIBUTION-2026-10-30.md.
+
 ## 30.10.2026 — актуальная сверка, имеющая приоритет над версиями ниже
 - Прямое решение Owner: локальная разработка, компиляция, тесты и Inno на DOMKAT `D:\Dev\ChatGPT-MCP-Tunnel`; GitHub **только** хранение исходников, истории и готовых Releases; GitHub Actions запрещены/отключены (3 disabled_manually). Прежние указания запускать CI заменены.
 - Факт: `v0.2.27` собрана локально и установлена на DOMKAT в `D:\ChatGPTMCPAgent`, после обновления `bridge_ping` работал; исходники текущего Git `main` до передачи `2f7fe42`.

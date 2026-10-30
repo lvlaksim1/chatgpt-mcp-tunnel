@@ -54,7 +54,8 @@
     ".context/decisions/integrated-watchdog-2026-10-29.md",
     ".context/decisions/chat-attachments-2026-10-29.md",
     ".context/decisions/mcp-ui-message-2026-10-29.md",
-    ".context/decisions/operating-model-2026-10-30.md"
+    ".context/decisions/operating-model-2026-10-30.md",
+    ".context/decisions/executor-attribution-2026-10-30.md"
   ],
   "dialogues": [],
   "history": [],

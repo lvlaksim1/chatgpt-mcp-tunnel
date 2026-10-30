@@ -264,6 +264,7 @@ internal static class Program
 
 internal sealed class TrayContext : ApplicationContext
 {
+    internal const string ControlMenuCaption = "\u0418\u043d\u0434\u0438\u043a\u0430\u0442\u043e\u0440\u0020\u0443\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0438\u044f\u0020\u002f\u0020\u0421\u0422\u041e\u041f";
     private readonly TrayIcons _icons = new();
     private readonly NotifyIcon _tray;
     private readonly System.Windows.Forms.Timer _timer = new() { Interval = 1500 };
@@ -271,6 +272,7 @@ internal sealed class TrayContext : ApplicationContext
     private readonly bool _diagnosticMode;
     private readonly ControlOverlay _controlOverlay = new();
     internal bool ControlOverlayVisible => _controlOverlay.NativeVisible;
+    internal string ControlOverlayExecutorCaption => _controlOverlay.ExecutorCaption;
     internal void ShowControlOverlay() => _controlOverlay.ShowStatus();
 
     private readonly EventWaitHandle _shutdown;
@@ -342,7 +344,7 @@ internal sealed class TrayContext : ApplicationContext
         menu.Items.Add("Проверить обновления", null, async (_, _) => await CheckUpdatesAsync(true));
         menu.Items.Add("Чат", null, (_, _) => ShowChat());
         menu.Items.Add("Передача файлов", null, (_, _) => ShowTransfers());
-        menu.Items.Add("????????? ?????????? / ????", null, (_, _) => ShowControlOverlay());
+        menu.Items.Add(ControlMenuCaption, null, (_, _) => ShowControlOverlay());
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("Выход", null, (_, _) => { AgentWatchdog.PauseForManualExit(); ExitThread(); });
         _tray = new NotifyIcon

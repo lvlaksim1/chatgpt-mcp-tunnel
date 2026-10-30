@@ -17,11 +17,13 @@ public static class ComputerTools
     [Description("Get Windows computer information: OS, CPU, RAM, disks, uptime and optional list of installed programs.")]
     public static async Task<string> SystemInfo(
         [Description("Also list installed programs from Windows uninstall registry entries.")] bool include_installed_programs = false,
-        [Description("Computer name from computers.list; defaults to the local computer.")] string? computer = null)
+        [Description("Computer name from computers.list; defaults to the local computer.")] string? computer = null,
+        [Description("Display-only executor identity: project-manager, supervisor, chatgpt, or persona:Name. Defaults to ChatGPT; never used for authorization.")] string? executor = null)
     {
         if (!string.IsNullOrWhiteSpace(computer) &&
             !computer.Equals(RouterLite.LocalComputer, StringComparison.OrdinalIgnoreCase))
-            return await RouterLite.RemoteSystemInfoAsync(computer, include_installed_programs);
+            return await RouterLite.CallStringAsync(computer, "system.info", new { include_installed_programs, executor });
+        using var control = ControlState.Begin("system.info", readOnly: true, executor: executor);
         return SystemInfoLocal(include_installed_programs);
     }
 
@@ -74,10 +76,11 @@ public static class ComputerTools
     [McpServerTool(Name = "fs.list")]
     [Description("List the files and subdirectories in a Windows folder, including file sizes and modification times.")]
     public static async Task<string> FsList([Description("Absolute or relative directory path.")] string path,
-        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null,
+        [Description("Display-only executor identity: project-manager, supervisor, chatgpt, or persona:Name. Defaults to ChatGPT; never used for authorization.")] string? executor = null)
     {
-        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "fs.list", new { path });
-        using var control = ControlState.Begin("fs.list", guiAction: false, readOnly: true);
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "fs.list", new { path, executor });
+        using var control = ControlState.Begin("fs.list", guiAction: false, readOnly: true, executor: executor);
         var folder = Path.GetFullPath(path);
         var directory = new DirectoryInfo(folder);
         if (!directory.Exists) throw new DirectoryNotFoundException(folder);
@@ -108,10 +111,11 @@ public static class ComputerTools
     public static async Task<string> FsRead(
         [Description("Path to the file.")] string path,
         [Description("Maximum number of text characters or binary bytes to return (default 200000).")] int max_chars = 200000,
-        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null,
+        [Description("Display-only executor identity: project-manager, supervisor, chatgpt, or persona:Name. Defaults to ChatGPT; never used for authorization.")] string? executor = null)
     {
-        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "fs.read", new { path, max_chars });
-        using var control = ControlState.Begin("fs.read", guiAction: false, readOnly: true);
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "fs.read", new { path, max_chars, executor });
+        using var control = ControlState.Begin("fs.read", guiAction: false, readOnly: true, executor: executor);
         if (max_chars < 1 || max_chars > 2_000_000) throw new ArgumentOutOfRangeException(nameof(max_chars), "Use 1..2000000.");
         var file = Path.GetFullPath(path);
         using var input = File.OpenRead(file);
@@ -143,10 +147,11 @@ public static class ComputerTools
         [Description("Path of file to create or overwrite.")] string path,
         [Description("Exact UTF-8 text to store.")] string content,
         [Description("Whether overwriting an existing file is allowed (default true).")] bool overwrite = true,
-        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null,
+        [Description("Display-only executor identity: project-manager, supervisor, chatgpt, or persona:Name. Defaults to ChatGPT; never used for authorization.")] string? executor = null)
     {
-        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "fs.write", new { path, content, overwrite });
-        using var control = ControlState.Begin("fs.write", guiAction: false, readOnly: false);
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "fs.write", new { path, content, overwrite, executor });
+        using var control = ControlState.Begin("fs.write", guiAction: false, readOnly: false, executor: executor);
         var file = Path.GetFullPath(path);
         var parent = Path.GetDirectoryName(file);
         if (!string.IsNullOrEmpty(parent)) Directory.CreateDirectory(parent);
@@ -163,10 +168,11 @@ public static class ComputerTools
         [Description("File or folder name wildcard, such as *.txt or report*.xlsx.")] string pattern = "*",
         [Description("Include subdirectories (default true).")] bool recursive = true,
         [Description("Maximum matching paths to return (default 200).")] int max_results = 200,
-        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null,
+        [Description("Display-only executor identity: project-manager, supervisor, chatgpt, or persona:Name. Defaults to ChatGPT; never used for authorization.")] string? executor = null)
     {
-        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "fs.search", new { path, pattern, recursive, max_results });
-        using var control = ControlState.Begin("fs.search", guiAction: false, readOnly: true);
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "fs.search", new { path, pattern, recursive, max_results, executor });
+        using var control = ControlState.Begin("fs.search", guiAction: false, readOnly: true, executor: executor);
         if (max_results < 1 || max_results > 10000) throw new ArgumentOutOfRangeException(nameof(max_results), "Use 1..10000.");
         var root = Path.GetFullPath(path);
         if (!Directory.Exists(root)) throw new DirectoryNotFoundException(root);
@@ -214,11 +220,12 @@ public static class ComputerTools
         [Description("Execution timeout in seconds (default 120).")] int timeout_seconds = 120,
         [Description("Maximum characters per stdout/stderr stream included in the result.")] int max_output_chars = 100000,
         [Description("Target computer from computers.list; omitted means local.")] string? computer = null,
-        [Description("Optional display-only activity code: project_build, tests_run, source_edit, source_read, git_status, git_commit, git_push, app_update, files_check, process_check, diagnostic, etc. Never include arguments, file contents, credentials or free-form descriptions. Automatic safe classification is used when omitted.")] string? activity = null)
+        [Description("Optional display-only activity code: project_build, tests_run, source_edit, source_read, git_status, git_commit, git_push, app_update, files_check, process_check, diagnostic, etc. Never include arguments, file contents, credentials or free-form descriptions. Automatic safe classification is used when omitted.")] string? activity = null,
+        [Description("Display-only executor identity: project-manager, supervisor, chatgpt, or persona:Name. Defaults to ChatGPT; never used for authorization.")] string? executor = null)
     {
-        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "shell.exec", new { command, shell, working_directory, timeout_seconds, max_output_chars, activity });
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "shell.exec", new { command, shell, working_directory, timeout_seconds, max_output_chars, activity, executor });
         using var control = ControlState.Begin("shell.exec", guiAction: false, readOnly: false,
-            activity: ControlActivityLabels.Shell(command, activity));
+            activity: ControlActivityLabels.Shell(command, activity), executor: executor);
         if (timeout_seconds < 1 || timeout_seconds > 3600) throw new ArgumentOutOfRangeException(nameof(timeout_seconds), "Use 1..3600.");
         if (max_output_chars < 1 || max_output_chars > 2_000_000) throw new ArgumentOutOfRangeException(nameof(max_output_chars), "Use 1..2000000.");
         var startInfo = new ProcessStartInfo
@@ -298,10 +305,11 @@ public static class ComputerTools
     public static async Task<string> ProcessList(
         [Description("Optional process name substring, case-insensitive.")] string? name_filter = null,
         [Description("Maximum number of processes to return (default 300).")] int max_results = 300,
-        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null,
+        [Description("Display-only executor identity: project-manager, supervisor, chatgpt, or persona:Name. Defaults to ChatGPT; never used for authorization.")] string? executor = null)
     {
-        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "process.list", new { name_filter, max_results });
-        using var control = ControlState.Begin("process.list", guiAction: false, readOnly: true);
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "process.list", new { name_filter, max_results, executor });
+        using var control = ControlState.Begin("process.list", guiAction: false, readOnly: true, executor: executor);
         if (max_results < 1 || max_results > 20000) throw new ArgumentOutOfRangeException(nameof(max_results), "Use 1..20000.");
         var allProcesses = Process.GetProcesses();
         try
@@ -327,10 +335,11 @@ public static class ComputerTools
     public static async Task<string> ProcessKill(
         [Description("Windows process ID to terminate.")] int pid,
         [Description("Terminate child processes too (default true).")] bool entire_tree = true,
-        [Description("Target computer from computers.list; omitted means local.")] string? computer = null)
+        [Description("Target computer from computers.list; omitted means local.")] string? computer = null,
+        [Description("Display-only executor identity: project-manager, supervisor, chatgpt, or persona:Name. Defaults to ChatGPT; never used for authorization.")] string? executor = null)
     {
-        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "process.kill", new { pid, entire_tree });
-        using var control = ControlState.Begin("process.kill", guiAction: false, readOnly: false);
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "process.kill", new { pid, entire_tree, executor });
+        using var control = ControlState.Begin("process.kill", guiAction: false, readOnly: false, executor: executor);
         using var process = Process.GetProcessById(pid);
         var name = process.ProcessName;
         process.Kill(entireProcessTree: entire_tree);

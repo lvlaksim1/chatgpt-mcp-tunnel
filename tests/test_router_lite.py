@@ -20,7 +20,9 @@ probe.bind(("127.0.0.1", 0))
 port = probe.getsockname()[1]
 probe.close()
 token = secrets.token_urlsafe(32)
-base_env = {**os.environ, "CHATGPT_MCP_AGENT_TOKEN": token}
+control_root = tempfile.TemporaryDirectory(prefix="mcp-router-executor-")
+base_env = {**os.environ, "CHATGPT_MCP_AGENT_TOKEN": token,
+            "CHATGPT_MCP_CONTROL_TEST_ROOT": control_root.name}
 router_env = {**base_env, "CHATGPT_MCP_ROUTER_ENABLED": "1",
               "CHATGPT_MCP_ROUTER_LISTEN": f"http://127.0.0.1:{port}"}
 agent_env = {**base_env, "CHATGPT_MCP_COMPUTER_ID": "TEST-AGENT",
@@ -65,6 +67,7 @@ try:
     assert "computers.list" in names
     sysinfo = next(t for t in listing if t["name"] == "system.info")
     assert "computer" in sysinfo["inputSchema"]["properties"], sysinfo
+    assert "executor" in sysinfo["inputSchema"]["properties"], sysinfo
     print("MCP_ROUTER_TOOLS_OK", len(names), flush=True)
 
     before = payload(call(3, "computers.list"))
@@ -95,6 +98,7 @@ try:
     for tool in listing:
         if tool["name"] in remote_tools:
             assert "computer" in tool["inputSchema"]["properties"], tool["name"]
+            assert "executor" in tool["inputSchema"]["properties"], tool["name"]
     print("ALL_23_TARGET_SCHEMAS_OK", flush=True)
 
     with tempfile.TemporaryDirectory(prefix="mcp-router-", dir=root / ".tools") as temp:
@@ -109,8 +113,15 @@ try:
         matches = payload(call(53, "fs.search", {"computer":"TEST-AGENT","path":temp,"pattern":"*.txt"}))
         assert matches["match_count"] == 1, matches
         shell = payload(call(54, "shell.exec", {
-            "computer":"TEST-AGENT","command":"Write-Output REMOTE-SHELL-OK","timeout_seconds":10}))
+            "computer":"TEST-AGENT","command":"Write-Output REMOTE-SHELL-OK",
+            "timeout_seconds":10,"executor":"project-manager"}))
         assert shell["exit_code"] == 0 and "REMOTE-SHELL-OK" in shell["stdout"], shell
+        # The remote agent writes the executor, not the router's current chat.
+        snapshot = json.loads((Path(control_root.name) / "state.json").read_text(encoding="utf-8"))
+        assert any(x["Tool"] == "shell.exec" and x["Executor"] == "project-manager"
+                   for x in snapshot["Recent"]), snapshot
+        print("ROUTER_EXECUTOR_FORWARDED_OK", flush=True)
+
         processes = payload(call(55, "process.list", {"computer":"TEST-AGENT","name_filter":"python"}))
         assert processes["count"] > 0, processes
         print("REMOTE_FILES_SHELL_PROCESSES_OK", flush=True)
@@ -297,4 +308,5 @@ finally:
             p.kill()
             p.wait(timeout=5)
     router_log.close()
+    control_root.cleanup()
     agent_log.close()

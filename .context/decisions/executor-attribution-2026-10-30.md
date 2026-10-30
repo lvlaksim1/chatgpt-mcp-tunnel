@@ -1,0 +1,4 @@
+# Executor attribution in ChatGPT MCP Tunnel — owner directive 30.10.2026
+
+Each computer-control MCP operation should identify its per-invocation executor in the local notification: project-manager => Менеджер проекта; supervisor => Супервизор; absent => ChatGPT. Other personalized chats may use a bounded persona:Name value. Identity must be scoped to the tool call, never to the global process across concurrent chats. Router Lite, desktop.batch and file transfer wire operations should propagate it. An external MCP host does not provide authenticated persona identity: the field is declarative UI metadata, NOT authorization evidence. Keep safety gates independent. Refresh the MCP tool catalogue after deployment. Technical contract and tests: docs/EXECUTOR-ATTRIBUTION-2026-10-30.md.
+Source: direct owner instruction 30.10.2026. State: code for v0.2.28 locally tested; release/deployment not assumed complete.

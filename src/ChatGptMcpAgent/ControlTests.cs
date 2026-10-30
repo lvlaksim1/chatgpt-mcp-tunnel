@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Windows.Forms;
 
 namespace ChatGptMcpAgent;
@@ -16,13 +16,14 @@ internal static class ControlTests
             using var shutdown = new EventWaitHandle(false, EventResetMode.ManualReset);
             using var settings = new EventWaitHandle(false, EventResetMode.AutoReset);
             using var ctx = new TrayContext(shutdown, settings, diagnosticMode: true);
-            using var activity = ControlState.Begin("shell.exec");
+            using var activity = ControlState.Begin("shell.exec", executor: "project-manager");
             var visible = false;
             using var timer = new System.Windows.Forms.Timer { Interval = 2600 };
             timer.Tick += (_, _) =>
             {
                 timer.Stop();
-                visible = ctx.ControlOverlayVisible;
+                visible = ctx.ControlOverlayVisible &&
+                    ctx.ControlOverlayExecutorCaption == "Исполнитель: Менеджер проекта";
                 ctx.ExitThread();
             };
             timer.Start();
@@ -50,7 +51,7 @@ internal static class ControlTests
         try
         {
             ApplicationConfiguration.Initialize();
-            using var activity = ControlState.Begin("shell.exec");
+            using var activity = ControlState.Begin("shell.exec", executor: "project-manager");
             using var ctx = new ApplicationContext();
             using var overlay = new ControlOverlay();
             var visible = false;
@@ -58,7 +59,8 @@ internal static class ControlTests
             stopCheck.Tick += (_, _) =>
             {
                 stopCheck.Stop();
-                visible = overlay.NativeVisible;
+                visible = overlay.NativeVisible &&
+                    overlay.ExecutorCaption == "Исполнитель: Менеджер проекта";
                 ctx.ExitThread();
             };
             stopCheck.Start();
@@ -98,6 +100,24 @@ internal static class ControlTests
                 persisted.Contains("C:/secret.txt", StringComparison.Ordinal))
                 return 88;
             if (ControlState.Read().Recent[0].Activity != "") return 89;
+            if (!ControlActivityLabels.DisplayLabelsValid) return 92;
+            if (!string.Equals(TrayContext.ControlMenuCaption, "Индикатор управления / СТОП", StringComparison.Ordinal)) return 93;
+            if (ControlActivityLabels.Display("shell.exec", "files_delete") != "Удаляю файлы") return 94;
+            if (ControlActivityLabels.Display("shell.exec", "process_stop") != "Завершаю процессы") return 95;
+            if (ControlActivityLabels.Display("shell.exec", "disk_change") != "Изменяю разделы диска") return 96;
+            if (ControlActivityLabels.Display("shell.exec", "system_change") != "Изменяю системные настройки") return 97;
+            if (ControlExecutor.Normalize(null) != "chatgpt") return 101;
+            if (ControlExecutor.Display(null) != "ChatGPT") return 102;
+            if (ControlExecutor.Display("project-manager") != "Менеджер проекта") return 103;
+            if (ControlExecutor.Display("supervisor") != "Супервизор") return 104;
+            if (ControlExecutor.Display("persona:Старший разработчик") != "Старший разработчик") return 105;
+            if (ControlExecutor.Normalize("token=SECRET_99") != "chatgpt") return 106;
+            using (ControlState.Begin("shell.exec", executor: "project-manager")) { }
+            using (ControlState.Begin("shell.exec", executor: null)) { }
+            using (ControlState.Begin("shell.exec", executor: "supervisor")) { }
+            var actorRecords = ControlState.Read().Recent.Take(3).Select(x => x.Executor).ToArray();
+            if (!actorRecords.SequenceEqual(new[] { "supervisor", "chatgpt", "project-manager" })) return 107;
+            if (File.ReadAllText(ControlState.StateFile).Contains("SECRET_99", StringComparison.Ordinal)) return 108;
             if (ControlState.IsStopped) return 61;
             using (var operation = ControlState.Begin("shell.exec")) { }
             ControlState.Stop();

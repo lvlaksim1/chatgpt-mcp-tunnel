@@ -27,6 +27,7 @@ public static class FileTransferTools
         public string id { get; set; } = "";
         public string source_computer { get; set; } = "";
         public string destination_computer { get; set; } = "";
+        public string executor { get; set; } = "chatgpt";
         public string source_path { get; set; } = "";
         public string destination_path { get; set; } = "";
         public string status { get; set; } = "queued";
@@ -74,7 +75,8 @@ public static class FileTransferTools
         [Description("Absolute destination file path on destination_computer.")] string destination_path,
         [Description("Source computer name from computers.list; omitted for server.")] string? source_computer = null,
         [Description("Destination computer name from computers.list; omitted for server.")] string? destination_computer = null,
-        [Description("Permit replacing an existing destination file after SHA-256 verification (default false).")] bool overwrite = false)
+        [Description("Permit replacing an existing destination file after SHA-256 verification (default false).")] bool overwrite = false,
+        [Description("Display-only executor identity: project-manager, supervisor, chatgpt or persona:Name.")] string? executor = null)
     {
         ControlState.EnsureAllowed();
         source_path = Absolute(source_path);
@@ -94,7 +96,7 @@ public static class FileTransferTools
         var job = new TransferState
         {
             id = Guid.NewGuid().ToString("N"), source_computer = from, destination_computer = to,
-            source_path = source_path, destination_path = destination_path
+            source_path = source_path, destination_path = destination_path, executor = ControlExecutor.Normalize(executor)
         };
         Jobs[job.id] = job;
         Publish();
@@ -102,7 +104,7 @@ public static class FileTransferTools
         {
             try
             {
-                using var activity = ControlState.Begin("file.transfer.start");
+                using var activity = ControlState.Begin("file.transfer.start", executor: job.executor);
                 await Execute(job, overwrite);
             }
             catch (OperationCanceledException)
@@ -195,7 +197,7 @@ public static class FileTransferTools
         try
         {
             var source = JsonSerializer.Deserialize<FileInfoWire>(
-                await Call(job.source_computer, "file.transfer.inspect", new { path = job.source_path }), Json)
+                await Call(job.source_computer, "file.transfer.inspect", new { path = job.source_path, executor = job.executor }), Json)
                 ?? throw new InvalidDataException("Cannot inspect source file.");
             job.total_bytes = source.size;
             job.sha256 = source.sha256;
@@ -209,7 +211,7 @@ public static class FileTransferTools
                 try
                 {
                     var offsetText = await Call(job.destination_computer, "file.transfer.prepare",
-                        new { path = job.destination_path, size = source.size, sha256 = source.sha256, overwrite });
+                        new { path = job.destination_path, size = source.size, sha256 = source.sha256, overwrite, executor = job.executor });
                     var offset = JsonDocument.Parse(offsetText).RootElement.GetProperty("offset").GetInt64();
                     if (offset < 0 || offset > source.size)
                         throw new InvalidDataException("Invalid resume offset.");
@@ -223,14 +225,14 @@ public static class FileTransferTools
                         ControlState.EnsureAllowed();
                         var amount = (int)Math.Min(ChunkBytes, source.size - offset);
                         var encoded = await Call(job.source_computer, "file.transfer.read",
-                            new { path = job.source_path, offset, count = amount });
+                            new { path = job.source_path, offset, count = amount, executor = job.executor });
                         using var packet = JsonDocument.Parse(encoded);
                         var data = packet.RootElement.GetProperty("data").GetString()
                             ?? throw new InvalidDataException("Empty transfer block.");
                         var actualBytes = Convert.FromBase64String(data).Length;
                         if (actualBytes != amount) throw new InvalidDataException("Source block length changed.");
                         var next = await Call(job.destination_computer, "file.transfer.append",
-                            new { path = job.destination_path, offset, data });
+                            new { path = job.destination_path, offset, data, executor = job.executor });
                         var reportedOffset = JsonDocument.Parse(next).RootElement.GetProperty("offset").GetInt64();
                         if (reportedOffset != offset + amount)
                             throw new InvalidDataException("Receiver offset mismatch.");
@@ -244,7 +246,7 @@ public static class FileTransferTools
                     CheckCancelled(job);
                     Update(job, "verifying");
                     await Call(job.destination_computer, "file.transfer.finish",
-                        new { path = job.destination_path, size = source.size, sha256 = source.sha256, overwrite });
+                        new { path = job.destination_path, size = source.size, sha256 = source.sha256, overwrite, executor = job.executor });
                     job.transferred_bytes = source.size;
                     job.eta_seconds = 0;
                     Update(job, "completed");
@@ -267,8 +269,11 @@ public static class FileTransferTools
 
     internal static Task<string> HandleWireAsync(string name, JsonElement args)
     {
+        var actor = args.TryGetProperty("executor", out var executorJson)
+            && executorJson.ValueKind == JsonValueKind.String ? executorJson.GetString() : null;
         using var activity = ControlState.Begin(name,
-            readOnly: name is "file.transfer.inspect" or "file.transfer.read");
+            readOnly: name is "file.transfer.inspect" or "file.transfer.read",
+            executor: actor);
         var path = Absolute(args.GetProperty("path").GetString() ?? "");
         return name switch
         {
