@@ -1,5 +1,8 @@
 # Semantic memory
 
+## 30.10.2026 — новая просьба по UI
+Пользователь потребовал **показывать номер версии ChatGPT MCP Tunnel в следующей версии программы**. Предполагаемый видимый элемент по контексту — окно уведомления о компьютерном управлении. Номер должен соответствовать установленному/запущенному EXE. Это не реализованная функция, а сохранённая задача для следующего цикла. Source: owner-directive 30.10.2026.
+
 ## 2026-10-30 — chat new-target surface and real host capability
 - The ChatGPT Apps SDK `ui/message` `_meta["openai/message"].target:"new"` requires advertised host experimental capability. The operation response does not prove newly opened ChatGPT thread mode. A Global entrypoint can be hosted in Work; writing “ordinary” in the prompt does not change mode. Real host may advertise the capability yet omit the `openai/deepLink` URL.
 - v0.2.29 explicitly removes all Global dispatch logic; only `chat.bootstrap.open` in existing ordinary ChatGPT can deliver, with positive URL evidence or one-time user confirmation when host omits URL; unsafe contexts never poll or acknowledge pending messages. Four pre-existing pending items preserved. Source: historical code v0.2.18, verified test suite v0.2.29, real host diagnostic 30.10, owner directive. E2E not yet accepted.

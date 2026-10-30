@@ -1,5 +1,9 @@
 # Next actions
 
+## Следующая версия — указать версию программы в уведомлении (30.10.2026)
+- Владелец попросил запомнить: добавить в следующую версию видимый номер **установленной программы** в окно уведомления ChatGPT MCP Tunnel. Отображать версию работающего EXE, без жёсткой константы, не путать с GitHub release или версией исходников.
+- Статус: **backlog, не выполнено**. Сейчас не обновлять программу; продолжать при следующем согласованном выпуске. Сохранить STOP, исполнителя и существующее поведение индикатора.
+
 ## NEXT — 2026-10-30 ordinary-chat transport
 1. After owner installs pre-release v0.2.29, verify installed version and connectivity. Refresh MCP tools and open `chat.bootstrap.open` **from an existing normal ChatGPT /c thread**, not Global. If no deep link was advertised, click its manual confirmation button only after visually verifying ordinary ChatGPT mode.
 2. Verify with exactly one controlled local message and actual created ChatGPT thread, then return reply via `chat.reply` and inspect Windows chat receipt. Do not blindly replay four existing old pending messages. If Work appears, record failure and stop routing.

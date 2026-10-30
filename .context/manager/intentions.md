@@ -1,5 +1,9 @@
 # Manager intentions and commitments
 
+## 30.10.2026 — запрос владельца: номер версии в интерфейсе
+- **accepted/backlog:** в следующей версии ChatGPT MCP Tunnel показать **номер установленной версии программы** пользователю. В контексте обсуждения индикатора управления предполагается отображать его непосредственно в окне уведомления об управлении (например, `ChatGPT MCP Tunnel · vX.Y.Z`). При реализации брать версию из метаданных установленного исполняемого файла/сборки, **не** жёстко зашивать текущий номер.
+- Эта задача **ещё не реализована** и **не требует немедленного выпуска или установки**. Владелец сказал: «на будущее запомни — добавить в новую версию указание версии программы».
+
 ## 2026-10-30 04:14 MSK — active ordinary-chat routing commitment
 - **completed (code + packaging):** compare v0.2.18 and current routing, separate Global observer from ordinary dispatcher, block unsupported/unsafe host contexts, add explicit one-time confirmation when normal-chat route metadata is unavailable, run local Windows/MCP/Router Lite/Node regression, publish candidate `v0.2.29` directly to GitHub Releases (pre-release; no Actions).
 - **accepted/active (user-facing acceptance):** after user installs candidate, invoke `chat.bootstrap.open` **inside a visually verified ordinary ChatGPT conversation**, confirm mode when button appears, send one controlled local test message, inspect resulting conversation UI for ordinary Chat rather than Work, verify `chat.reply` returns a local reply. Acknowledgement of ui/message is insufficient.

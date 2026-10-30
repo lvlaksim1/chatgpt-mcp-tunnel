@@ -1,5 +1,9 @@
 # Manager plans
 
+## 30.10.2026 — запланированное улучшение идентификации версии
+- Для следующей версии добавить читаемую метку **установленной версии ChatGPT MCP Tunnel** в окно уведомления/индикатор управления, рядом с названием программы или заголовком. Версия должна соответствовать реально запущенному агенту, а не последнему тегу GitHub. Сохранить компактность индикатора, кнопки STOP и отображение исполнителя.
+- Не выполнять сейчас сборку/установку только ради этой заметки. При следующем утверждённом функциональном цикле включить в план, локальные тесты UI, контроль версии и регрессию.
+
 ## 2026-10-30 04:14 MSK — current routing plan
 1. Source baseline: DOMKAT `D:\Dev\ChatGPT-MCP-Tunnel`, `main`, commit `e80e3ea`; local candidate release `v0.2.29` is built, hashed, uploaded as GitHub pre-release, not installed on DOMKAT. No further CI/Actions.
 2. When owner has manually installed v0.2.29, refresh MCP tool schema if needed. Open existing **ordinary** `/c/` ChatGPT thread and invoke `chat.bootstrap.open`, never `chat.hub.open` for sending. If host has `openai/message` but no deep link (observed), click the one-time normal-chat confirmation in the embedded component.

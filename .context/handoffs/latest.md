@@ -1,5 +1,8 @@
 # Latest handoff
 
+## Дополнение от владельца 30.10.2026 — версия в уведомлении
+Новая отложенная задача: **в следующей версии ChatGPT MCP Tunnel добавить указание номера версии программы**. В контексте обсуждения окна управления — отображать текущую установленную версию в заголовке/строке уведомления, подгружая её из версии реально запущенного агента. Пока только сохранено в капсуле; код, установщик и рабочая программа не менялись. Не делать отдельный релиз без поручения. Владелец сказал «на будущее запомни».
+
 ## LATEST HANDOFF — 2026-10-30 04:14 MSK — normal ChatGPT vs Work
 Persistent role `project-manager`, not supervisor. Owner instructed to restore automatic new dialogs in ordinary ChatGPT from local Tunnel; previous new threads were Work. Investigation compared v0.2.18, v0.2.28 and current ChatGPT host. Verified Global must never originate `ui/message`. Today a diagnostic Thread MCP App in this ordinary ChatGPT conversation reported `hasOpenAiMessage=true` and `hasDeepLink=false`: extension exists, host route metadata absent.
 
