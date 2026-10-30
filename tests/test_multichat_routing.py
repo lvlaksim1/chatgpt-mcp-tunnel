@@ -35,7 +35,7 @@ with tempfile.TemporaryDirectory(prefix="multi-chat-routes-") as tmp:
         "Reply":"АВТОЗАПУСК-21", "Attachments":[]
     },ensure_ascii=False),encoding="utf-8")
     (data/"sessions"/(new_id+".json")).write_text(
-        json.dumps({"Id":new_id,"Title":"РЎРїРµС†РёР°Р»СЊРЅС‹Р№ С‡Р°С‚"}),
+        json.dumps({"Id":new_id,"Title":"РЎРїРµС†РёР°Р»СЊРЅС‹Р№ С‡Р°С‚","CreateCloudThread":True}),
         encoding="utf-8")
     env = os.environ.copy()
     env["CHATGPT_MCP_CHAT_TEST_ROOT"] = str(data)

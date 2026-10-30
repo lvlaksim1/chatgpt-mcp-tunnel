@@ -37,7 +37,7 @@ internal sealed class ChatWindow : Form
     };
     private readonly Label _status = new()
     {
-        Text = "Сообщения передаются через подключённый MCP-плагин при проверке очереди.",
+        Text = "Сообщения автоматически отправляются в обычный ChatGPT. При первом запуске войдите в открывшемся окне браузера один раз.",
         Dock = DockStyle.Bottom, Height = 43, ForeColor = Color.DimGray
     };
     private readonly System.Windows.Forms.Timer _refresh = new() { Interval = 1000 };
@@ -561,8 +561,8 @@ internal sealed class ChatWindow : Form
     private void UpdateCycleStatus()
     {
         var delivery = _lastReplyUtc.HasValue
-            ? "Ответ ChatGPT получен " + _lastReplyUtc.Value.ToLocalTime().ToString("dd.MM HH:mm:ss") + " · через MCP"
-            : "MCP Apps · ожидает новые сообщения (компонент должен быть открыт в ChatGPT).";
+            ? "Ответ ChatGPT получен " + _lastReplyUtc.Value.ToLocalTime().ToString("dd.MM HH:mm:ss")
+            : "Автоматическая доставка: при первом запуске войдите в ChatGPT в отдельном окне браузера один раз.";
         _status.Text = _messageStatus + Environment.NewLine + delivery;
     }
 

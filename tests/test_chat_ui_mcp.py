@@ -104,6 +104,14 @@ with tempfile.TemporaryDirectory(prefix="mcp-chat-ui-contract-") as temp:
 
         opened = call("chat.ui.open")
         assert opened["ok"] and opened["resource"]==resource_uri
+        (root/"browser-bridge").mkdir()
+        (root/"browser-bridge"/"heartbeat.json").write_text(
+            json.dumps({"mode":"browser","at":datetime.now(timezone.utc).isoformat()}),
+            encoding="utf-8")
+        while_browser=call("chat.ui.pending")
+        assert while_browser["count"]==0 and while_browser["transport"]=="browser",while_browser
+        (root/"browser-bridge"/"heartbeat.json").unlink()
+        print("BROWSER_CHAT_TRANSPORT_OWNS_QUEUE_OK")
         pending=call("chat.ui.pending")
         assert pending["count"]==1 and pending["message"]["id"]==mid,pending
         assert "LOCAL_PRIOR_TEXT_802" in pending["context"],pending

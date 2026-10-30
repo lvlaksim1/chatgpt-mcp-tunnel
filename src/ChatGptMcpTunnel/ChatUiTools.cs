@@ -16,6 +16,7 @@ public static class ChatUiTools
             "ChatGPTMCPAgent", "Chat");
     private static string MessageDir => Path.Combine(Root, "messages");
     private static string ForwardedDir => Path.Combine(Root, "ui-forwarded");
+    private static string BrowserClaimDir => Path.Combine(Root, "browser-claims");
     private static string SessionDir => Path.Combine(Root, "sessions");
     private static string ActiveChatPath => Path.Combine(Root, "active-chat.txt");
     private static string RoutesDir => Path.Combine(Root, "ui-routes");
@@ -171,11 +172,32 @@ public static class ChatUiTools
         return false;
     }
 
+    private static bool BrowserTransportActive()
+    {
+        var path=Path.Combine(Root,"browser-bridge","heartbeat.json");
+        try
+        {
+            if (!File.Exists(path)) return false;
+            using var doc=JsonDocument.Parse(File.ReadAllText(path));
+            if (!doc.RootElement.TryGetProperty("mode",out var mode) ||
+                mode.GetString()!="browser" ||
+                !doc.RootElement.TryGetProperty("at",out var date) ||
+                !date.TryGetDateTimeOffset(out var utc)) return false;
+            return (DateTimeOffset.UtcNow-utc).Duration()<TimeSpan.FromSeconds(12);
+        }
+        catch(Exception ex) when(ex is IOException or UnauthorizedAccessException or JsonException)
+        { return false; }
+    }
+
     [McpServerTool(Name = "chat.ui.pending", Title = "ChatGPT MCP Tunnel · Проверить очередь", ReadOnly = true)]
     [McpMeta("ui", JsonValue = """{"visibility":["app"]}""")]
     [Description("Инструмент MCP Apps для просмотра ожидающих сообщений локального чата без подтверждения доставки.")]
     public static string Pending(string chat_id = "", bool discover = false)
     {
+        // Only one transport may own the queue at a time.
+        if (BrowserTransportActive())
+            return JsonSerializer.Serialize(new
+            { ok=true, count=0, transport="browser", message=(object?)null });
         // Pre-0.2.17 widgets do not send chat_id. Restrict them to the
         // legacy conversation, never silently consume another chat.
         if (string.IsNullOrEmpty(chat_id)) chat_id = LegacyId;
@@ -208,7 +230,8 @@ public static class ChatUiTools
                           !CloudThreadAlreadyRequested(item.ChatId ?? LegacyId)
                         : (item.ChatId ?? LegacyId) == chat_id) &&
                     item.Status == "pending" && (item.Text?.Length ?? 0) <= 20000 &&
-                    !File.Exists(Path.Combine(ForwardedDir, item.Id.ToLowerInvariant() + ".json")))
+                    !File.Exists(Path.Combine(ForwardedDir, item.Id.ToLowerInvariant() + ".json")) &&
+                    !File.Exists(Path.Combine(BrowserClaimDir, item.Id.ToLowerInvariant() + ".json")))
                     candidates.Add(item);
             }
             catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException) { }
@@ -276,10 +299,9 @@ public static class ChatUiTools
                             // bootstrap while waiting for chat.ui.open(chat_id).
                             Directory.CreateDirectory(RoutesDir);
                             var route = RoutePath(message.ChatId!);
-                            if (!File.Exists(route))
-                                File.WriteAllText(route, JsonSerializer.Serialize(new RouteState {
-                                    Status="waiting", LastSeenUtc=DateTimeOffset.UtcNow
-                                }));
+                            File.WriteAllText(route, JsonSerializer.Serialize(new RouteState {
+                                Status="waiting", LastSeenUtc=DateTimeOffset.UtcNow
+                            }));
                         }
                     } catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException) { }
                 }

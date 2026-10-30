@@ -32,6 +32,15 @@ try {
   foreach($file in @('AutomationWorker.ps1','ChatRelayApp.html','ChatGlobalHubApp.html','ChatLifecycleApp.html','ChatBootstrapApp.html')){
     if(-not (Test-Path (Join-Path $runtime $file))){throw "Missing resource: $file"}
   }
+  $node=(Get-Command node.exe -ErrorAction Stop).Source
+  $nodeFile=Join-Path $publish 'OpenAI\node.exe'
+  Copy-Item $node $nodeFile
+  Copy-Item (Join-Path $repo 'src\ChatGptMcpAgent\NodeRuntimeLicense.txt') (Join-Path $publish 'OpenAI\LICENSE.node.txt')
+  $bridgeJs=Join-Path $repo 'src\ChatGptMcpAgent\BrowserChatBridge.js'
+  Copy-Item $bridgeJs (Join-Path $runtime 'BrowserChatBridge.js')
+  if((Get-FileHash $node -Algorithm SHA256).Hash -ne (Get-FileHash $nodeFile -Algorithm SHA256).Hash) {
+    throw 'Bundled Node runtime hash mismatch'
+  }
   Copy-Item $client (Join-Path $publish 'OpenAI\tunnel-client.exe')
   $cloudflared=Join-Path $ClientSource 'cloudflared.exe'
   if(Test-Path $cloudflared){Copy-Item $cloudflared (Join-Path $publish 'OpenAI\cloudflared.exe')}
@@ -45,13 +54,15 @@ try {
     }
     $env:CHATGPT_MCP_TEST_DLL=Join-Path $runtime 'ChatGptMcpTunnel.dll'
     try{
-      foreach($test in @('test_mcp_stdio.py','test_windows_tools.py','test_lifecycle_entrypoints.py','test_uia_worker_persistent.py','test_chat_ui_mcp.py','test_utf8_filesystem.py','test_v0218_stable_relay.py')){
+      foreach($test in @('test_mcp_stdio.py','test_windows_tools.py','test_lifecycle_entrypoints.py','test_uia_worker_persistent.py','test_chat_ui_mcp.py','test_multichat_routing.py','test_utf8_filesystem.py','test_v0218_stable_relay.py')){
         Write-Output "TEST $test"
         & python (Join-Path $repo "tests\$test")
         if($LASTEXITCODE -ne 0){throw "MCP test failed: $test"}
       }
     }finally{Remove-Item Env:CHATGPT_MCP_TEST_DLL -ErrorAction SilentlyContinue}
-    foreach($test in @('test_chat_ui_bridge.js','test_chat_relay_resilience.js','test_chat_route_modes.js')){
+    & (Join-Path $publish 'OpenAI\node.exe') (Join-Path $runtime 'BrowserChatBridge.js') --selftest
+    if($LASTEXITCODE -ne 0){throw 'Browser chat worker selftest failed'}
+    foreach($test in @('test_browser_chat_bridge.js','test_browser_heartbeat.js','test_chat_ui_bridge.js','test_chat_relay_resilience.js','test_chat_route_modes.js')){
       Write-Output "NODE_TEST $test"
       & node (Join-Path $repo "tests\$test")
       if($LASTEXITCODE -ne 0){throw "Node test failed: $test"}
