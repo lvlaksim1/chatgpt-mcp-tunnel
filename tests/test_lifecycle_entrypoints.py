@@ -12,6 +12,7 @@ with tempfile.TemporaryDirectory(prefix="mcp-lifecycle-probe-") as temp:
  proc=subprocess.Popen(["dotnet",str(dll)],cwd=r,env=env,
   stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,
   encoding="utf-8",errors="replace",bufsize=1)
+ notifications=[]
  counter=0
  def request(method,params=None):
   global counter
@@ -23,6 +24,7 @@ with tempfile.TemporaryDirectory(prefix="mcp-lifecycle-probe-") as temp:
    line=proc.stdout.readline()
    assert line,"Server terminated"
    reply=json.loads(line)
+   if reply.get("method")=="notifications/tools/list_changed": notifications.append(reply["method"])
    if reply.get("id")==counter:
     assert "error" not in reply,reply
     return reply["result"]
@@ -69,6 +71,7 @@ with tempfile.TemporaryDirectory(prefix="mcp-lifecycle-probe-") as temp:
   assert "ui/initialize" in legacy["contents"][0]["text"]
   assert "chat.ui.pending" not in legacy["contents"][0]["text"]
   print("LEGACY_THREAD_LIFECYCLE_RESOURCE_PRESERVED")
+  assert "notifications/tools/list_changed" in notifications, "Refresh notification not emitted by Thread tool"
   # The only auto-dispatching bridge must be invoked from an ordinary
   # ChatGPT conversation, not registered as a Global/Work entrypoint.
   boot=tools["chat.bootstrap.open"]

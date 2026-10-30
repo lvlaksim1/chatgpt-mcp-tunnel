@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using ModelContextProtocol.Server;
+using ModelContextProtocol.Protocol;
 
 // Experimental, non-destructive probe. Not a replacement for the accepted
 // v0.2.18 chat.ui.open relay. Lifecycle events never contain chat messages.
@@ -58,10 +59,25 @@ public static class ChatLifecycleTools
     [McpMeta("ui", JsonValue = """{"resourceUri":"ui://chatgpt-mcp-tunnel/thread-relay-probe-v0240","visibility":["model","app"]}""")]
     [McpMeta("openai/ui", JsonValue = """{"entrypoints":[{"type":"thread"}]}""")]
     [Description("Experimental thread MCP Apps lifecycle entrypoint. It records technical handshake events only; it does not send user messages or replace the existing relay.")]
-    public static string OpenThread()
+    public static async Task<string> OpenThread(McpServer server)
     {
         WriteEvent("thread", "tool-open", "server",
             """{"source":"thread-relay-probe"}""");
+        try
+        {
+            // Ask the MCP client to refresh cached tool metadata before it
+            // decides which ui resource to embed. No chat messages sent.
+            await server.SendNotificationAsync(
+                NotificationMethods.ToolListChangedNotification,
+                new ToolListChangedNotificationParams());
+            WriteEvent("thread","tool-call","server",
+                """{"source":"tools-list-changed"}""");
+        }
+        catch (Exception e) when (e is NotSupportedException or InvalidOperationException)
+        {
+            WriteEvent("thread","ui-error","server",
+                """{"errorCode":"list_changed_unavailable"}""");
+        }
         return JsonSerializer.Serialize(new {
             ok=true,mode="thread",resource=ThreadUri,
             chat_id=ChatThreadRelayProbeTools.SelectedTestChatId()
