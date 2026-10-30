@@ -1,4 +1,7 @@
 # Manager plans
+## Приоритетное обновление — 30.10.2026, поколение 58
+New experiment staged: (1) preserve main v0.2.37 as installed; (2) read origin/experiment/thread-relay-host-20261030 report and code (commit b7c527e); (3) in ONE new ordinary ChatGPT conversation after plugin/tool schema refresh check chat.thread.relay.probe discovery and uri resource-read; (4) only if isolated relay records ui-initialize, tool-input, relay-begin, relay-poll create/send one harmless canary; (5) record ui/message acceptance and true chat.reply; (6) prove automatic restoration and 10/10; (7) fix false ready state. Never retry historical pending+ui-forwarded messages.
+
 
 ## Verified 2026-10-30 live MCP host experiment
 Following 2026-10-30 experiment: 1) Start from installed 0.2.37, source main, keep pending+forwarded older messages untouched. 2) Read experimental report and isolate why chat.ui.open yielded ok but no relay polling. 3) In a safe diagnostic normal-chat thread, test a live initialized Thread iframe sending ui/message from a local queue, with real answer via chat.reply, without DOM or Work. 4) Explore resources/subscribe + notifications/resources/updated as event delivery within an active Host iframe. 5) Upgrade/assess MCP SDK separately for 2026-07-28 MRTR/Tasks; current server negotiated 2025-11-25, tasks/get and subscriptions/listen method-not-found. 6) Test approved Global Deep Link only if it will not route messages through Work; no unverified mode assumptions. After E2E, run 10/10 and multi-PC acceptance.

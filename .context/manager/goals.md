@@ -1,4 +1,7 @@
 # Manager goals
+## Приоритетное обновление — 30.10.2026, поколение 58
+Current P0 acceptance clarification: one-time new ordinary ChatGPT thread test is allowed as DIAGNOSTIC for metadata refresh, but permanently requiring users to open/reconnect a chat or press a button per message is NOT an acceptable product design. Never move to Work or a separate API. Thread relay must be host-activated without per-message manual intervention.
+
 
 ## ПРИОРИТЕТНЫЙ СТРАТЕГИЧЕСКИЙ МАНДАТ — 30.10.2026: цели всего MCP Tunnel
 Подтверждено владельцем в текущей беседе. ChatGPT MCP Tunnel — НЕ просто инструмент управления Windows и НЕ только чат. Это единая автономная инфраструктура взаимодействия человека, ИИ и всех его компьютеров. ChatGPT — один из участников системы, а не единственный интеллект или фундамент архитектуры.

@@ -1,4 +1,7 @@
 # Manager beliefs
+## Приоритетное обновление — 30.10.2026, поколение 58
+30.10.2026 next experiment evidence: An MCP tool returning resource URI and chat_id does not force ChatGPT Host to load that HTML. In existing ordinary ChatGPT thread v0.2.40/v0.2.41, chat.thread.open returned new thread-relay-probe-v0240 URI but Host continued initializing OLD cached lifecycle app; no probe resource-read, relay-begin or relay-poll. Sending notifications/tools/list_changed from McpServer was independently confirmed, but did NOT visibly update host tool metadata in this conversation. This proves stale host state in one conversation, not global impossibility. Also chat.ui.open marks status=ready prematurely before iframe activation, a false-ready bug.
+
 
 ## Verified 2026-10-30 live MCP host experiment
 REAL MCP HOST EXPERIMENT, 2026-10-30: Two actual requests ui/request-display-mode {mode:pip} from thread MCP Apps in ordinary ChatGPT returned mode=fullscreen, not pip. Host declared inline/fullscreen only, hostInfo=chatgpt, MCP Apps 2026-01-26. Thread iframe initialized and heartbeats continued while visibility hidden, but this is not guaranteed permanent. Host did not advertise sampling or openai/message in this particular diagnostic context. Calling global chat.hub.open produced tool-open but no observed new global iframe. Experimental 0.2.38 was rolled back; installed DOMKAT is again 0.2.37. Preserve exact evidence in origin/experiment/mcp-host-pip-20261030 docs/MCP-HOST-PIP-EXPERIMENTS-2026-10-30.md.

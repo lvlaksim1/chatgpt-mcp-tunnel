@@ -1,3 +1,6 @@
+## Приоритетное обновление — 30.10.2026, поколение 58
+Next action: Compare freshly created ordinary ChatGPT conversation with old cached context after MCP plugin refresh. Test real creation of the new thread-relay-probe tool and fresh resource-read. If fresh schema works, then controlled one-message queue->ui/message->chat.reply; then research host lifecycle/recovery. Do not blindly change UI transport or make cosmetic releases.
+
 ## Verified 2026-10-30 live MCP host experiment
 Current priority after live PIP test: focus on reliable host activation and first genuine local-chat -> ui/message -> chat.reply round-trip. Do not build main transport on pip: tested twice, fullscreen returned. Hidden iframe heartbeat is promising for a live relay but not enough. Explore normal Thread Entrypoint lifecycle, subscriptions on MCP resources and explicit host capabilities; do not treat synthetic tests, tool-open, or manual chat.reply as accepted.
 

@@ -1,3 +1,6 @@
+## Приоритетное обновление — 30.10.2026, поколение 58
+NEXT DECISIVE: One new ordinary ChatGPT chat (one-time acceptance test, not user workflow); check discovery of chat.thread.relay.probe, fresh resource-read, ui-initialize, binding, relay-poll, then one non-sensitive test ui/message and actual chat.reply. Until iframe initialization confirmed, never enqueue a test message. A host-supported automated refresh/reopen is still required for product goal. Report/docs are in branch experiment/thread-relay-host-20261030. Stable baseline is v0.2.37.
+
 ## Verified 2026-10-30 live MCP host experiment
 READ experiment report in branch origin/experiment/mcp-host-pip-20261030. Main and installed v0.2.37 are stable, experiment was rolled back. Next research MUST target MCP App startup: why tool-open / returned resource URI does not cause chat.ui.pending polling in the active conversation. Thread iframe has real ui-initialize and hidden heartbeat; use this verified property for controlled single ui/message active thread; only real automatic chat.reply counts. Do not retry 2 historical pending+forwarded messages. Explore current resources/subscribe support for event signalling. Leave pip out of basic plan since two real requests returned fullscreen.
 
