@@ -1,3 +1,6 @@
+## Verified 2026-10-30 live MCP host experiment
+READ experiment report in branch origin/experiment/mcp-host-pip-20261030. Main and installed v0.2.37 are stable, experiment was rolled back. Next research MUST target MCP App startup: why tool-open / returned resource URI does not cause chat.ui.pending polling in the active conversation. Thread iframe has real ui-initialize and hidden heartbeat; use this verified property for controlled single ui/message active thread; only real automatic chat.reply counts. Do not retry 2 historical pending+forwarded messages. Explore current resources/subscribe support for event signalling. Leave pip out of basic plan since two real requests returned fullscreen.
+
 ## Связь следующего шага с общей миссией
 В первую очередь добиться действительного MCP-обмена в обычном ChatGPT без ручного ретранслятора. Архитектура исправления должна оставаться переносимой на другие LLM, несколько независимых компьютеров и будущие голосовые каналы. После 10/10 и подтверждённой работы двух компьютеров — согласовывать приоритеты peer-to-peer/децентрализации, автономного STT/TTS и интеграции Goose/Ollama, не выдавая это за готовый функционал.
 

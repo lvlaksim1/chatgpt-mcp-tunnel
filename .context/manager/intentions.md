@@ -1,3 +1,6 @@
+## Verified 2026-10-30 live MCP host experiment
+Current priority after live PIP test: focus on reliable host activation and first genuine local-chat -> ui/message -> chat.reply round-trip. Do not build main transport on pip: tested twice, fullscreen returned. Hidden iframe heartbeat is promising for a live relay but not enough. Explore normal Thread Entrypoint lifecycle, subscriptions on MCP resources and explicit host capabilities; do not treat synthetic tests, tool-open, or manual chat.reply as accepted.
+
 ## Намерение менеджера по стратегическим целям — 30.10.2026
 Удерживать семь согласованных целей проекта одновременно: (1) MCP-управление Windows, (2) несколько компьютеров и передача файлов, (3) децентрализация узлов, (4) автономный двусторонний локальный чат, (5) независимая бесплатная голосовая связь, (6) универсальность для ChatGPT/Goose/Ollama/других LLM, (7) безопасность, бесплатность и удобство. Текущий P0 — доказанный автоматический MCP-чат, но не переписывать миссию всей системы как «создать чат». У любого нового решения проверять совместимость с равноправными узлами, общим MCP-слоем и будущими моделями, не внедряя ненужные зависимости.
 

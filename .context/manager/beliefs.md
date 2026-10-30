@@ -1,5 +1,9 @@
 # Manager beliefs
 
+## Verified 2026-10-30 live MCP host experiment
+REAL MCP HOST EXPERIMENT, 2026-10-30: Two actual requests ui/request-display-mode {mode:pip} from thread MCP Apps in ordinary ChatGPT returned mode=fullscreen, not pip. Host declared inline/fullscreen only, hostInfo=chatgpt, MCP Apps 2026-01-26. Thread iframe initialized and heartbeats continued while visibility hidden, but this is not guaranteed permanent. Host did not advertise sampling or openai/message in this particular diagnostic context. Calling global chat.hub.open produced tool-open but no observed new global iframe. Experimental 0.2.38 was rolled back; installed DOMKAT is again 0.2.37. Preserve exact evidence in origin/experiment/mcp-host-pip-20261030 docs/MCP-HOST-PIP-EXPERIMENTS-2026-10-30.md.
+
+
 ## Архитектурная истина, согласованная владельцем 30.10.2026
 MCP Tunnel — самостоятельная универсальная инфраструктура «человек ↔ ИИ ↔ компьютеры». Проект НЕ ограничивается управлением ПК или локальным мессенджером, а ChatGPT НЕ является единственным возможным LLM. Стратегия охватывает многокомпьютерные операции, обмен файлами, равноправные автономные узлы, текст/голос, интеграцию Goose/Ollama, безопасное выполнение команд, обновления и минимум внешних зависимостей. Текущая централизованная Router Lite и отсутствие полноценного чата/голоса/мультимодельности — промежуточное состояние; не утверждать, что стратегические цели уже реализованы. Владелец подтвердил весь этот набор без изменений.
 

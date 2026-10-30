@@ -1,3 +1,6 @@
+## Verified 2026-10-30 live MCP host experiment
+Evidence 2026-10-30: PIP did not activate in real ChatGPT Host; ui/request-display-mode pip -> fullscreen twice. Global entrypoint tool-open alone did not initialize iframe. chat.ui.open tool returned ok but local controlled message was not forwarded and had no chat.reply, and route heartbeat remained stale: P0 automatic MCP chat NOT DONE. Host sampling capability absent in observed Thread iframe. Current server only negotiates MCP 2025-11-25; 2026-07-28 initialize rejected, tasks/get and subscriptions/listen unsupported. Resource subscribe/unsubscribe DID succeed locally, but notifications/resources/updated and ChatGPT Host delivery untested. Do not claim these methods are impossible on newer clients. Deep Link live opening deliberately untested to avoid Work regression.
+
 ## Стратегический контекст текущих ограничений
 Нельзя считать решение текущей проблемы с MCP Apps завершением продукта: в планах ещё независимые peer-узлы, голосовой STT/TTS, многомодельная интеграция и автономность от Happ. Они не подтверждены реальной приёмкой. Приоритет P0 не меняется — отсутствие полностью автоматического локального ChatGPT-чата через MCP Host. Разделять трудности платформы ChatGPT и переносимый общий MCP-транспорт для прочих моделей.
 
