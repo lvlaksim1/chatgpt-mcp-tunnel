@@ -1,5 +1,9 @@
 # Current state
 
+## 2026-10-30 05:25 MSK: stable v0.2.18 relay restoration
+LOCAL v0.2.30 stable-mode candidate compiled and packaged on 30 October 2026. The accepted v0.2.18 ChatRelayApp.html is source-equivalent to Git eb1845f. Concurrent bootstrap dispatch and tray host activation were disabled. Manual chat.ui.open is the sole sender; the installed DOMKAT remains v0.2.29 until an update. Ten regression suites and packaged tests passed. See docs/STABLE-CHAT-RESTORE-2026-10-30.md.
+
+
 ## ACTUAL STATE — 2026-10-30 04:14 MSK — chat mode restoration
 - Owner asked to restore automatic opening of **ordinary ChatGPT** dialogs from local tunnel chat instead of Work/Codex. Work-regression root cause remains partially inferred from transport origin, and no new live dialog has yet been accepted as ordinary.
 - On DOMKAT source Git HEAD `e80e3ea13f6eeaaa7611d9a065201f4edaba28ca`; local suite passed: both .NET builds, Windows MCP/Router Lite, lifecycle resources, UIA, old ordinary bootstrap positive test, negative Work/extension-missing test, Global non-dispatch test and tray selftests. Pre-release v0.2.29 built via local Inno and uploaded directly with 4 assets; GitHub Actions not used.

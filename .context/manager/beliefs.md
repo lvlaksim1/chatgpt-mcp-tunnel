@@ -1,5 +1,9 @@
 # Manager beliefs
 
+## 2026-10-30 05:25 MSK: stable v0.2.18 relay restoration
+Owner directed return to working v0.2.18 chat. Git comparison proves current ChatRelayApp.html is unchanged from accepted eb1845f. Subsequent Bootstrap/HostActivator routing created non-delivery and false-ready states. Local candidate v0.2.30 disables competing automatic dispatch and tray activation, preserving unrelated MCP tools. Two dotnet builds, ten isolated tests and packaged release tests passed, but live acceptance remains open.
+
+
 ## 2026-10-30 04:14 MSK — ordinary ChatGPT Work-regression investigation
 - Verified historical code: v0.2.18 ChatRelayApp sent MCP Apps `ui/message` with `_meta["openai/message"].target="new"` from an iframe embedded in a normal ChatGPT conversation. A Global MCP entrypoint may have different host execution context; merely instructing the model "do not use Work" does not control that context.
 - Real diagnostic `chat.thread.open` from this ChatGPT conversation at approximately 04:05 MSK: `hasOpenAiMessage=true`, `hasDeepLink=false`, `displayMode=inline`. Earlier bootstrap observation 29.10 had `hasOpenAiMessage=false`. These are time- and host-context-dependent; do not assume capability from old recordings.

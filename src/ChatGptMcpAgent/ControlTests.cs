@@ -23,7 +23,8 @@ internal static class ControlTests
             {
                 timer.Stop();
                 visible = ctx.ControlOverlayVisible &&
-                    ctx.ControlOverlayExecutorCaption == "Исполнитель: Менеджер проекта";
+                    ctx.ControlOverlayExecutorCaption == "Исполнитель: Менеджер проекта" &&
+                    ctx.ControlOverlayVersionCaption.EndsWith(Application.ProductVersion.Split('+')[0], StringComparison.Ordinal);
                 ctx.ExitThread();
             };
             timer.Start();
@@ -60,7 +61,8 @@ internal static class ControlTests
             {
                 stopCheck.Stop();
                 visible = overlay.NativeVisible &&
-                    overlay.ExecutorCaption == "Исполнитель: Менеджер проекта";
+                    overlay.ExecutorCaption == "Исполнитель: Менеджер проекта" &&
+                    overlay.VersionCaption.EndsWith(Application.ProductVersion.Split('+')[0], StringComparison.Ordinal);
                 ctx.ExitThread();
             };
             stopCheck.Start();

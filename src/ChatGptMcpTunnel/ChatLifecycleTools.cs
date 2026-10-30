@@ -11,6 +11,10 @@ public static class ChatLifecycleTools
 {
     public const string GlobalUri = "ui://chatgpt-mcp-tunnel/hub-observer-v0229";
     public const string BootstrapUri = "ui://chatgpt-mcp-tunnel/chat-bootstrap-v0229";
+    // Older connector snapshots in ChatGPT may still request these exact UI
+    // pointers. Return the latest SAFE ordinary-chat bootstrap for both.
+    public const string BootstrapLegacyV0224Uri = "ui://chatgpt-mcp-tunnel/chat-bootstrap-v0224";
+    public const string BootstrapLegacyV0225Uri = "ui://chatgpt-mcp-tunnel/chat-bootstrap-v0225";
     public const string ThreadUri = "ui://chatgpt-mcp-tunnel/lifecycle-thread-v0220";
     private static string Root => Environment.GetEnvironmentVariable("CHATGPT_MCP_CHAT_TEST_ROOT") ??
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -160,6 +164,14 @@ public static class ChatLifecycleResources
     [McpServerResource(UriTemplate = ChatLifecycleTools.BootstrapUri, Name = "chat_bootstrap_v0225", MimeType = "text/html;profile=mcp-app")]
     [Description("MCP Apps dispatcher invoked only from an ordinary ChatGPT conversation.")]
     public static string Bootstrap() => Load("chat", "ChatBootstrapApp.html");
+
+    [McpServerResource(UriTemplate = ChatLifecycleTools.BootstrapLegacyV0224Uri, Name = "chat_bootstrap_legacy_v0224", MimeType = "text/html;profile=mcp-app")]
+    [Description("Compatibility resource for old ChatGPT connector snapshots; serves the current protected ordinary-chat transport.")]
+    public static string BootstrapLegacyV0224() => Load("chat", "ChatBootstrapApp.html");
+
+    [McpServerResource(UriTemplate = ChatLifecycleTools.BootstrapLegacyV0225Uri, Name = "chat_bootstrap_legacy_v0225", MimeType = "text/html;profile=mcp-app")]
+    [Description("Compatibility resource for old ChatGPT connector snapshots; serves the current protected ordinary-chat transport.")]
+    public static string BootstrapLegacyV0225() => Load("chat", "ChatBootstrapApp.html");
 
     [McpServerResource(UriTemplate = ChatLifecycleTools.ThreadUri, Name = "chat_lifecycle_thread_v0219", MimeType = "text/html;profile=mcp-app")]
     [Description("Diagnostic Thread MCP Apps lifecycle view; no messaging.")]

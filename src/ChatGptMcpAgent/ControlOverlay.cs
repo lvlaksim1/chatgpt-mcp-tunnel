@@ -10,6 +10,7 @@ internal sealed class ControlOverlay : Form
 {
     private readonly Label _header = new();
     private readonly Label _executor = new();
+    private readonly Label _version = new();
     private readonly Label _current = new();
     private readonly Label _history = new();
     private readonly Button _stop = new();
@@ -27,6 +28,7 @@ internal sealed class ControlOverlay : Form
 
     internal bool NativeVisible => IsHandleCreated && IsWindowVisible(Handle);
     internal string ExecutorCaption => _executor.Text;
+    internal string VersionCaption => _version.Text;
     protected override bool ShowWithoutActivation => true;
 
     internal ControlOverlay()
@@ -60,8 +62,13 @@ internal sealed class ControlOverlay : Form
         _stop.Font = new Font(Font, FontStyle.Bold);
         _stop.FlatStyle = FlatStyle.Flat;
         _stop.FlatAppearance.BorderSize = 0;
+        _version.SetBounds(16, 260, 330, 20);
+        _version.Font = new Font("Segoe UI", 8.5f);
+        _version.ForeColor = Color.FromArgb(194, 203, 215);
+        _version.TextAlign = ContentAlignment.MiddleRight;
+        _version.Text = "\u0412\u0435\u0440\u0441\u0438\u044f: v" + Application.ProductVersion.Split('+')[0];
         _stop.Click += (_, _) => ToggleStop();
-        Controls.AddRange(new Control[] { _header, _executor, _current, _history, _stop });
+        Controls.AddRange(new Control[] { _header, _executor, _current, _history, _stop, _version });
         _refresh.Tick += (_, _) => RefreshFromControl();
         _refresh.Start();
     }

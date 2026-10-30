@@ -268,11 +268,12 @@ internal sealed class TrayContext : ApplicationContext
     private readonly TrayIcons _icons = new();
     private readonly NotifyIcon _tray;
     private readonly System.Windows.Forms.Timer _timer = new() { Interval = 1500 };
-    private readonly ChatHostActivator _hostActivator = new();
+    // Legacy host activator is deliberately not started in stable manual-chat mode.
     private readonly bool _diagnosticMode;
     private readonly ControlOverlay _controlOverlay = new();
     internal bool ControlOverlayVisible => _controlOverlay.NativeVisible;
     internal string ControlOverlayExecutorCaption => _controlOverlay.ExecutorCaption;
+    internal string ControlOverlayVersionCaption => _controlOverlay.VersionCaption;
     internal void ShowControlOverlay() => _controlOverlay.ShowStatus();
 
     private readonly EventWaitHandle _shutdown;
@@ -383,9 +384,6 @@ internal sealed class TrayContext : ApplicationContext
                 AgentStorage.SelectedRole == "server" &&
                 !_serverProbePending && DateTime.UtcNow >= _nextServerProbe)
                 _ = PollServerStatusAsync();
-            if (!_diagnosticMode && !_stopping && !_updating && AgentStorage.SelectedRole == "server" &&
-                !ControlState.IsStopped)
-                _hostActivator.Tick(_child is { HasExited: false });
             var label = "ChatGPT MCP Tunnel — " + _connection;
             _tray.Text = label.Length > 63 ? label[..63] : label;
             var displayIcon = _icons.ForStatus(_connection);

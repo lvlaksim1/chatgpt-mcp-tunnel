@@ -1,5 +1,9 @@
 # Current blockers and open risks
 
+## 2026-10-30 05:25 MSK: stable v0.2.18 relay restoration
+Manual chat.ui.open remains necessary. Complete real-host E2E has not yet been tested against packaged v0.2.30. The old DOMKAT pending message from 05:06 remains in queue. No fully unattended startup claim. In Cloudflare challenge, do not bypass host protections.
+
+
 ## 2026-10-30 — open chat mode acceptance blocker
 - Local v0.2.29 code prevents Global MCP App from dispatching, but **cannot guarantee host-selected normal mode from a successful ui/message result**. The ChatGPT host does not always expose a conversation URL/mode: today's thread diagnostic had advertised `openai/message` but no `openai/deepLink`. Absent route requires one-time explicit user confirmation in the ordinary chat. Actual new chat Work-vs-Chat E2E unverified.
 - Candidate v0.2.29 is pre-release and not yet installed on DOMKAT. Do not claim problem fixed/accepted until an actual new dialog is visibly verified ordinary. Preserve four existing queued messages and do not test by replaying all at once.

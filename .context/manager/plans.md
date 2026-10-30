@@ -1,5 +1,9 @@
 # Manager plans
 
+## 2026-10-30 05:25 MSK: stable v0.2.18 relay restoration
+First validate compiled local v0.2.30 candidate, restore only the proven v0.2.18 manual chat.ui.open relay, isolate experimental Hub, and preserve pending messages. Next install under owner authorization and verify two consecutive local messages and replies in ordinary ChatGPT, then multichat. Keep auto-start separate.
+
+
 ## 30.10.2026 — запланированное улучшение идентификации версии
 - Для следующей версии добавить читаемую метку **установленной версии ChatGPT MCP Tunnel** в окно уведомления/индикатор управления, рядом с названием программы или заголовком. Версия должна соответствовать реально запущенному агенту, а не последнему тегу GitHub. Сохранить компактность индикатора, кнопки STOP и отображение исполнителя.
 - Не выполнять сейчас сборку/установку только ради этой заметки. При следующем утверждённом функциональном цикле включить в план, локальные тесты UI, контроль версии и регрессию.

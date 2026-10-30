@@ -36,23 +36,17 @@ async function check(label,{route,extension}){
  for(let i=0;i<80;i++)await Promise.resolve();
  assert.equal(sent.filter(x=>x.method==="ui/message").length,0,label);
  assert.equal(sent.filter(x=>x.params?.name==="chat.ui.pending").length,0,label);
- const allowed=route===ordinary&&extension;
- assert.equal(timers.size,allowed?1:0,label+": timers");
- if(!allowed)assert(status.textContent.includes("queue retained"),label+": safe explanation");
- if(!allowed && !route && extension){
-  assert.equal(enableButton.hidden,false,"Host without URL must ask for confirmation");
-  assert.equal(typeof enableButton.click,"function");
-  enableButton.click();
-  for(let i=0;i<60;i++)await Promise.resolve();
-  assert.equal(timers.size,1,"Explicit confirmation should enable ordinary dispatcher");
- }
- if(allowed || (!route && extension)){
-  listeners.message({source:host,data:{jsonrpc:"2.0",
-    method:"ui/notifications/host-context-changed",
-    params:{"openai/deepLink":{url:"/mcp-app/host"}}}});
-  for(let i=0;i<80;i++)await Promise.resolve();
-  assert.equal(timers.size,0,label+": Work mode clears pending poll");
- }
+ assert.equal(timers.size,0,label+": legacy relay must be sole dispatcher");
+ assert.ok(status.textContent.includes("стабильный режим"),label+": manual-mode explanation");
+ assert.equal(enableButton.hidden,true,label+": no bootstrap activation");
+ // Host context updates cannot activate the experimental hub.
+ listeners.message({source:host,data:{jsonrpc:"2.0",
+   method:"ui/notifications/host-context-changed",
+   params:{"openai/deepLink":{url:ordinary}}}});
+ for(let i=0;i<80;i++)await Promise.resolve();
+ assert.equal(timers.size,0,label+": no bootstrap poll on host update");
+ assert.equal(sent.filter(x=>x.method==="ui/message").length,0,label+": no dispatcher");
+
 }
 (async()=>{
  await check("missing-feature",{route:ordinary,extension:false});
@@ -60,5 +54,5 @@ async function check(label,{route,extension}){
  await check("unknown-host",{route:null,extension:true});
  await check("wrong-origin",{route:"https://evil.test/c/01234567-89ab-cdef-0123-456789abcdef",extension:true});
  await check("normal-can-arm",{route:ordinary,extension:true});
- console.log("BOOTSTRAP_WORK_AND_UNSUPPORTED_HOST_BLOCKED_WITHOUT_QUEUE_LOSS_OK");
+ console.log("BOOTSTRAP_DISABLED_STABLE_V0218_RELAY_ONLY_OK");
 })().catch(e=>{console.error(e);process.exitCode=1});

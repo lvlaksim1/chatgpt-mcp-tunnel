@@ -1,5 +1,9 @@
 # Latest handoff
 
+## 2026-10-30 05:25 MSK: stable v0.2.18 relay restoration
+30.10.2026 owner instructed restoring accepted v0.2.18 text chat. Completed local source changes for v0.2.30: untouched ChatRelayApp.html, disabled competing Bootstrap and tray HostActivator, corrected Bootstrap Russian label, retained legacy resource aliases and version display. Ten targeted suites and packaged builds with SHA256 pass; installed runtime is still v0.2.29 until deployment. Live E2E acceptance not yet completed. No Work/Codex/API, GitHub Actions, or automatic release. docs/STABLE-CHAT-RESTORE-2026-10-30.md.
+
+
 ## Дополнение от владельца 30.10.2026 — версия в уведомлении
 Новая отложенная задача: **в следующей версии ChatGPT MCP Tunnel добавить указание номера версии программы**. В контексте обсуждения окна управления — отображать текущую установленную версию в заголовке/строке уведомления, подгружая её из версии реально запущенного агента. Пока только сохранено в капсуле; код, установщик и рабочая программа не менялись. Не делать отдельный релиз без поручения. Владелец сказал «на будущее запомни».
 

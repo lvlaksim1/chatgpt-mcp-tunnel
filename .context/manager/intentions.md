@@ -1,5 +1,9 @@
 # Manager intentions and commitments
 
+## 2026-10-30 05:25 MSK: stable v0.2.18 relay restoration
+Complete local restoration of v0.2.18 manual relay and v0.2.30 packaging, then safely install and run genuine two-turn E2E in an existing ordinary ChatGPT conversation. Only after live acceptance investigate robust automatic activation. Never route through Work or Codex.
+
+
 ## 30.10.2026 — запрос владельца: номер версии в интерфейсе
 - **accepted/backlog:** в следующей версии ChatGPT MCP Tunnel показать **номер установленной версии программы** пользователю. В контексте обсуждения индикатора управления предполагается отображать его непосредственно в окне уведомления об управлении (например, `ChatGPT MCP Tunnel · vX.Y.Z`). При реализации брать версию из метаданных установленного исполняемого файла/сборки, **не** жёстко зашивать текущий номер.
 - Эта задача **ещё не реализована** и **не требует немедленного выпуска или установки**. Владелец сказал: «на будущее запомни — добавить в новую версию указание версии программы».

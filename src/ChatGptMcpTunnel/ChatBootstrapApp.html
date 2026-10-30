@@ -7,14 +7,14 @@ body{margin:0;padding:8px;background:transparent;color:var(--color-text-secondar
 #status{font-size:11px;margin:0;line-height:1.4}</style></head>
 <body><p role="status" id="status">MCP Tunnel: starting ordinary ChatGPT bridge</p>
 <button id="enable" type="button" hidden style="margin-top:8px;padding:7px 12px;cursor:pointer">
-  ???????????: ??? ??????? ??? ChatGPT. ???????? ?????????
+  Передача отключена. Используйте chat.ui.open в обычном ChatGPT.
 </button>
 <script>
 (() => {
   "use strict";
   const mode = "chat", status = document.getElementById("status");
   const enableButton = document.getElementById("enable");
-  const chatTransport = "chat" === "chat";
+  const chatTransport = false; // Restore proven v0.2.18 relay; autonomous Hub isolated.
   const instanceId = (chatTransport ? "chatbridge-" : "hub-") +
     Math.random().toString(36).slice(2,12) +
     "-" + Date.now().toString(36);
@@ -71,6 +71,14 @@ body{margin:0;padding:8px;background:transparent;color:var(--color-text-secondar
     }catch(_){return "unsafe";}
   }
   function updateEligibility(){
+    // The v0.2.18 manual relay is the sole message dispatcher in stable mode.
+    // Retained bootstrap resources are observers only, including cached v0224/v0225.
+    if(!chatTransport){
+      transportAllowed=false;
+      enableButton.hidden=true;
+      status.textContent="MCP Tunnel: стабильный режим. Откройте chat.ui.open в обычном ChatGPT.";
+      return;
+    }
     const route=routeKind(context);
     transportAllowed=capability && (route==="ordinary" ||
       (route==="unknown" && userConfirmed));
@@ -87,6 +95,7 @@ body{margin:0;padding:8px;background:transparent;color:var(--color-text-secondar
     }
   }
   enableButton.addEventListener("click",()=>{
+    if(!chatTransport)return;
     if(!initialized || disposed || !capability || routeKind(context)!=="unknown")return;
     userConfirmed=true;
     updateEligibility();
@@ -228,7 +237,7 @@ body{margin:0;padding:8px;background:transparent;color:var(--color-text-secondar
     // Only the component embedded in a NORMAL ChatGPT conversation can
     // create conversations. Global app may be hosted in Work.
     if(chatTransport) updateEligibility();
-    else status.textContent="MCP Tunnel: transport not enabled";
+    else updateEligibility();
   }).catch(()=>{
     status.textContent="MCP Tunnel: ordinary ChatGPT bridge active";
   });

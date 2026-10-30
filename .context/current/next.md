@@ -1,5 +1,9 @@
 # Next actions
 
+## 2026-10-30 05:25 MSK: stable v0.2.18 relay restoration
+Verify packaged v0.2.30 installation and live two-message ordinary ChatGPT E2E using chat.ui.open and Start; protect old queued messages. Then verify multichat and MKATUSHONOK. Keep new Hub automatic dispatch isolated until stable relay is accepted.
+
+
 ## Следующая версия — указать версию программы в уведомлении (30.10.2026)
 - Владелец попросил запомнить: добавить в следующую версию видимый номер **установленной программы** в окно уведомления ChatGPT MCP Tunnel. Отображать версию работающего EXE, без жёсткой константы, не путать с GitHub release или версией исходников.
 - Статус: **backlog, не выполнено**. Сейчас не обновлять программу; продолжать при следующем согласованном выпуске. Сохранить STOP, исполнителя и существующее поведение индикатора.

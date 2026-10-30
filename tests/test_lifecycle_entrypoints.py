@@ -72,7 +72,13 @@ with tempfile.TemporaryDirectory(prefix="mcp-lifecycle-probe-") as temp:
   assert boot_result["ok"] and boot_result["mode"]=="mcp_apps_multi_chat",boot_result
   boot_html=request("resources/read",{"uri":boot_meta["ui"]["resourceUri"]})["contents"][0]
   assert boot_html["mimeType"]=="text/html;profile=mcp-app"
-  assert 'const chatTransport = "chat" === "chat"' in boot_html["text"]
+  for legacy in ("ui://chatgpt-mcp-tunnel/chat-bootstrap-v0224",
+                 "ui://chatgpt-mcp-tunnel/chat-bootstrap-v0225"):
+   cached=request("resources/read",{"uri":legacy})["contents"][0]
+   assert cached["mimeType"]=="text/html;profile=mcp-app",cached
+   assert cached["text"]==boot_html["text"],"Legacy URI must return safe v0229+ bootstrap"
+  print("LEGACY_TEMPLATE_COMPAT_V0224_V0225_OK")
+  assert "const chatTransport = false;" in boot_html["text"]
   assert '"ui/message"' in boot_html["text"]
   assert 'chat.ui.pending' in boot_html["text"]
   global_html=request("resources/read",{"uri":tools["chat.hub.open"]["_meta"]["ui"]["resourceUri"]})["contents"][0]
