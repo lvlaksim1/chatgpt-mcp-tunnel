@@ -1,5 +1,12 @@
 # Manager plans
 
+## План менеджера 30.10.2026, 03:46 MSK
+1. Не собирать/не переустанавливать `v0.2.28`: релиз опубликован, установленный на DOMKAT агент уже `0.2.28+ad28e28`; владелец устанавливает обновления самостоятельно, если отдельно не распорядится иначе.
+2. При следующей пользовательской приёмке запросить/вызвать инструменты со схемой `executor` и проверить на реальном DOMKAT отображение имён для manager/supervisor и дефолт ChatGPT; убедиться, что параллельные чаты не наследуют чужую роль. Не утверждать верификацию Host identity, поскольку параметр self-declared.
+3. Для дальнейших задач разрабатывать и тестировать **только локально** `D:\Dev\ChatGPT-MCP-Tunnel` укрупнёнными fail-fast PowerShell/Python сценариями; GUI ~1 с между действиями, CLI без искусственных пауз. GitHub только история/готовые Releases; Actions не запускать.
+4. Следующие отдельные изменения — достоверные состояния индикатора «работаю / ожидаю модель / завершено», улучшение отмены фоновых операций; только по утверждённому поручению. Не переводить чат в Work/Codex/API и не выключать Happ.
+5. Постоянный менеджер: `project-manager`. Исправление прежнего ошибочного слова «супервизор» не создаёт новый агент/контекст.
+
 ## 30.10.2026 — executor attribution implementation
 1. Add per-tool optional \`executor\` metadata with default ChatGPT; normalize to display-only safe identifiers.
 2. Propagate over Router Lite, GUI batch nested calls and file transfer wire operations; display with active/recent event in overlay.

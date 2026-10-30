@@ -1,5 +1,12 @@
 # Manager beliefs
 
+## Актуализация 30.10.2026, 03:46 MSK — подтверждённая v0.2.28 и текущая роль
+- **Verified runtime:** DOMKAT: установленный `D:\ChatGPTMCPAgent\ChatGptMcpAgent.exe` имеет версию `0.2.28+ad28e28218a404a645f0df805f8d4f205fd2e079`. Рабочее дерево `D:\Dev\ChatGPT-MCP-Tunnel`, ветка `main`, HEAD `ad28e28218a404a645f0df805f8d4f205fd2e079`, `git status` пуст. Проверено непосредственно на DOMKAT 30.10.2026. Установку `v0.2.28` пользователь выполнил самостоятельно; ассистент её не запускал.
+- **Verified release:** v0.2.28 локально собрана на DOMKAT, прошла .NET/WinForms/MCP/Router Lite/Node тесты и опубликована как готовые full/update EXE + SHA256 в GitHub Release. GitHub Actions для неё не использовались.
+- **Owner + role correction:** настоящий диалог привязан к постоянному менеджеру `project-manager` (Project Manager v2.1.0), а не `supervisor`. Моя фраза «своя капсула супервизора» ошибочно интерпретировала обращение владельца; остановка тогда выполнена, капсула супервизора не изменялась. При поручении «актуализируй капсулу менеджера» обновляется только та же Context Capsule менеджера.
+- **Verified implementation/limitation:** `executor` передаётся на каждый Windows MCP-вызов; `project-manager` → «Менеджер проекта», `supervisor` → «Супервизор», без метаданных → «ChatGPT». Это **заявленная**, не удостоверенная MCP Host идентичность; реальная визуальная приёмка подписей **после** установки 0.2.28 не проведена, хотя WinForms и Router Lite тесты прошли.
+- Правила локальной пакетной разработки, STOP, GUI ~1 сек, CLI без пауз, GitHub как хранилище/Actions-off сохраняются. Новая сверка замещает устаревшие «v0.2.28 не опубликована/не установлена» ниже. Provenance: прямые сообщения владельца и проверенные Git + установленная версия + протокол локальной сборки, 30.10.2026.
+
 ## 30.10.2026 — атрибуция исполнителя MCP-вызовов
 - Owner: в уведомлении показывать «Исполнитель: Менеджер проекта / Супервизор / ChatGPT», в зависимости от персонализированности вызывающего чата.
 - Verified implementation v0.2.28 in local source: optional per-call \`executor\` for 24 Windows MCP tools and file.transfer.start; ControlState stores sanitized identity, overlay displays last active/recent identity, Router Lite/desktop.batch/transfer wire forward it. Unknown or absent => ChatGPT. Local build/Windows/router selftests pass, not yet deployed.

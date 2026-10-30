@@ -1,5 +1,11 @@
 # Manager intentions and commitments
 
+## Статус обязательств 30.10.2026, 03:46 MSK
+- **completed/verified:** исправление Unicode `????` в исходниках, персонализированный исполнитель на уровне вызова, локальные сборки и регрессии `v0.2.28`, коммит `ad28e28`, GitHub Release `v0.2.28`. Установленная 0.2.28 на DOMKAT проверена; установку произвёл владелец. Старые «active: выпустить v0.2.28» ниже **завершены**, не запускать повторную публикацию или установку.
+- **accepted/active для приёмки:** проверить фактическое отображение «Исполнитель: Менеджер проекта», «Исполнитель: Супервизор», «Исполнитель: ChatGPT» на установленном агенте после того, как ChatGPT увидит обновлённую схему MCP-инструментов. Само наличие 0.2.28 и unit-тесты не эквивалентны пользовательской GUI-приёмке.
+- **proposed/backlog:** явные стадии «выполняю действие / ожидаю решение модели / задание действительно завершено»; расширенная отмена самостоятельных локальных фоновых сценариев кнопкой STOP. Не отмечать как реализованные.
+- **owner-instruction:** роль текущего разговора — `project-manager`; не объявлять себя супервизором, не менять persistent identity. Пакетная разработка и GitHub storage-only продолжают действовать. Ранее незавершённые обычный ChatGPT/MCP Apps E2E и многокомпьютерный чат не закрывать без проверок.
+
 ## 30.10.2026 — маркировка исполнителя (active until deployed)
 - accepted/active: deliver user-requested executor line in the Windows control notification; per-call project-manager/supervisor or default ChatGPT, including remote and GUI batch; no global cross-chat leakage.
 - Source and integration tests v0.2.28 are locally passing. Release/production installation and host tool refresh are not yet proven; do not mark completed until verified.
