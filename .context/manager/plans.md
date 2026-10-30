@@ -1,5 +1,14 @@
 # Manager plans
 
+## ПРИОРИТЕТНЫЙ ПЛАН С 30.10.2026 (замещает старые версии ниже)
+1. Перед действиями подтвердить установленную v0.2.37, bridge_ping, Router Lite DOMKAT/MKATUSHONOK, Git status, очереди/ACK. Не переустанавливать программу просто при восстановлении капсулы.
+2. Исследовать Host lifecycle и способы безручного запуска MCP Apps из обычного ChatGPT; проверить, что вызывает iframe, сохраняет ли ChatGPT его после ответа и как допустимо инициировать новое сообщение. Учитывать host-контекст при target:new (исключить Work).
+3. Получить фактический MCP round-trip без DOM: ui/message → генерация ответа моделью → chat.reply на правильный chat_id. Прямой ручной вызов chat.reply не считать автоматическим тестом.
+4. Затем проверить 10/10 сообщений, новый/существующий чат, обрыв, перезапуск и MKATUSHONOK; исключить дубли и не потерять attachments/старую очередь.
+5. После успешной сквозной приёмки собрать и проверить релиз локально на DOMKAT, опубликовать в GitHub без Actions; безопасно обновить с контрольными хешами и откатом.
+6. При невозможности host-активации зафиксировать воспроизводимый результат и оставаться в статусе НЕ ПРИНЯТО.
+
+
 ## 30 Oct 2026: next engineering plan
 1. Do not reinstall solely from context restore. DOMKAT is on v0.2.33; v0.2.35 published and downloadable.
 2. After authorized installation, compare installed ProductVersion, bridge_ping, agent/router processes and run new/existing chat two-turn E2E, visually confirm normal ChatGPT not Work.

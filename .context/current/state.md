@@ -1,3 +1,10 @@
+## ПРИОРИТЕТНЫЙ СТАТУС 30.10.2026, 16:43 МСК — v0.2.37
+- DOMKAT агент и MCP Runtime имеют версию 0.2.37+45d328923502b7770f828f0c2b27fae9f999601f. bridge_ping=OK; подключены DOMKAT и MKATUSHONOK. Git main, исходный код v0.2.37 — 45d3289, предыдущий контекстовый коммит dec5430. GitHub v0.2.37 pre-release: Setup/Update/SHA256. Резервная копия v0.2.36 имеется в .tools/local-release/v0.2.37/deployment/backup-before-v0237.
+- Работают базовые компоненты: локальные чаты, сообщения/вложения и JSON-очереди, ack/idempotency, привязки чат-ID, WinForms WebView2 auth-only, MCP Apps HTML relay-v0237, ui/message с target active/new, модельная маршрутизация chat.reply.
+- Node/CDP браузерный отправитель удалён из установленного пакета. WebView2 не используется как транспорт сообщений, реальный постоянный вход на аккаунт не подтвержден.
+- Тесты MCP и UI на моделируемом Host прошли; настоящая цепочка «локальное сообщение → обычный ChatGPT → ответ в локальном окне» не прошла приёмку; устойчивые 10/10, восстановление host iframe, многокомпьютерный чат — открыты.
+- На момент проверки осталось 2 старых сообщения status=pending, каждое ui-forwarded=True; не поворачивать автоматически на повтор. Новая актуализация = capsule generation 55; старые статусы ниже архивные.
+
 ## 30.10.2026 — v0.2.37 (MCP-only + WebView2 auth)
 2026-10-30 16:33 MSK: v0.2.37 installed DOMKAT, agent/runtime version 0.2.37+45d3289, GitHub prerelease v0.2.37 (setup/update/SHA256) published, origin/main source commit 45d3289. Independent offline installer SUCCESS; backup v0.2.36 retained. MCP ping OK and DOMKAT/MKATUSHONOK connected. Node.js/CDP browser transport removed and old packaged files deleted; WebView2 auth-only form compiled, packaged preview started with persisted profile. MCP Apps iframe tool called from this normal ChatGPT conversation and embedded UI displayed. Model messages via ui/message with assistant-only routing annotations in source; actual two-way host acceptance not yet verified.
 

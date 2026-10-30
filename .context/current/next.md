@@ -1,3 +1,9 @@
+## СЛЕДУЮЩАЯ РАБОТА — 30.10.2026
+1. Сверить базу v0.2.37, MCP connectivity/Host, очереди и route heartbeat; не использовать секреты профиля WebView2.
+2. Исследовать и воспроизвести в обычном ChatGPT механизмы host lifecycle, MCP Apps ui/message, assistant-only контент, sampling и entrypoints. Записывать именно host событие/подтверждение.
+3. Создать автоматический MCP round-trip из локального окна с получением chat.reply без ручного вмешательства и без DOM. Не повторять старые pending+forwarded.
+4. Проверить новый и существующий чат, 10/10, перезапуск, reconnect, DOMKAT/MKATUSHONOK. Только после этого релиз/продуктовая приёмка. Сохранить VPN Happ, Windows 10 и один туннель.
+
 ## 30.10.2026 — v0.2.37 (MCP-only + WebView2 auth)
 Next test after v0.2.37 install: sign in once in WinForms WebView2 profile via tray 'Вход в ChatGPT (WebView2)' or local-chat auth button, confirm persistence on restart, without DOM sends. Run one explicit user local chat message; observe MCP Apps automatic start from ChatGPT host tool-result and ui/message target:active; verify hidden assistant annotation and chat.reply return in same local chat. Test new-chat target:new and subsequent bound follow-up. On host close, inspect unacknowledged queue and avoid resend duplicates. Investigate host-approved automatic reactivation; do not substitute browser UI or APIs.
 

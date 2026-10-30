@@ -1,5 +1,15 @@
 # Manager beliefs
 
+## СТАТУС С НАИВЫСШИМ ПРИОРИТЕТОМ — 30.10.2026, 16:43 МСК
+- Роль текущего менеджера — project-manager / Менеджер проекта; не supervisor.
+- DOMKAT: установленный агент и MCP Runtime v0.2.37+45d3289, исходники main, Git HEAD до обновления капсулы dec5430, опубликован GitHub pre-release v0.2.37. Компьютеры DOMKAT и MKATUSHONOK доступны по Router Lite.
+- WebView2 в WinForms используется исключительно для авторизации и постоянного профиля; вход и сохранение авторизации на реальном аккаунте еще не приняты. Он НЕ отправляет и НЕ читает сообщения. Браузерный Node/CDP транспорт удалён из установленной версии.
+- JSON-очереди, списки локальных чатов, MCP Apps ui/message target:active/new, ACK и chat.reply существуют. Автозапуск опроса внутри MCP Apps после host tool-result проверен синтетическими тестами; настоящая автономная двусторонняя связь с ChatGPT Host не доказана. Мессенджер НЕ ПРИНЯТ.
+- MCP Apps iframe создаёт и уничтожает ChatGPT Host. Сервер не имеет проверенного механизма самостоятельного восстановления iframe после закрытия. Assistant-only routing annotations для chat.reply — в исходниках; фактическое поведение реального Host не принято.
+- Два исторических сообщения имеют status=pending и отметку ui-forwarded. Это неопределённая доставка: не удалять, не отправлять вслепую повторно и не утверждать, что они никогда не попадали к модели.
+- Приоритет фактов этого блока выше исторических описаний v0.2.18–v0.2.36 ниже. Исследовать возможности спецификации MCP экспериментально, но не выдавать тестовый хост за реальный ChatGPT.
+
+
 ## Verified 30 Oct 2026: v0.2.35 chat routing release
 Source commit 729838e was pushed to main; GitHub stable release v0.2.35 has two installer assets and SHA256 manifest. Packaged integration tests passed. Old-session discovery had incorrectly created new ChatGPT conversations; a new cloud dialog is now only dispatched from an explicitly newly created local chat. The visible message is shorter but still has a compact reply marker. Actual ChatGPT ordinary-mode E2E has NOT been verified. Installed DOMKAT remains 0.2.33.
 

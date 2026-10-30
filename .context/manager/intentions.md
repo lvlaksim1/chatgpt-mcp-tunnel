@@ -1,3 +1,10 @@
+## ТЕКУЩЕЕ НАМЕРЕНИЕ — 30.10.2026
+1. Не считать v0.2.37 завершением функции чата: это инфраструктурный промежуточный релиз, установленный на DOMKAT.
+2. Исследовать именно официальные возможности MCP Apps и OpenAI extension: host lifecycle, global/within-conversation entrypoints, ui/message, tool-input/result, teardown, sampling. Практически проверить способы автоматической host-активации.
+3. Добиться настоящего автономного цикла: локальный текст → обычный ChatGPT → ответ через chat.reply в исходное окно, без ручного действия перед каждым сообщением.
+4. Сохранить неопределённо отправленные сообщения; без доказанного ACK/ответа не дублировать их. Сначала сквозной тест, затем 10/10 и многокомпьютерная приёмка.
+5. Не возвращаться к отвергнутым DOM/Node/CDP/API/workaround, не маскировать блокер новыми экранами и релизами.
+
 ## 30.10.2026 — v0.2.37 (MCP-only + WebView2 auth)
 2026-10-30: Continue MCP-only messaging; WebView2 is for persistent login only. Do not reintroduce BrowserChatBridge.js, DOM injection, synthetic ChatGPT replies or separate model API. Research the official host lifecycle capabilities and verify real normal ChatGPT browser/host mode; prioritize user chat convenience and stable connections.
 

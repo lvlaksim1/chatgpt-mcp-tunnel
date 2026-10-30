@@ -1,5 +1,13 @@
 # Manager goals
 
+## ГЛАВНАЯ ЦЕЛЬ — полностью автоматический MCP-чат, 30.10.2026
+- Локальное окно должно работать как мессенджер: пользователь только пишет и получает ответы, не запускает chat.ui.open, не нажимает «Начать передачу», не ищет и не поддерживает MCP Apps.
+- «+ Новый чат» — новый диалог в обычном ChatGPT; прежний локальный чат продолжает точно соответствующий ему облачный диалог без потери контекста и дублей.
+- Обязательная приёмка: 10 последовательных сообщений и 10 правильных ответов в одном локальном чате; затем существующий/новый чат, перезапуск, разрыв и несколько компьютеров.
+- Только MCP-обмен сообщениями и chat.reply, WebView2 только авторизация. Исключить DOM-ввод, браузерные клики и чтение ответов, Node/CDP, отдельный API, Work/Codex.
+- Сохранить Windows 10, VPN Happ, один туннель, Router Lite, безопасную очередь и локальный STOP. GitHub только код и готовые Releases, Actions не использовать.
+
+
 ## 30 Oct 2026 continuity
 Keep existing-chat target:active and explicit-new-chat target:new as independent acceptance criteria. Do not claim success from isolated tests alone. Preserve current connections until controlled install.
 

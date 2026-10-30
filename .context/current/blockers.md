@@ -1,3 +1,9 @@
+## БЛОКЕРЫ НА 30.10.2026, 16:43 МСК
+P0: Отсутствует подтверждённое автоматическое двустороннее MCP-общение. Экземпляр MCP Apps создаёт ChatGPT Host при вызове UI-инструмента, а локальный сервер не может доказанно инициировать новый iframe или восстановить его после teardown. Автоопрос после привязки в тестовом Host ≠ автономное подключение в реальном ChatGPT.
+P1: В реальном обычном ChatGPT не проверены поведение скрытых assistant-audience annotations для chat.reply, создание нового диалога именно в Chat (не Work), постоянный ID-binding, последовательные ответы, повтор после обрыва. Два pending+forwarded имеют неопределённый статус доставки.
+P2: WebView2 профиль создаётся и интерфейс открывается, но успешный вход/сохранение авторизации реального аккаунта не подтверждены; авторизация не даёт права создавать MCP Apps.
+Прямой ручной chat.reply, подтверждение получения ui/message хостом, синтетический MCP-host тест и появление WebView2 окна не закрывают P0.
+
 ## 30.10.2026 — v0.2.37 (MCP-only + WebView2 auth)
 2026-10-30: Important host-lifecycle acceptance remains open. MCP Apps iframe is instantiated by ChatGPT host during MCP tool call; server cannot guarantee reopening an iframe after host teardown solely through standard server tools. WebView2 sign-in is independent of ChatGPT Host MCP connection and does not launch MCP Apps. Synthetic MCP host tests passed but no live local-chat-to-normal-ChatGPT-to-chat.reply full roundtrip verified; do not claim autonomous 10/10. Assistant-audience annotations supported by OpenAI MCP extension spec but real host behaviour still to test.
 
