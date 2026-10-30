@@ -10,7 +10,7 @@ from pathlib import Path
 repo = Path(__file__).resolve().parents[1]
 dll = Path(os.environ.get("CHATGPT_MCP_TEST_DLL", str(repo/"src"/"ChatGptMcpTunnel"/"bin"/"Release"/"net8.0"/"ChatGptMcpTunnel.dll")))
 assert dll.is_file(), dll
-resource_uri = "ui://chatgpt-mcp-tunnel/relay-v0218"
+resource_uri = "ui://chatgpt-mcp-tunnel/relay-v0235"
 
 with tempfile.TemporaryDirectory(prefix="mcp-chat-ui-contract-") as temp:
     root = Path(temp)
@@ -22,6 +22,22 @@ with tempfile.TemporaryDirectory(prefix="mcp-chat-ui-contract-") as temp:
         "Text":"TEST_UI_MESSAGE_FROM_LOCAL_WINDOW","Status":"pending",
         "Attachments":[{"Id":uuid.uuid4().hex,"Name":"test.png","SizeBytes":33,
                         "MediaType":"image/png","Sha256":"a"*64}]
+    }),encoding="utf-8")
+    earlier = uuid.uuid4().hex
+    (root/"messages"/(earlier+".json")).write_text(json.dumps({
+        "Id":earlier,"ChatId":"0"*32,
+        "CreatedUtc":"2026-10-29T12:00:00+00:00",
+        "Text":"LOCAL_PRIOR_TEXT_802",
+        "Reply":"LOCAL_PRIOR_REPLY_802",
+        "Status":"answered"
+    }),encoding="utf-8")
+    other = uuid.uuid4().hex
+    (root/"messages"/(other+".json")).write_text(json.dumps({
+        "Id":other,"ChatId":"f"*32,
+        "CreatedUtc":"2026-10-29T11:00:00+00:00",
+        "Text":"UNRELATED_CHAT_SECRET_802",
+        "Reply":"UNRELATED_CHAT_REPLY_802",
+        "Status":"answered"
     }),encoding="utf-8")
     env = os.environ.copy()
     env["CHATGPT_MCP_CHAT_TEST_ROOT"] = str(root)
@@ -66,6 +82,12 @@ with tempfile.TemporaryDirectory(prefix="mcp-chat-ui-contract-") as temp:
 
         resources = request("resources/list")["resources"]
         assert any(r["uri"]==resource_uri for r in resources),resources
+        legacy_uri = "ui://chatgpt-mcp-tunnel/relay-v0218"
+        previous_uri = "ui://chatgpt-mcp-tunnel/relay-v0231"
+        prev_0232_uri = "ui://chatgpt-mcp-tunnel/relay-v0232"
+        assert any(x["uri"]==previous_uri for x in resources)
+        assert any(x["uri"]==prev_0232_uri for x in resources)
+        assert any(x["uri"]==legacy_uri for x in resources), "Legacy URI removed"
         content = request("resources/read",{"uri":resource_uri})
         contents = content["contents"]
         assert len(contents)==1,content
@@ -73,12 +95,21 @@ with tempfile.TemporaryDirectory(prefix="mcp-chat-ui-contract-") as temp:
         assert contents[0]["mimeType"]=="text/html;profile=mcp-app",contents
         assert "ui/initialize" in html and "ui/message" in html and "chat.ui.pending" in html,html[:300]
         assert "chat.ui.ack" in html and "ui/resource-teardown" in html
+        prior = request("resources/read",{"uri":previous_uri})["contents"][0]["text"]
+        assert prior==html
+        assert request("resources/read",{"uri":prev_0232_uri})["contents"][0]["text"]==html
+        old = request("resources/read",{"uri":legacy_uri})["contents"][0]["text"]
+        assert old==html, "Legacy URI does not serve current safe relay"
         print("MCP_APP_HTML_RESOURCE_READ_OK")
 
         opened = call("chat.ui.open")
         assert opened["ok"] and opened["resource"]==resource_uri
         pending=call("chat.ui.pending")
         assert pending["count"]==1 and pending["message"]["id"]==mid,pending
+        assert "LOCAL_PRIOR_TEXT_802" in pending["context"],pending
+        assert "LOCAL_PRIOR_REPLY_802" in pending["context"],pending
+        assert "UNRELATED_CHAT_SECRET_802" not in pending["context"],pending
+        print("HISTORY_RESTORED_FOR_SAME_LOCAL_CHAT_ONLY_OK")
         assert pending["message"]["attachments"][0]["name"]=="test.png"
         assert not (root/"ui-forwarded"/(mid+".json")).exists()
         print("PENDING_MESSAGE_WITH_ATTACHMENTS_NO_PREEMPTIVE_ACK_OK")
@@ -95,6 +126,47 @@ with tempfile.TemporaryDirectory(prefix="mcp-chat-ui-contract-") as temp:
         assert no_pending["count"]==0,no_pending
         assert json.loads(msg.read_text(encoding="utf-8"))["Status"]=="pending"
         print("ACK_DURABLE_IDEMPOTENT_NONDESTRUCTIVE_OK")
+
+        # An unrelated existing local chat must never cause a new cloud thread.
+        session = "b"*32
+        (root/"sessions").mkdir()
+        (root/"sessions"/(session+".json")).write_text(json.dumps({
+            "Id":session,"Title":"Existing local","CreateCloudThread":False
+        }),encoding="utf-8")
+        pending_old = uuid.uuid4().hex
+        (root/"messages"/(pending_old+".json")).write_text(json.dumps({
+            "Id":pending_old,"ChatId":session,"Status":"pending",
+            "CreatedUtc":datetime.now(timezone.utc).isoformat(),"Text":"EXISTING_NOT_NEW"
+        }),encoding="utf-8")
+        discover = call("chat.ui.pending",{"chat_id":"0"*32,"discover":True})
+        assert discover["count"]==0,discover
+        print("EXISTING_CHAT_NEVER_DISCOVERED_AS_NEW_OK")
+
+        created = "c"*32
+        (root/"sessions"/(created+".json")).write_text(json.dumps({
+            "Id":created,"Title":"Explicit new","CreateCloudThread":True
+        }),encoding="utf-8")
+        first_new = uuid.uuid4().hex
+        (root/"messages"/(first_new+".json")).write_text(json.dumps({
+            "Id":first_new,"ChatId":created,"Status":"pending",
+            "CreatedUtc":datetime.now(timezone.utc).isoformat(),"Text":"NEW_EXPLICIT"
+        }),encoding="utf-8")
+        discover = call("chat.ui.pending",{"chat_id":"0"*32,"discover":True})
+        assert discover["count"]==1 and discover["message"]["id"]==first_new,discover
+        double_discovery=call("chat.ui.pending",{"chat_id":"0"*32,"discover":True})
+        assert double_discovery["count"]==0,double_discovery
+        print("ATOMIC_NEW_CHAT_DISCOVERY_LEASE_OK")
+        call("chat.ui.ack",{"message_id":first_new,"new_chat":True})
+        second_new = uuid.uuid4().hex
+        (root/"messages"/(second_new+".json")).write_text(json.dumps({
+            "Id":second_new,"ChatId":created,"Status":"pending",
+            "CreatedUtc":datetime.now(timezone.utc).isoformat(),"Text":"FOLLOW_UP"
+        }),encoding="utf-8")
+        discover = call("chat.ui.pending",{"chat_id":"0"*32,"discover":True})
+        assert discover["count"]==0,discover
+        following = call("chat.ui.pending",{"chat_id":created})
+        assert following["count"]==1 and following["message"]["id"]==second_new,following
+        print("NEW_CHAT_ONLY_EXPLICIT_AND_FOLLOWUP_BOUND_OK")
     finally:
         proc.terminate()
         try: proc.communicate(timeout=5)

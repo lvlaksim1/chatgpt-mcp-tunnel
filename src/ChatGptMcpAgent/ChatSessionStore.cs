@@ -13,6 +13,8 @@ internal sealed class ChatSession
     public DateTimeOffset CreatedUtc { get; set; }
     public DateTimeOffset UpdatedUtc { get; set; }
     public string LastPreview { get; set; } = "";
+    // Only the explicit + New Chat action permits creating a cloud thread.
+    public bool CreateCloudThread { get; set; }
 }
 internal static class ChatSessionStore
 {
@@ -134,7 +136,7 @@ internal static class ChatSessionStore
         lock (Gate)
         {
             var now = DateTimeOffset.UtcNow;
-            var item = new ChatSession { Id = Guid.NewGuid().ToString("N"), CreatedUtc = now, UpdatedUtc = now };
+            var item = new ChatSession { Id = Guid.NewGuid().ToString("N"), CreatedUtc = now, UpdatedUtc = now, CreateCloudThread = true };
             Save(item);
             Select(item.Id);
             return item;

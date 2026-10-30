@@ -63,6 +63,12 @@ internal static class ControlTests
                 visible = overlay.NativeVisible &&
                     overlay.ExecutorCaption == "Исполнитель: Менеджер проекта" &&
                     overlay.VersionCaption.EndsWith(Application.ProductVersion.Split('+')[0], StringComparison.Ordinal);
+                // X must hide, never dispose the tray-owned window.
+                overlay.Close();
+                overlay.Poll();
+                var closedSafely = !overlay.IsDisposed && !overlay.NativeVisible;
+                overlay.ShowStatus();
+                visible = visible && closedSafely && overlay.NativeVisible && !overlay.IsDisposed;
                 ctx.ExitThread();
             };
             stopCheck.Start();

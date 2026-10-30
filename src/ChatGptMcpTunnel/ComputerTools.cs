@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO.Enumeration;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Win32;
@@ -107,24 +108,55 @@ public static class ComputerTools
     }
 
     [McpServerTool(Name = "fs.read")]
-    [Description("Read a local file. Returns UTF-8/Unicode text or base64 for binary files; output can be truncated to a selected length.")]
+    [Description("Read a file without lossy Unicode replacement. Default: strict UTF-8 with BOM detection; choose encoding=windows-1251 for legacy Cyrillic files. Binary content is returned as base64.")]
     public static async Task<string> FsRead(
         [Description("Path to the file.")] string path,
         [Description("Maximum number of text characters or binary bytes to return (default 200000).")] int max_chars = 200000,
         [Description("Target computer from computers.list; omitted means local.")] string? computer = null,
-        [Description("Display-only executor identity: project-manager, supervisor, chatgpt, or persona:Name. Defaults to ChatGPT; never used for authorization.")] string? executor = null)
+        [Description("Display-only executor identity.")] string? executor = null,
+        [Description("Text encoding: auto (strict UTF-8 + Unicode BOM), utf-8, utf-16le, utf-16be, utf-32le, utf-32be, windows-1251. Explicit legacy encoding is required for unmarked Windows-1251 files.")] string encoding = "auto")
     {
-        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "fs.read", new { path, max_chars, executor });
+        if (RouterLite.IsRemote(computer))
+            return await RouterLite.CallStringAsync(computer!, "fs.read",
+                new { path, max_chars, encoding, executor });
         using var control = ControlState.Begin("fs.read", guiAction: false, readOnly: true, executor: executor);
-        if (max_chars < 1 || max_chars > 2_000_000) throw new ArgumentOutOfRangeException(nameof(max_chars), "Use 1..2000000.");
+        if (max_chars < 1 || max_chars > 2_000_000)
+            throw new ArgumentOutOfRangeException(nameof(max_chars), "Use 1..2000000.");
         var file = Path.GetFullPath(path);
         using var input = File.OpenRead(file);
         var head = new byte[Math.Min((int)Math.Min(input.Length, 8192L), 8192)];
         var headRead = input.Read(head, 0, head.Length);
-        // UTF-16/UTF-32 text contains zero bytes; recognize BOMs before classifying it as binary.
-        var hasUnicodeBom = headRead >= 2 &&
-            ((head[0] == 0xFF && head[1] == 0xFE) || (head[0] == 0xFE && head[1] == 0xFF));
-        var binary = !hasUnicodeBom && head.AsSpan(0, headRead).Contains((byte)0);
+        Encoding? bomEncoding = null;
+        var bomBytes = 0;
+        if (headRead >= 4 && head[0] == 0xff && head[1] == 0xfe &&
+            head[2] == 0 && head[3] == 0)
+        {
+            bomEncoding = new UTF32Encoding(false, true, true);
+            bomBytes = 4;
+        }
+        else if (headRead >= 4 && head[0] == 0 && head[1] == 0 &&
+                 head[2] == 0xfe && head[3] == 0xff)
+        {
+            bomEncoding = new UTF32Encoding(true, true, true);
+            bomBytes = 4;
+        }
+        else if (headRead >= 3 && head[0] == 0xef && head[1] == 0xbb && head[2] == 0xbf)
+        {
+            bomEncoding = new UTF8Encoding(false, true);
+            bomBytes = 3;
+        }
+        else if (headRead >= 2 && head[0] == 0xff && head[1] == 0xfe)
+        {
+            bomEncoding = new UnicodeEncoding(false, true, true);
+            bomBytes = 2;
+        }
+        else if (headRead >= 2 && head[0] == 0xfe && head[1] == 0xff)
+        {
+            bomEncoding = new UnicodeEncoding(true, true, true);
+            bomBytes = 2;
+        }
+        var binary = encoding.Equals("auto", StringComparison.OrdinalIgnoreCase) &&
+                     bomEncoding is null && head.AsSpan(0, headRead).Contains((byte)0);
         input.Position = 0;
         if (binary)
         {
@@ -133,32 +165,91 @@ public static class ComputerTools
             return Json(new { path = file, format = "base64", size_bytes = input.Length,
                 truncated = input.Length > count, base64 = Convert.ToBase64String(bytes, 0, count) });
         }
-        using var reader = new StreamReader(input, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
-        var buffer = new char[max_chars + 1];
-        var read = reader.ReadBlock(buffer, 0, buffer.Length);
-        return Json(new { path = file, format = "text", size_bytes = input.Length,
-            truncated = read > max_chars,
-            text = new string(buffer, 0, Math.Min(read, max_chars)) });
+
+        Encoding textEncoding = encoding.ToLowerInvariant() switch
+        {
+            "auto" => bomEncoding ?? new UTF8Encoding(false, true),
+            "utf-8" or "utf8" => new UTF8Encoding(false, true),
+            "utf-16le" => new UnicodeEncoding(false, true, true),
+            "utf-16be" => new UnicodeEncoding(true, true, true),
+            "utf-32le" => new UTF32Encoding(false, true, true),
+            "utf-32be" => new UTF32Encoding(true, true, true),
+            "windows-1251" or "cp1251" => LegacyWindows1251(),
+            _ => throw new ArgumentException("Unsupported text encoding.", nameof(encoding))
+        };
+        try
+        {
+            // Detect the BOM ourselves. StreamReader's built-in BOM switching uses
+            // permissive decoders that silently replace malformed UTF-8 bytes.
+            if (bomEncoding is not null && textEncoding.CodePage == bomEncoding.CodePage)
+                input.Position = bomBytes;
+            using var reader = new StreamReader(input, textEncoding,
+                detectEncodingFromByteOrderMarks: false);
+            var buffer = new char[max_chars + 1];
+            var read = reader.ReadBlock(buffer, 0, buffer.Length);
+            var limit = Math.Min(read, max_chars);
+            if (read > max_chars && limit > 0 && char.IsHighSurrogate(buffer[limit - 1]))
+                limit--; // Never return a broken half of a Unicode surrogate pair.
+            return Json(new { path = file, format = "text", size_bytes = input.Length,
+                truncated = read > limit, encoding = reader.CurrentEncoding.WebName,
+                text = new string(buffer, 0, limit) });
+        }
+        catch (DecoderFallbackException e)
+        {
+            throw new InvalidDataException("File does not match the requested text encoding. " +
+                "Automatic mode requires valid UTF-8 or a Unicode BOM. " +
+                "For legacy Cyrillic use encoding=windows-1251; no lossy replacement was made.", e);
+        }
+    }
+
+    private static Encoding LegacyWindows1251()
+    {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        return Encoding.GetEncoding(1251,
+            EncoderFallback.ExceptionFallback, DecoderFallback.ExceptionFallback);
     }
 
     [McpServerTool(Name = "fs.write")]
-    [Description("Create or overwrite a text file on the Windows computer. Creates missing parent directories.")]
+    [Description("Atomically write exact UTF-8 text (no BOM), rejecting invalid Unicode. Returns SHA-256; expected_sha256 optionally verifies payload integrity before replacing a file.")]
     public static async Task<string> FsWrite(
         [Description("Path of file to create or overwrite.")] string path,
         [Description("Exact UTF-8 text to store.")] string content,
         [Description("Whether overwriting an existing file is allowed (default true).")] bool overwrite = true,
         [Description("Target computer from computers.list; omitted means local.")] string? computer = null,
-        [Description("Display-only executor identity: project-manager, supervisor, chatgpt, or persona:Name. Defaults to ChatGPT; never used for authorization.")] string? executor = null)
+        [Description("Display-only executor identity.")] string? executor = null,
+        [Description("Optional SHA-256 hex digest of intended UTF-8 bytes; a mismatch rejects writing.")] string? expected_sha256 = null)
     {
-        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "fs.write", new { path, content, overwrite, executor });
+        if (RouterLite.IsRemote(computer))
+            return await RouterLite.CallStringAsync(computer!, "fs.write",
+                new { path, content, overwrite, expected_sha256, executor });
         using var control = ControlState.Begin("fs.write", guiAction: false, readOnly: false, executor: executor);
+        if (content is null) throw new ArgumentNullException(nameof(content));
+        // Throw on invalid surrogate pairs instead of silently saving a '?' or U+FFFD.
+        var bytes = new UTF8Encoding(false, true).GetBytes(content);
+        var sha256 = Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
+        if (expected_sha256 is not null &&
+            (!System.Text.RegularExpressions.Regex.IsMatch(expected_sha256, "^[a-fA-F0-9]{64}$") ||
+             !string.Equals(expected_sha256, sha256, StringComparison.OrdinalIgnoreCase)))
+            throw new InvalidDataException("UTF-8 payload SHA-256 mismatch; destination was not changed.");
         var file = Path.GetFullPath(path);
-        var parent = Path.GetDirectoryName(file);
-        if (!string.IsNullOrEmpty(parent)) Directory.CreateDirectory(parent);
-        var bytes = new UTF8Encoding(false).GetBytes(content);
-        using (var stream = new FileStream(file, overwrite ? FileMode.Create : FileMode.CreateNew, FileAccess.Write, FileShare.Read))
-            stream.Write(bytes);
-        return Json(new { path = file, bytes_written = bytes.Length, overwritten_allowed = overwrite });
+        var parent = Path.GetDirectoryName(file)!;
+        Directory.CreateDirectory(parent);
+        var temp = Path.Combine(parent, "." + Path.GetFileName(file) +
+            "." + Guid.NewGuid().ToString("N") + ".tmp");
+        try
+        {
+            using (var stream = new FileStream(temp, FileMode.CreateNew,
+                FileAccess.Write, FileShare.None))
+                stream.Write(bytes);
+            using (var verify = File.OpenRead(temp))
+                if (!string.Equals(Convert.ToHexString(SHA256.HashData(verify)), sha256,
+                    StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidDataException("Temporary UTF-8 content failed read-back verification.");
+            File.Move(temp, file, overwrite);
+        }
+        finally { if (File.Exists(temp)) File.Delete(temp); }
+        return Json(new { path = file, encoding = "utf-8", bytes_written = bytes.Length,
+            sha256, verified = true, overwritten_allowed = overwrite });
     }
 
     [McpServerTool(Name = "fs.search")]
@@ -245,8 +336,13 @@ public static class ComputerTools
         {
             startInfo.ArgumentList.Add("-NoProfile");
             startInfo.ArgumentList.Add("-NonInteractive");
+            startInfo.StandardOutputEncoding = new UTF8Encoding(false, true);
+            startInfo.StandardErrorEncoding = new UTF8Encoding(false, true);
             startInfo.ArgumentList.Add("-Command");
-            startInfo.ArgumentList.Add(command);
+            // Windows PowerShell 5.1 and .NET child processes must agree on UTF-8.
+            startInfo.ArgumentList.Add(
+                "[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false); " +
+                "$OutputEncoding = [Console]::OutputEncoding; " + command);
         }
         else
         {

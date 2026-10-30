@@ -7,7 +7,10 @@ using ModelContextProtocol.Server;
 [McpServerToolType]
 public static class ChatUiTools
 {
-    public const string ResourceUri = "ui://chatgpt-mcp-tunnel/relay-v0218";
+    public const string ResourceUri = "ui://chatgpt-mcp-tunnel/relay-v0235";
+    public const string LegacyV0232ResourceUri = "ui://chatgpt-mcp-tunnel/relay-v0232";
+    public const string LegacyV0231ResourceUri = "ui://chatgpt-mcp-tunnel/relay-v0231";
+    public const string LegacyResourceUri = "ui://chatgpt-mcp-tunnel/relay-v0218";
     private static string Root => Environment.GetEnvironmentVariable("CHATGPT_MCP_CHAT_TEST_ROOT") ??
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "ChatGPTMCPAgent", "Chat");
@@ -20,19 +23,21 @@ public static class ChatUiTools
     private static readonly Regex IdPattern = new("^[a-f0-9]{32}$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
     private static readonly object AckGate = new();
 
-    [McpServerTool(Name = "chat.ui.open", Title = "Р§Р°С‚ В· Р’РєР»СЋС‡РёС‚СЊ MCP-РїРѕСЃСЂРµРґРЅРёРє", ReadOnly = true)]
-    [McpMeta("ui", JsonValue = """{"resourceUri":"ui://chatgpt-mcp-tunnel/relay-v0218","visibility":["model","app"]}""")]
-    [Description("РћС‚РєСЂС‹С‚СЊ РІСЃС‚СЂРѕРµРЅРЅРѕРµ MCP-РїСЂРёР»РѕР¶РµРЅРёРµ, РєРѕС‚РѕСЂРѕРµ РїСЂРѕРІРµСЂСЏРµС‚ РІС…РѕРґСЏС‰РёРµ СЃРѕРѕР±С‰РµРЅРёСЏ РёР· Р»РѕРєР°Р»СЊРЅРѕРіРѕ РѕРєРЅР° ChatGPT MCP Tunnel Рё РѕС‚РїСЂР°РІР»СЏРµС‚ РёС… С‡РµСЂРµР· ui/message РІ С‚РµРєСѓС‰РёР№ РѕР±С‹С‡РЅС‹Р№ С‡Р°С‚. Р’ СЃР°РјРѕРј РєРѕРјРїРѕРЅРµРЅС‚Рµ С‚СЂРµР±СѓРµС‚СЃСЏ СЏРІРЅРѕ РІРєР»СЋС‡РёС‚СЊ РїРµСЂРµСЃС‹Р»РєСѓ. Р•СЃР»Рё ChatGPT Р·Р°РєСЂС‹РІР°РµС‚ РєРѕРјРїРѕРЅРµРЅС‚, РїРµСЂРµСЃС‹Р»РєР° РїСЂРµРєСЂР°С‰Р°РµС‚СЃСЏ. Р­С‚Рѕ СЌРєСЃРїРµСЂРёРјРµРЅС‚Р°Р»СЊРЅР°СЏ РїСЂРѕРІРµСЂРєР° Р±РµР· API, Codex, Work Рё РїР»Р°РЅРёСЂРѕРІС‰РёРєР°.")]
+    [McpServerTool(Name = "chat.ui.open", Title = "ChatGPT MCP Tunnel - Chat relay", ReadOnly = true)]
+    [McpMeta("ui", JsonValue = """{"resourceUri":"ui://chatgpt-mcp-tunnel/relay-v0235","visibility":["model","app"]}""")]
+    [Description("Открывает ретранслятор MCP Apps для сообщений из локального чата. Используется в обычной беседе ChatGPT; после активации отправляет запросы через ui/message.")]
     public static string Open(string chat_id = "")
     {
         var id = IdPattern.IsMatch(chat_id ?? "") ? chat_id : DefaultChatId();
         TouchRoute(id!, "ready");
+        ChatThreadBindings.BeginCapture(id!);
         return JsonSerializer.Serialize(new
     {
         ok = true, mode = "mcp_apps_multi_chat",
         resource = ResourceUri,
         chat_id = id,
-        note = "РљРѕРјРїРѕРЅРµРЅС‚ РїСЂРёРІСЏР·С‹РІР°РµС‚СЃСЏ Рє РІС‹Р±СЂР°РЅРЅРѕРјСѓ Р»РѕРєР°Р»СЊРЅРѕРјСѓ С‡Р°С‚Сѓ; РґР»СЏ РЅРѕРІРѕРіРѕ РґРёР°Р»РѕРіР° РїРµСЂРµРґР°Р№С‚Рµ chat_id. РќР°С‡РЅРёС‚Рµ РїРµСЂРµРґР°С‡Сѓ."
+
+        note = "Привязка к локальному чату задаётся параметром chat_id; активируйте передачу в обычной беседе ChatGPT."
     });
     }
 
@@ -71,7 +76,8 @@ public static class ChatUiTools
             if (!File.Exists(path)) return false;
             var value = JsonSerializer.Deserialize<RouteState>(File.ReadAllText(path));
             if (value is null) return false;
-            var threshold = value.Status == "waiting" ? 120 : 45;
+            var threshold = value.Status == "creating" ? 86400 :
+                value.Status == "waiting" ? 120 : 45;
             return DateTimeOffset.UtcNow - value.LastSeenUtc < TimeSpan.FromSeconds(threshold);
         }
         catch (Exception e) when (e is IOException or JsonException or UnauthorizedAccessException) {
@@ -81,14 +87,18 @@ public static class ChatUiTools
 
     private static string TitleFor(string id)
     {
-        try {
+        try
+        {
             var path = Path.Combine(SessionDir, id + ".json");
-            if (File.Exists(path)) {
+            if (File.Exists(path))
+            {
                 using var doc = JsonDocument.Parse(File.ReadAllText(path));
-                return doc.RootElement.TryGetProperty("Title", out var title) ? title.GetString() ?? "Р§Р°С‚" : "Р§Р°С‚";
+                if (doc.RootElement.TryGetProperty("Title", out var title))
+                    return title.GetString() ?? "Чат";
             }
-        } catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException) { }
-        return id == LegacyId ? "РСЃС‚РѕСЂРёСЏ РґРѕ РѕР±РЅРѕРІР»РµРЅРёСЏ" : "РќРѕРІС‹Р№ С‡Р°С‚";
+        }
+        catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException) { }
+        return id == LegacyId ? "Общий чат" : "Новый чат";
     }
 
     private static string HistoryFor(string chatId, string? excludeMessageId)
@@ -102,7 +112,7 @@ public static class ChatUiTools
             try
             {
                 var item = JsonSerializer.Deserialize<RelayMessage>(File.ReadAllText(file));
-                if (item is null || item.ChatId != chatId ||
+                if (item is null || (item.ChatId ?? LegacyId) != chatId ||
                     item.Id == excludeMessageId || item.Status != "answered" ||
                     string.IsNullOrWhiteSpace(item.Reply)) continue;
                 answered.Add(item);
@@ -125,9 +135,45 @@ public static class ChatUiTools
         return sb.Length > 4200 ? sb.ToString(0,4200) : sb.ToString();
     }
 
-    [McpServerTool(Name = "chat.ui.pending", Title = "Р§Р°С‚ В· РџСЂРѕРІРµСЂРёС‚СЊ РЅРµРѕС‚РїСЂР°РІР»РµРЅРЅРѕРµ", ReadOnly = true)]
+    private static bool ExplicitNewCloudChat(string chatId)
+    {
+        try
+        {
+            var path = Path.Combine(SessionDir, chatId + ".json");
+            if (!File.Exists(path)) return false;
+            using var doc = JsonDocument.Parse(File.ReadAllText(path));
+            return doc.RootElement.TryGetProperty("CreateCloudThread", out var flag) &&
+                flag.ValueKind == JsonValueKind.True;
+        }
+        catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
+        { return false; }
+    }
+
+    private static bool CloudThreadAlreadyRequested(string chatId)
+    {
+        if (!Directory.Exists(ForwardedDir)) return false;
+        // If one message was sent from this local chat, never create another
+        // cloud dialog automatically even if the binding heartbeat expires.
+        foreach (var path in Directory.EnumerateFiles(ForwardedDir, "*.json"))
+        {
+            try
+            {
+                var id = Path.GetFileNameWithoutExtension(path);
+                if (!IdPattern.IsMatch(id)) continue;
+                var messagePath = Path.Combine(MessageDir, id + ".json");
+                if (!File.Exists(messagePath)) continue;
+                var message = JsonSerializer.Deserialize<RelayMessage>(File.ReadAllText(messagePath));
+                if (string.Equals(message?.ChatId ?? LegacyId, chatId,
+                    StringComparison.OrdinalIgnoreCase)) return true;
+            }
+            catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException) { }
+        }
+        return false;
+    }
+
+    [McpServerTool(Name = "chat.ui.pending", Title = "ChatGPT MCP Tunnel · Проверить очередь", ReadOnly = true)]
     [McpMeta("ui", JsonValue = """{"visibility":["app"]}""")]
-    [Description("Р’РЅСѓС‚СЂРµРЅРЅРёР№ РёРЅСЃС‚СЂСѓРјРµРЅС‚ MCP Apps: РїРѕРєР°Р·Р°С‚СЊ РѕРґРЅРѕ РѕР¶РёРґР°СЋС‰РµРµ Рё РµС‰С‘ РЅРµ РїРµСЂРµРїСЂР°РІР»РµРЅРЅРѕРµ РІ ChatGPT СЃРѕРѕР±С‰РµРЅРёРµ, Р±РµР· РёР·РјРµРЅРµРЅРёСЏ РµРіРѕ СЃРѕСЃС‚РѕСЏРЅРёСЏ.")]
+    [Description("Инструмент MCP Apps для просмотра ожидающих сообщений локального чата без подтверждения доставки.")]
     public static string Pending(string chat_id = "", bool discover = false)
     {
         // Pre-0.2.17 widgets do not send chat_id. Restrict them to the
@@ -143,6 +189,11 @@ public static class ChatUiTools
         if (!Directory.Exists(MessageDir))
             return JsonSerializer.Serialize(new { ok = true, count = 0, message = (object?)null });
 
+        // Atomic discovery lease: only one open MCP iframe may create a cloud
+        // thread for a newly-created local chat. An uncertain host reply must
+        // never cause a second cloud dialog to be created behind the user's back.
+        lock (AckGate)
+        {
         var candidates = new List<RelayMessage>();
         foreach (var file in Directory.EnumerateFiles(MessageDir, "*.json"))
         {
@@ -152,7 +203,9 @@ public static class ChatUiTools
                 if (item is not null && IdPattern.IsMatch(item.Id) &&
                     (discover
                         ? (item.ChatId ?? LegacyId) != chat_id &&
-                          !RouteAvailable(item.ChatId ?? LegacyId)
+                          ExplicitNewCloudChat(item.ChatId ?? LegacyId) &&
+                          !RouteAvailable(item.ChatId ?? LegacyId) &&
+                          !CloudThreadAlreadyRequested(item.ChatId ?? LegacyId)
                         : (item.ChatId ?? LegacyId) == chat_id) &&
                     item.Status == "pending" && (item.Text?.Length ?? 0) <= 20000 &&
                     !File.Exists(Path.Combine(ForwardedDir, item.Id.ToLowerInvariant() + ".json")))
@@ -162,11 +215,13 @@ public static class ChatUiTools
         }
 
         var first = candidates.OrderBy(x => x.CreatedUtc).FirstOrDefault();
+        if (discover && first is not null)
+            TouchRoute(first.ChatId ?? LegacyId, "creating");
         return JsonSerializer.Serialize(new
         {
             ok = true,
             count = candidates.Count,
-            context = discover && first is not null ? HistoryFor(first.ChatId ?? LegacyId, first.Id) : "",
+            context = first is not null ? HistoryFor(first.ChatId ?? LegacyId, first.Id) : "",
             message = first is null ? null : new
             {
                 id = first.Id,
@@ -181,11 +236,13 @@ public static class ChatUiTools
                 })
             } as object
         });
+        }
     }
 
-    [McpServerTool(Name = "chat.ui.ack", Title = "Р§Р°С‚ В· РџРѕРґС‚РІРµСЂРґРёС‚СЊ РїРµСЂРµСЃС‹Р»РєСѓ")]
+
+    [McpServerTool(Name = "chat.ui.ack", Title = "ChatGPT MCP Tunnel · Подтвердить доставку")]
     [McpMeta("ui", JsonValue = """{"visibility":["app"]}""")]
-    [Description("Р’РЅСѓС‚СЂРµРЅРЅРёР№ РёРЅСЃС‚СЂСѓРјРµРЅС‚ MCP Apps: РїРѕРґС‚РІРµСЂРґРёС‚СЊ СѓСЃРїРµС€РЅСѓСЋ РѕС‚РїСЂР°РІРєСѓ ui/message. РџРµСЂРµРґР°С‡Р° РѕС‚РјРµС‡Р°РµС‚СЃСЏ С‚РѕР»СЊРєРѕ РїРѕСЃР»Рµ СѓСЃРїРµС€РЅРѕРіРѕ РѕС‚РІРµС‚Р° С…РѕСЃС‚Р°. РќРµ РјРµРЅСЏРµС‚ СЃР°РјРѕ СЃРѕРѕР±С‰РµРЅРёРµ, РІР»РѕР¶РµРЅРёСЏ РёР»Рё РѕС‚РІРµС‚ РјРѕРґРµР»Рё.")]
+    [Description("Подтверждает успешную передачу локального сообщения в ui/message. Не отправляет сообщение повторно.")]
     public static string Ack(string message_id, bool new_chat = false)
     {
         if (!IdPattern.IsMatch(message_id ?? ""))
@@ -260,7 +317,22 @@ public static class ChatUiResources
 {
     [McpServerResource(UriTemplate = ChatUiTools.ResourceUri,
         Name = "chat_ui_relay", MimeType = "text/html;profile=mcp-app")]
-    [Description("Р’СЃС‚СЂРѕРµРЅРЅС‹Р№ РєРѕРјРїРѕРЅРµРЅС‚ MCP Apps РґР»СЏ РѕС‚РїСЂР°РІРєРё СЃРѕРѕР±С‰РµРЅРёР№ Р»РѕРєР°Р»СЊРЅРѕРіРѕ РѕРєРЅР° С‡РµСЂРµР· ui/message.")]
+    [Description("Интерактивная доставка локальных сообщений в обычный ChatGPT через MCP Apps.")]
     public static string Relay() =>
         File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "ChatRelayApp.html"), Encoding.UTF8);
+
+    [McpServerResource(UriTemplate = ChatUiTools.LegacyV0232ResourceUri,
+        Name = "chat_ui_relay_legacy_v0232", MimeType = "text/html;profile=mcp-app")]
+    [Description("Compatibility alias for v0.2.32 MCP Apps widgets.")]
+    public static string RelayLegacyV0232() => Relay();
+
+    [McpServerResource(UriTemplate = ChatUiTools.LegacyV0231ResourceUri,
+        Name = "chat_ui_relay_legacy_v0231", MimeType = "text/html;profile=mcp-app")]
+    [Description("Compatibility alias for v0.2.31 MCP Apps widgets.")]
+    public static string RelayLegacyV0231() => Relay();
+
+    [McpServerResource(UriTemplate = ChatUiTools.LegacyResourceUri,
+        Name = "chat_ui_relay_legacy_v0218", MimeType = "text/html;profile=mcp-app")]
+    [Description("Compatibility alias for existing v0.2.18 MCP Apps widgets.")]
+    public static string RelayLegacy() => Relay();
 }

@@ -50,6 +50,9 @@ pre { font-size:11px; overflow-wrap:anywhere; white-space:pre-wrap; }
   let boundChatId = null, autoStart = false;
   const chatIdPattern = /^[a-f0-9]{32}$/i;
   let timer = null, count = 0;
+  let retryFailures = 0, ackPending = null, uncertainMessage = null;
+  const isExplicitRejection = e => !!e?.mcpRejected;
+  const cooldown = () => Math.min(90000, 3000 * Math.pow(2, Math.min(retryFailures-1, 5)));
   const tell = (message) => { status.textContent = message; };
   const report = (message) => { details.textContent = message; };
   const delay = (ms) => { if (timer !== null) clearTimeout(timer); timer = setTimeout(poll, ms); };
@@ -88,8 +91,12 @@ pre { font-size:11px; overflow-wrap:anywhere; white-space:pre-wrap; }
     const call = calls.get(value.id);
     calls.delete(value.id);
     clearTimeout(call.timeout);
-    if (value.error) call.reject(new Error(String(value.error.message || "MCP rejected")));
-    else call.resolve(value.result);
+    if (value.error) {
+      const e = new Error(String(value.error.message || "MCP rejected"));
+      e.mcpRejected = true;
+      e.code = value.error.code;
+      call.reject(e);
+    } else call.resolve(value.result);
   });
   function request(method, params) {
     if (disposed) return Promise.reject(new Error("Компонент закрыт"));
@@ -97,7 +104,9 @@ pre { font-size:11px; overflow-wrap:anywhere; white-space:pre-wrap; }
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         calls.delete(id);
-        reject(new Error("Хост MCP не ответил за 20 секунд"));
+        const e = new Error("Хост MCP не ответил за 20 секунд");
+        e.mcpTimeout = true;
+        reject(e);
       }, 20000);
       calls.set(id, { resolve, reject, timeout });
       window.parent.postMessage({ jsonrpc:"2.0", id, method, params }, "*");
@@ -114,76 +123,118 @@ pre { font-size:11px; overflow-wrap:anywhere; white-space:pre-wrap; }
   }
   function formatMessage(message) {
     const attachments = Array.isArray(message.attachments) ? message.attachments : [];
-    const line = attachments.map(a => "- " + a.name + " (" + a.media_type +
-       "), идентификатор " + a.id).join("\n");
-    return "Сообщение пользователя из локального окна ChatGPT MCP Tunnel.\n" +
-      "Локальный чат: " + (message.chat_title || "Чат") + "\n" +
-      "ID локального чата: " + (message.chat_id || "") + "\n" +
-      "ID сообщения: " + message.id + "\n" +
-      (message.text ? "\nТекст:\n" + message.text + "\n" : "") +
-      (line ? "\nВложения:\n" + line + "\n" : "") +
-      "\nОтветь на этот запрос. Для просмотра вложений вызови chat.attachment.read " +
-      "с message_id и attachment_id. Ответ сохрани в локальном окне " +
-      "через chat.reply(message_id,reply).";
+    const files = attachments.map(a => a.name).join(", ");
+    // The cloud thread already preserves conversation history. Do not paste
+    // that history, diagnostic JSON, chat titles or long MCP instructions
+    // into the user's visible conversation.
+    const body = String(message.text || "").trim() ||
+       (files ? "Вложения: " + files : "");
+    const reference = "\\n\\n[ChatGPT MCP Tunnel: \\u043e\\u0442\\u0432\\u0435\\u0442 " +
+      "\\u0432 \\u043b\\u043e\\u043a\\u0430\\u043b\\u044c\\u043d\\u043e\\u0435 \\u043e\\u043a\\u043d\\u043e \\u0447\\u0435\\u0440\\u0435\\u0437 " +
+      "chat.reply(message_id=" + JSON.stringify(message.id) + ", reply=...) ]";
+    const fileNote = files
+      ? "\n[Вложения: " + files + "; для просмотра chat.attachment.read]" : "";
+    return body + fileNote + reference;
   }
   async function poll() {
     timer = null;
-    if (!initialized || !running || busy || disposed) return;
+    if (!initialized || !running || busy || disposed || !boundChatId) return;
     busy = true;
+    let nextDelay = 1800;
     try {
-      // Each iframe forwards the conversation to which it is bound.
-      const current = await tool("chat.ui.pending", {
-        chat_id: boundChatId || ""
-      });
-      // The existing component may bootstrap a NEW ChatGPT thread for
-      // another local chat. The new thread receives chat.ui.open(chat_id).
-      const different = !current.message && boundChatId
-        ? await tool("chat.ui.pending", {chat_id:boundChatId, discover:true})
-        : null;
-      const next = current.message ? current : different;
-      count = next?.count || 0;
-      if (next?.message) {
-        const message = next.message;
-        const needsNew = !!boundChatId && message.chat_id !== boundChatId;
-        tell((needsNew ? "Создаю новый диалог для " : "Передаю сообщение ") +
-          message.id + " через ui/message…");
-        const instruction = needsNew
-          ? "Открывается новый диалог ChatGPT для локального чата " +
-            (message.chat_title || "") + " (" + message.chat_id + "). " +
-            "В этом новом диалоге сразу вызови MCP-инструмент " +
-            "chat.ui.open(chat_id=\"" + message.chat_id + "\") " +
-            "чтобы автоматически включить доставку следующих сообщений " +
-            "этого локального чата. Затем ответь на запрос ниже " +
-            "через chat.reply(message_id,reply).\n\n"
-          : "";
-        const sent = await request("ui/message", {
-          role:"user",
-          content:[{ type:"text", text:instruction + formatMessage(message) }],
-          _meta:{ "openai/message":{ target:needsNew ? "new" : "active", send:true } }
-        });
-        if (sent?.isError) throw new Error("Хост отклонил ui/message");
-        await tool("chat.ui.ack", { message_id:message.id, new_chat:needsNew });
-        tell(needsNew ? "Запущен новый диалог ChatGPT для «" +
-          (message.chat_title || "Новый чат") + "»." :
-          "Сообщение передано в ChatGPT.");
+      if (ackPending) {
+        // ui/message has ALREADY been accepted by the host: never resend it.
+        await tool("chat.ui.ack", ackPending);
+        tell("Подтверждение доставки сохранено: " + ackPending.message_id + ".");
+        ackPending = null;
+        retryFailures = 0;
       } else {
-        tell("Ожидание сообщений чата " + (boundChatId || "") + ".");
+        // Each iframe forwards messages for the local conversation to which it is bound.
+        const current = await tool("chat.ui.pending", {chat_id:boundChatId || ""});
+        // Discover only sessions created with the explicit '+ New Chat' action.
+        // The server rejects discovery of existing/answered sessions.
+        const different = !current.message && boundChatId
+          ? await tool("chat.ui.pending", {chat_id:boundChatId, discover:true})
+          : null;
+        const next = current.message ? current : different;
+        count = next?.count || 0;
+        if (next?.message) {
+          const message = next.message;
+          const needsNew = message.chat_id !== boundChatId;
+          if (message.id === uncertainMessage) {
+            // A timeout after ui/message may mean the host accepted it.
+            // Never silently retry an uncertain delivery and create a duplicate model turn.
+            tell("Неизвестен результат отправки " + message.id +
+              ". Автоматический повтор заблокирован для защиты от дублей.");
+            report("Сообщение сохранено. Требуется проверить, появилось ли оно в ChatGPT. " +
+              "Другие сообщения не удаляются.");
+            nextDelay = 12000;
+          } else {
+            tell((needsNew ? "Создаю новый диалог для " : "Передаю сообщение ") +
+              message.id + " через ui/message:");
+            const instruction = needsNew
+              ? "[\\u041d\\u043e\\u0432\\u044b\\u0439 \\u043b\\u043e\\u043a\\u0430\\u043b\\u044c\\u043d\\u044b\\u0439 \\u0447\\u0430\\u0442. " +
+                "chat.ui.open(chat_id=" + JSON.stringify(message.chat_id) + ").]\\n"
+              : "";
+            let sent;
+            try {
+              sent = await request("ui/message", {
+                role:"user",
+                content:[{ type:"text", text:instruction + formatMessage(message) }],
+                _meta:{ "openai/message":{ target:needsNew ? "new" : "active", send:true } }
+              });
+              if (sent?.isError) {
+                const e = new Error("Хост отклонил ui/message");
+                e.mcpRejected = true;
+                throw e;
+              }
+            } catch(e) {
+              if (!isExplicitRejection(e)) {
+                // No reliable rejection acknowledgement: cannot assume a retry is safe.
+                uncertainMessage = message.id;
+              }
+              throw e;
+            }
+            ackPending = {message_id:message.id, new_chat:needsNew};
+            await tool("chat.ui.ack", ackPending);
+            ackPending = null;
+            retryFailures = 0;
+            uncertainMessage = null;
+            tell(needsNew ? "Запущен новый диалог ChatGPT для <" +
+              (message.chat_title || "Новый чат") + ">." :
+              "Сообщение передано в ChatGPT.");
+          }
+        } else {
+          retryFailures = 0;
+          tell("Ожидание сообщений чата " + (boundChatId || "") + ".");
+        }
       }
       report("Последний опрос: " + new Date().toLocaleTimeString("ru-RU") +
-          "\nОтправка: " + (running ? "включена" : "выключена"));
+        "\nОтправка: " + (running ? "включена" : "выключена"));
     } catch (e) {
-      tell("Ошибка отправки через MCP: " + e.message);
-      report("Сообщение осталось в очереди. Проверьте разрешения ChatGPT и возможность работы ui/message.");
-      running = false;
-      start.disabled = false;
-      stop.disabled = true;
+      // Do not turn off the relay on cloudflare_challenge or transient network errors.
+      // Explicit host rejection keeps the message pending without acknowledgement.
+      retryFailures++;
+      nextDelay = cooldown();
+      const reason = String(e?.message || e);
+      tell("Пауза передачи: " + reason + ". Повтор через " +
+        Math.ceil(nextDelay / 1000) + " с. Кнопку нажимать не нужно.");
+      report(ackPending
+        ? "Хост принял сообщение; повторяется только chat.ui.ack, без отправки дубля."
+        : uncertainMessage
+          ? "Результат ui/message неопределён: автоматический повтор этого сообщения заблокирован."
+          : "Сообщение осталось в очереди. Повтор при явном отказе хоста.");
     } finally {
       busy = false;
-      if (running && !disposed) delay(count ? 1000 : 1800);
+      if (running && !disposed) delay(nextDelay);
     }
   }
   function begin() {
     if (!initialized || disposed || running) return;
+    if (!boundChatId) {
+      tell("Для передачи привяжите чат: вызовите chat.ui.open с ID локального чата.");
+      return;
+    }
     running = true; start.disabled = true; stop.disabled = false;
     tell("Передача включена для чата " + (boundChatId || "по умолчанию") + ".");
     delay(0);
@@ -229,7 +280,7 @@ pre { font-size:11px; overflow-wrap:anywhere; white-space:pre-wrap; }
     probe.disabled = false;
     window.parent.postMessage({jsonrpc:"2.0",method:"ui/notifications/initialized"}, "*");
     const caps = response?.hostCapabilities || {};
-    if (autoStart) begin();
+    if (autoStart && boundChatId) begin();
     report("Хост: " + (response?.hostInfo?.name || "неизвестен") +
         "\nВозможности: " + JSON.stringify(caps));
     const standard = !!caps.message?.text;

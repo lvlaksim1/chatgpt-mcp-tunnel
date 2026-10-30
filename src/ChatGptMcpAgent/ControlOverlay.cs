@@ -15,8 +15,9 @@ internal sealed class ControlOverlay : Form
     private readonly Label _history = new();
     private readonly Button _stop = new();
     private readonly System.Windows.Forms.Timer _refresh = new() { Interval = 350 };
-    private string _lastState = "";
-    private DateTime _lastVisible = DateTime.MinValue;
+    // The tray owns this window for its entire lifetime: X hides, not disposes.
+    private bool _hiddenByUser;
+    private HashSet<string> _activeWhenHidden = new(StringComparer.Ordinal);
 
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
@@ -29,18 +30,31 @@ internal sealed class ControlOverlay : Form
     internal bool NativeVisible => IsHandleCreated && IsWindowVisible(Handle);
     internal string ExecutorCaption => _executor.Text;
     internal string VersionCaption => _version.Text;
+    internal static string InstalledVersion => Application.ProductVersion.Split('+')[0];
+    protected override void OnFormClosing(FormClosingEventArgs e)
+    {
+        if (e.CloseReason == CloseReason.UserClosing)
+        {
+            e.Cancel = true;
+            _activeWhenHidden = ControlState.Read().Active.Select(x => x.Id)
+                .ToHashSet(StringComparer.Ordinal);
+            _hiddenByUser = true;
+            Hide();
+            return;
+        }
+        base.OnFormClosing(e);
+    }
     protected override bool ShowWithoutActivation => true;
 
     internal ControlOverlay()
     {
-        Text = "ChatGPT MCP Tunnel — Управление компьютером";
+        Text = "ChatGPT MCP Tunnel v" + InstalledVersion + " - Управление";
         FormBorderStyle = FormBorderStyle.FixedSingle;
         ShowInTaskbar = false;
         MaximizeBox = false;
         MinimizeBox = false;
         TopMost = true;
-        Width = 365;
-        Height = 297;
+        ClientSize = new Size(388, 300);
         BackColor = Color.FromArgb(33, 39, 49);
         ForeColor = Color.White;
         Font = new Font("Segoe UI", 9.5f);
@@ -49,24 +63,24 @@ internal sealed class ControlOverlay : Form
         Opacity = 0.98;
         Icon = TrayIcons.AppIcon();
 
-        _header.SetBounds(16, 12, 330, 28);
+        _header.SetBounds(16, 12, 356, 28);
         _header.Font = new Font(Font, FontStyle.Bold);
-        _executor.SetBounds(16, 41, 330, 25);
+        _executor.SetBounds(16, 42, 356, 25);
         _executor.ForeColor = Color.FromArgb(246, 211, 143);
         _executor.Font = new Font(Font, FontStyle.Bold);
-        _current.SetBounds(16, 68, 330, 48);
-        _history.SetBounds(16, 119, 330, 85);
+        _current.SetBounds(16, 94, 356, 48);
+        _history.SetBounds(16, 147, 356, 82);
         _history.ForeColor = Color.FromArgb(194, 203, 215);
         _history.Font = new Font("Segoe UI", 8.3f);
-        _stop.SetBounds(16, 216, 330, 35);
+        _stop.SetBounds(16, 240, 356, 38);
         _stop.Font = new Font(Font, FontStyle.Bold);
         _stop.FlatStyle = FlatStyle.Flat;
         _stop.FlatAppearance.BorderSize = 0;
-        _version.SetBounds(16, 260, 330, 20);
+        _version.SetBounds(16, 70, 356, 20);
         _version.Font = new Font("Segoe UI", 8.5f);
         _version.ForeColor = Color.FromArgb(194, 203, 215);
-        _version.TextAlign = ContentAlignment.MiddleRight;
-        _version.Text = "\u0412\u0435\u0440\u0441\u0438\u044f: v" + Application.ProductVersion.Split('+')[0];
+        _version.TextAlign = ContentAlignment.MiddleLeft;
+        _version.Text = "Версия: v" + InstalledVersion;
         _stop.Click += (_, _) => ToggleStop();
         Controls.AddRange(new Control[] { _header, _executor, _current, _history, _stop, _version });
         _refresh.Tick += (_, _) => RefreshFromControl();
@@ -115,6 +129,13 @@ internal sealed class ControlOverlay : Form
         {
             var s = ControlState.Read();
             var active = s.Active.Count > 0;
+            // Do not reopen instantly after X; a new operation may show the overlay.
+            if (_hiddenByUser)
+            {
+                if (!s.Active.Any(x => !_activeWhenHidden.Contains(x.Id))) return;
+                _hiddenByUser = false;
+                _activeWhenHidden.Clear();
+            }
             var visible = active || s.Stopped || Recent(s);
             if (!visible) { if (Visible) Hide(); return; }
             var status = s.Stopped ? "ОСТАНОВЛЕНО ПОЛЬЗОВАТЕЛЕМ" :
@@ -148,8 +169,7 @@ internal sealed class ControlOverlay : Form
                 if (!IsWindowVisible(Handle))
                     ShowWindow(Handle, 4); // SW_SHOWNOACTIVATE
             }
-            _lastVisible = DateTime.UtcNow;
-            _lastState = status;
+
         }
         catch (Exception e)
         {
@@ -183,6 +203,8 @@ internal sealed class ControlOverlay : Form
 
     internal void ShowStatus()
     {
+        _hiddenByUser = false;
+        _activeWhenHidden.Clear();
         RefreshFromControl();
         if (!Visible) Show();
         Activate();

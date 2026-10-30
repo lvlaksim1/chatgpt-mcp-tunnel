@@ -8,6 +8,7 @@ const html = fs.readFileSync(path.join(__dirname,"../src/ChatGptMcpTunnel/ChatRe
 const script = html.match(/<script>([\s\S]*?)<\/script>/)[1];
 async function scenario(denyMessage) {
   const pendingId = "c".repeat(32);
+  const chatId = "a".repeat(32);
   const listeners = {};
   const elements = new Map(["start","stop","check","probe","status","details"].map(id=>[id,{
     id,disabled:false,textContent:"",handlers:{},addEventListener(type,handler){this.handlers[type]=handler;},
@@ -30,7 +31,7 @@ async function scenario(denyMessage) {
         else if(request.method==="tools/call"){
           const name=request.params.name;
           let payload;
-          if(name==="chat.ui.pending")payload={ok:true,count:1,message:{id:pendingId,text:"TEST LOCAL MESSAGE",attachments:[]}};
+          if(name==="chat.ui.pending")payload={ok:true,count:1,message:{id:pendingId,chat_id:chatId,text:"TEST LOCAL MESSAGE",attachments:[]}};
           else if(name==="chat.ui.ack")payload={ok:true,message_id:pendingId};
           else throw new Error("unexpected tool: "+name);
           response={content:[{type:"text",text:JSON.stringify(payload)}]};
@@ -56,6 +57,9 @@ async function scenario(denyMessage) {
   assert.ok(posted.some(x=>x.method==="ui/initialize"),"initialize missing");
   assert.ok(posted.some(x=>x.method==="ui/notifications/initialized"),"initialized notify missing");
   assert.equal(elements.get("probe").disabled,false,"probe should enable after initialize");
+  listeners.message({source:mock.window.parent,
+    data:{jsonrpc:"2.0",method:"ui/notifications/tool-result",
+          params:{result:{content:[{type:"text",text:JSON.stringify({chat_id:chatId})}]}}}});
   await elements.get("probe").click();
   for(let i=0;i<12;i++)await Promise.resolve();
   assert.equal(posted.filter(x=>x.method==="ui/message").length,1,"manual message not requested");
@@ -76,11 +80,20 @@ async function scenario(denyMessage) {
   await advance(0);
   for(let i=0;i<12;i++)await Promise.resolve();
   assert.ok(posted.some(x=>x.method==="ui/message"),"ui/message missing");
+  const delivered=posted.filter(x=>x.method==="ui/message" &&
+      x.params.content[0].text.includes("TEST LOCAL MESSAGE"));
+  assert.equal(delivered.length,1);
+  assert.equal(delivered[0].params._meta["openai/message"].target,"active");
+  assert.ok(!delivered[0].params.content[0].text.includes("LOCAL_PRIOR_"));
+  assert.ok(!posted.some(x=>x.method==="tools/call" &&
+      x.params.name==="chat.ui.pending" && x.params.arguments.discover &&
+      x.params.arguments.chat_id!==chatId));
   const ack=posted.filter(x=>x.method==="tools/call" && x.params.name==="chat.ui.ack");
   assert.equal(ack.length,denyMessage?0:1,"ack incorrectly marked forwarded");
   if(denyMessage){
     assert.ok(elements.get("status").textContent.includes("Blocked by host"));
-    assert.equal(elements.get("start").disabled,false);
+    assert.equal(elements.get("start").disabled,true,"temporary error must keep relay armed");
+    assert.ok(elements.get("status").textContent.includes("Повтор через"));
   }else assert.ok(elements.get("status").textContent.includes("передано"));
   elements.get("stop").click();
   const old=posted.length;

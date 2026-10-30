@@ -38,19 +38,24 @@ try {
   if((Get-FileHash (Join-Path $publish 'OpenAI\tunnel-client.exe') -Algorithm SHA256).Hash -ne $clientHash){throw 'Bundled client SHA mismatch'}
   if(-not $SkipTests){
     $app=Join-Path $publish 'ChatGptMcpAgent.exe'
-    foreach($flag in @('--selftest','--test-control','--test-overlay-auto','--test-overlay-tray','--test-chat-window','--test-chat-sessions','--test-chat-attachments','--test-transfer-window','--test-icons')){
+    foreach($flag in @('--selftest','--test-control','--test-overlay-auto','--test-overlay-tray','--test-chat-window','--test-chat-sessions','--test-chat-attachments','--test-transfer-window','--test-icons','--test-chat-thread-activator')){
       Write-Output "SELFTEST $flag"
       $process=Start-Process -FilePath $app -ArgumentList $flag -Wait -PassThru
       if($process.ExitCode -ne 0){throw "Packaged selftest $flag failed code $($process.ExitCode)"}
     }
     $env:CHATGPT_MCP_TEST_DLL=Join-Path $runtime 'ChatGptMcpTunnel.dll'
     try{
-      foreach($test in @('test_mcp_stdio.py','test_windows_tools.py','test_lifecycle_entrypoints.py','test_uia_worker_persistent.py')){
+      foreach($test in @('test_mcp_stdio.py','test_windows_tools.py','test_lifecycle_entrypoints.py','test_uia_worker_persistent.py','test_chat_ui_mcp.py','test_utf8_filesystem.py','test_v0218_stable_relay.py')){
         Write-Output "TEST $test"
         & python (Join-Path $repo "tests\$test")
         if($LASTEXITCODE -ne 0){throw "MCP test failed: $test"}
       }
     }finally{Remove-Item Env:CHATGPT_MCP_TEST_DLL -ErrorAction SilentlyContinue}
+    foreach($test in @('test_chat_ui_bridge.js','test_chat_relay_resilience.js','test_chat_route_modes.js')){
+      Write-Output "NODE_TEST $test"
+      & node (Join-Path $repo "tests\$test")
+      if($LASTEXITCODE -ne 0){throw "Node test failed: $test"}
+    }
   }
   foreach($kind in @('full','update')){
     Write-Output "INNO $kind"

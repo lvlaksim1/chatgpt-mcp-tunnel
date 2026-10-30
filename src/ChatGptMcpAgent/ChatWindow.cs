@@ -603,6 +603,7 @@ internal sealed class ChatWindow : Form
             window.CreateChat();
             var first = window._activeChatId;
             if (first == ChatSessionStore.LegacyId) return 73;
+            if (!ChatSessionStore.List().Any(x => x.Id == first && x.CreateCloudThread)) return 84;
             window._input.Text = "DRAFT_ONE";
             PersistMessage("FIRST_CHAT_MESSAGE", Array.Empty<PendingAttachment>(), first);
             window.RefreshMessages();
@@ -611,6 +612,7 @@ internal sealed class ChatWindow : Form
             window.CreateChat();
             var second = window._activeChatId;
             if (first == second) return 75;
+            if (!ChatSessionStore.List().Any(x => x.Id == second && x.CreateCloudThread)) return 85;
             PersistMessage("SECOND_CHAT_MESSAGE", Array.Empty<PendingAttachment>(), second);
             window.RefreshMessages();
             if (window._history.Text.Contains("FIRST_CHAT_MESSAGE") ||
