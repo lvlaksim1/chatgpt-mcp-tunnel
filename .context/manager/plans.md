@@ -1,4 +1,8 @@
 # Manager plans
+
+## Актуально 30.10.2026 — подтверждённый E2E и блокер повторного сообщения
+Plan after real first E2E: (1) start on stable DOMKAT v0.2.37, check both computers and logs; (2) using isolated experimental branch, trace repeated ui/message request, Host ACK, visible user turn and actual chat.reply, determine why second fails; (3) test official ui/update-model-context or other host-compatible invisible routing, verify actual ChatGPT UI; (4) repeat 2/2 then 10/10 sequential, teardown/reconnect and multi-computer; (5) only then merge/release. For development changed MCP tools/UI URI, use ChatGPT Plugins Manage Refresh; tools/list_changed did not update host snapshot in observed case.
+
 ## Приоритетное обновление — 30.10.2026, поколение 58
 New experiment staged: (1) preserve main v0.2.37 as installed; (2) read origin/experiment/thread-relay-host-20261030 report and code (commit b7c527e); (3) in ONE new ordinary ChatGPT conversation after plugin/tool schema refresh check chat.thread.relay.probe discovery and uri resource-read; (4) only if isolated relay records ui-initialize, tool-input, relay-begin, relay-poll create/send one harmless canary; (5) record ui/message acceptance and true chat.reply; (6) prove automatic restoration and 10/10; (7) fix false ready state. Never retry historical pending+ui-forwarded messages.
 

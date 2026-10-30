@@ -1,3 +1,6 @@
+## Актуально 30.10.2026 — подтверждённый E2E и блокер повторного сообщения
+Next: read origin/experiment/thread-relay-host-20261030 docs/MCP-THREAD-RELAY-HOST-EXPERIMENTS-2026-10-30.md and local logs. Reproduce second ui/message ACK/no reply with a NEW isolated canary, not the historical uncertain message. Confirm which ChatGPT conversation actually gets a second user turn; test separate model-only route via ui/update-model-context, never visible user text. After 2/2 then 10/10 and session recovery. Baseline runtime remains v0.2.37; refresh plugin metadata for each new experimental schema. Do not create more tunnels.
+
 ## Приоритетное обновление — 30.10.2026, поколение 58
 NEXT DECISIVE: One new ordinary ChatGPT chat (one-time acceptance test, not user workflow); check discovery of chat.thread.relay.probe, fresh resource-read, ui-initialize, binding, relay-poll, then one non-sensitive test ui/message and actual chat.reply. Until iframe initialization confirmed, never enqueue a test message. A host-supported automated refresh/reopen is still required for product goal. Report/docs are in branch experiment/thread-relay-host-20261030. Stable baseline is v0.2.37.
 

@@ -1,4 +1,8 @@
 # Manager goals
+
+## Актуально 30.10.2026 — подтверждённый E2E и блокер повторного сообщения
+Immediate acceptance clarification: ten sequential sends require ten actual chat.reply answers, not ten ui/message ACKs. Technical chat_id and message_id routing instructions must be invisible to users. Development-time Refresh for plugin tool schema is not an acceptable per-message user action. Original seven strategic objectives remain unchanged.
+
 ## Приоритетное обновление — 30.10.2026, поколение 58
 Current P0 acceptance clarification: one-time new ordinary ChatGPT thread test is allowed as DIAGNOSTIC for metadata refresh, but permanently requiring users to open/reconnect a chat or press a button per message is NOT an acceptable product design. Never move to Work or a separate API. Thread relay must be host-activated without per-message manual intervention.
 

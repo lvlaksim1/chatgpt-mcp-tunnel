@@ -1,3 +1,6 @@
+## Актуально 30.10.2026 — подтверждённый E2E и блокер повторного сообщения
+P0: repeat ui/message from same live Thread iframe got accepted+ui-forwarded but no reply, while heartbeat/poll continued. Unknown outcome must not be retried; message 52382de5d39f4f6ea2178de0781b260f still pending+forwarded. User-visible ChatGPT thread exposed MCP routing instruction despite audience assistant annotation. Automatic host iframe resurrection after teardown and 10/10 unproven. New tool registration requires Plugin Manage Refresh when schema/UI URI changes; follow-up verification of snapshot after downgrade not completed.
+
 ## Приоритетное обновление — 30.10.2026, поколение 58
 P0 concrete evidence as of 30.10.2026: existing ChatGPT conversation showed cached MCP Apps HTML and stale tool schema after local MCP server update. New Thread tool absent in model-visible tools, older chat.thread.open returns updated new URI but Host initializes old lifecycle HTML. Server emitted notifications/tools/list_changed and simulated MCP client got it, but existing ChatGPT Host context did not visibly update. Local route ready is premature (server tool-open rather than iframe heartbeat). Not yet known if fresh ordinary ChatGPT conversation fixes cache, or how to auto-refresh after teardown. Do not conflate cached scheme with failed ui/message.
 

@@ -1,3 +1,6 @@
+## Актуально 30.10.2026 — подтверждённый E2E и блокер повторного сообщения
+Investigate why a second ui/message target=active got an ACK without generation or chat.reply while the iframe kept running. Independently replace user-visible routing text with tested model-only MCP Apps context (candidate ui/update-model-context). Do not use DOM, Work, Codex, or a separate API. Do not resend ambiguous pending+forwarded messages. Refresh dev plugin metadata whenever tool definitions or resource URI changes, before starting a new diagnostic conversation.
+
 ## Приоритетное обновление — 30.10.2026, поколение 58
 Next action: Compare freshly created ordinary ChatGPT conversation with old cached context after MCP plugin refresh. Test real creation of the new thread-relay-probe tool and fresh resource-read. If fresh schema works, then controlled one-message queue->ui/message->chat.reply; then research host lifecycle/recovery. Do not blindly change UI transport or make cosmetic releases.
 
