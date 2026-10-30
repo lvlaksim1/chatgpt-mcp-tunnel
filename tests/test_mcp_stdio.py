@@ -62,6 +62,7 @@ try:
     expected.add("desktop.batch")
     expected.update({"chat.receive", "chat.reply", "chat.cycle", "chat.attachment.read", "chat.ui.open", "chat.ui.pending", "chat.ui.ack"})
     expected.update({"chat.bootstrap.open","chat.hub.open","chat.thread.open","chat.lifecycle.event","chat.lifecycle.status"})
+    expected.add("chat.thread.relay.probe")
     expected.add("computers.list")
     expected.update({"file.transfer.start", "file.transfer.status", "file.transfer.cancel"})
     assert len(github_tools) == 17
