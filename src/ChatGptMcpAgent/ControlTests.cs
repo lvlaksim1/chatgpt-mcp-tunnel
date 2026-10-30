@@ -22,7 +22,7 @@ internal static class ControlTests
             timer.Tick += (_, _) =>
             {
                 timer.Stop();
-                visible = ctx.ControlOverlayVisible &&
+                visible = !ctx.HasControlMenuItem && ctx.ControlOverlayVisible &&
                     ctx.ControlOverlayExecutorCaption == "Исполнитель: Менеджер проекта" &&
                     ctx.ControlOverlayVersionCaption.EndsWith(Application.ProductVersion.Split('+')[0], StringComparison.Ordinal);
                 ctx.ExitThread();
@@ -109,7 +109,6 @@ internal static class ControlTests
                 return 88;
             if (ControlState.Read().Recent[0].Activity != "") return 89;
             if (!ControlActivityLabels.DisplayLabelsValid) return 92;
-            if (!string.Equals(TrayContext.ControlMenuCaption, "Индикатор управления / СТОП", StringComparison.Ordinal)) return 93;
             if (ControlActivityLabels.Display("shell.exec", "files_delete") != "Удаляю файлы") return 94;
             if (ControlActivityLabels.Display("shell.exec", "process_stop") != "Завершаю процессы") return 95;
             if (ControlActivityLabels.Display("shell.exec", "disk_change") != "Изменяю разделы диска") return 96;

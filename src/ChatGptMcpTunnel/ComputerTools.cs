@@ -312,13 +312,21 @@ public static class ComputerTools
         [Description("Maximum characters per stdout/stderr stream included in the result.")] int max_output_chars = 100000,
         [Description("Target computer from computers.list; omitted means local.")] string? computer = null,
         [Description("Optional display-only activity code: project_build, tests_run, source_edit, source_read, git_status, git_commit, git_push, app_update, files_check, process_check, diagnostic, etc. Never include arguments, file contents, credentials or free-form descriptions. Automatic safe classification is used when omitted.")] string? activity = null,
-        [Description("Display-only executor identity: project-manager, supervisor, chatgpt, or persona:Name. Defaults to ChatGPT; never used for authorization.")] string? executor = null)
+        [Description("Display-only executor identity: project-manager, supervisor, chatgpt, or persona:Name. Defaults to ChatGPT; never used for authorization.")] string? executor = null,
+        [Description("Set true for one administrative command. Windows requests local UAC approval; the MCP tunnel stays unelevated. No unattended elevation.")] bool elevated = false)
     {
-        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "shell.exec", new { command, shell, working_directory, timeout_seconds, max_output_chars, activity, executor });
+        if (RouterLite.IsRemote(computer)) return await RouterLite.CallStringAsync(computer!, "shell.exec", new { command, shell, working_directory, timeout_seconds, max_output_chars, activity, executor, elevated });
         using var control = ControlState.Begin("shell.exec", guiAction: false, readOnly: false,
             activity: ControlActivityLabels.Shell(command, activity), executor: executor);
         if (timeout_seconds < 1 || timeout_seconds > 3600) throw new ArgumentOutOfRangeException(nameof(timeout_seconds), "Use 1..3600.");
         if (max_output_chars < 1 || max_output_chars > 2_000_000) throw new ArgumentOutOfRangeException(nameof(max_output_chars), "Use 1..2000000.");
+        if (elevated)
+        {
+            // Explicit opt-in: a short-lived elevated helper, never the persistent tunnel process.
+            var directory = working_directory is null ? Environment.CurrentDirectory : Path.GetFullPath(working_directory);
+            return await ElevatedShell.RunWithUacAsync(command, shell.ToLowerInvariant(), directory,
+                timeout_seconds, max_output_chars);
+        }
         var startInfo = new ProcessStartInfo
         {
             FileName = shell.ToLowerInvariant() switch

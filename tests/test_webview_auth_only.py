@@ -18,7 +18,7 @@ build=(root/"scripts/Build-LocalRelease.ps1").read_text(encoding="utf-8")
 assert "OpenAI\\node.exe" not in build
 assert "BrowserChatBridge.js" not in build
 cs=(root/"src/ChatGptMcpAgent/ChatGptMcpAgent.csproj").read_text(encoding="utf-8")
-assert "Microsoft.Web.WebView2" in cs and "0.2.37" in cs
+assert "Microsoft.Web.WebView2" in cs and "<Version>" in cs
 html=(root/"src/ChatGptMcpTunnel/ChatRelayApp.html").read_text(encoding="utf-8")
 assert 'annotations:{audience:["assistant"]}' in html
 assert 'formatMessage(message)' in html

@@ -37,6 +37,10 @@ try {
   if(Test-Path $cloudflared){Copy-Item $cloudflared (Join-Path $publish 'OpenAI\cloudflared.exe')}
   if((Get-FileHash (Join-Path $publish 'OpenAI\tunnel-client.exe') -Algorithm SHA256).Hash -ne $clientHash){throw 'Bundled client SHA mismatch'}
   if(-not $SkipTests){
+    $runtimeExe=Join-Path $runtime 'ChatGptMcpTunnel.exe'
+    Write-Output 'SELFTEST --test-uac-shell (no elevation requested)'
+    $uacTest=Start-Process -FilePath $runtimeExe -ArgumentList '--test-uac-shell' -Wait -PassThru
+    if($uacTest.ExitCode -ne 0){throw "UAC shell local IPC selftest failed: $($uacTest.ExitCode)"}
     $app=Join-Path $publish 'ChatGptMcpAgent.exe'
     foreach($flag in @('--selftest','--test-control','--test-overlay-auto','--test-overlay-tray','--test-chat-window','--test-chat-sessions','--test-chat-attachments','--test-transfer-window','--test-icons','--test-chat-thread-activator','--test-webview-auth')){
       Write-Output "SELFTEST $flag"

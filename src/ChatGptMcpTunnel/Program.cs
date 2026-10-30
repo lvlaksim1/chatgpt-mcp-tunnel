@@ -11,6 +11,16 @@ if (args.Length > 0 && args[0].Equals("--transfer", StringComparison.OrdinalIgno
     Environment.ExitCode = await TransferControlPipe.RunClientAsync(args.Skip(1).ToArray());
     return;
 }
+if (args.Length == 2 && args[0] == "--elevated-shell")
+{
+    Environment.ExitCode = await ElevatedShell.RunHelperAsync(args[1]);
+    return;
+}
+if (args.Length == 1 && args[0] == "--test-uac-shell")
+{
+    Environment.ExitCode = await ElevatedShell.SelfTestAsync() ? 0 : 96;
+    return;
+}
 if (args.Length > 0 && args[0].Equals("--agent", StringComparison.OrdinalIgnoreCase))
 {
     using var cancel = new CancellationTokenSource();

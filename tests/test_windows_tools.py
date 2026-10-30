@@ -78,6 +78,9 @@ try:
     assert len(github_tools) == 17
     assert {t["name"] for t in tools} == expected, tools
     print("TOOL_DISCOVERY_OK", sorted(expected), flush=True)
+    shell_metadata = next(t for t in tools if t["name"] == "shell.exec")
+    assert shell_metadata["inputSchema"]["properties"]["elevated"]["type"] == "boolean", shell_metadata
+    print("SHELL_UAC_OPTION_DISCOVERED_OK", flush=True)
     batch = call("desktop.batch", steps_json=json.dumps([
         {"tool": "desktop.screen.info", "arguments": {}},
         {"tool": "desktop.window.list", "arguments": {"title_filter": "UNLIKELY-TEST-MATCH"}},
