@@ -1,0 +1,3 @@
+# Owner decision: development execution — 30 October 2026
+
+Owner approved local-first development and batched execution on DOMKAT including this manager capsule. Plan once, execute a bounded computer batch without repeated model calls, report substantive outcomes. Approximately one second between GUI actions, no artificial delays for shell/filesystem operations. Unexpected faults go to model assessment; consult Owner when risks or permission require Owner judgment. This clarifies older automatic STOP wording. Do not alter product application or existing project manager obligations in this capsule-only change.
