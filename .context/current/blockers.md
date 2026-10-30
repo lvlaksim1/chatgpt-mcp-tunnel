@@ -1,3 +1,6 @@
+## 30 October 2026: automatic browser transport preview
+2026-10-30: Browser transport cannot send before Owner signs in once to dedicated Yandex profile (window opened on DOMKAT). Live two-turn user->model->local reply unverified. Existing local chats without verified cloud URL remain pending and are not silently migrated. Browser transport does not yet upload attachments; they remain queued. Do not claim 10/10 acceptance or autonomous recovery fully proven.
+
 # Current blockers and open risks
 
 ## 2026-10-30 v0.2.35 acceptance gate

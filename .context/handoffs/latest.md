@@ -1,3 +1,6 @@
+## 30 October 2026: automatic browser transport preview
+Handoff 2026-10-30 15:53 MSK. Project manager restored, target autonomy. Experimental v0.2.36 source 7367ae5 on origin/main and GitHub prerelease v0.2.36. Installed DOMKAT successfully with independent installer; backup v0.2.35 under .tools/local-release/v0.2.36/deployment/backup-before-v0236. Agent/runtime 0.2.36, MCP ping works, DOMKAT/MKATUSHONOK connected. Bundled Node browser worker live, dedicated Yandex profile launched on chatgpt.com (localhost CDP), not yet signed in; browser heartbeat waiting_login, no background chat result accepted. MCP Apps fallback retained until web auth. Existing unbound chats and attachments deliberately not auto-migrated. See docs/BROWSER-CHAT-TRANSPORT-V0236.md.
+
 # Latest handoff
 
 ## 2026-10-30 MSK -- v0.2.35 released, live acceptance open

@@ -1,3 +1,6 @@
+## 30 October 2026: automatic browser transport preview
+Next owner action: sign in once to ChatGPT in the separate Yandex Browser window opened by Tunnel. Then send a short message in a new local chat. Manager: check browser-bridge/heartbeat.json mode browser, browser-bridge/events.jsonl and local messages answered, then two consecutive turns, restart continuity, old verified-bound chat, MKATUSHONOK. Keep stable v0.2.35 backup, no Work/Codex/API.
+
 # Next actions
 
 ## 2026-10-30: post-release v0.2.35

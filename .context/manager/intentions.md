@@ -1,3 +1,6 @@
+## 30 October 2026: automatic browser transport preview
+Current intention 2026-10-30: accept browser-based normal ChatGPT chat only after one-time login and genuine two-turn local roundtrip, then multi-chat/restart/remote-computer test. Avoid requiring per-message chat.ui.open. Do not assert fully automatic until live tested.
+
 # Manager intentions and commitments
 
 ## 30 Oct 2026: v0.2.35

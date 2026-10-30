@@ -1,3 +1,6 @@
+## 30 October 2026: automatic browser transport preview
+2026-10-30 MSK: PREVIEW v0.2.36 installed on DOMKAT and GitHub prerelease published. Source commit 7367ae5. Agent, MCP runtime, tunnel-client, bundled Node background worker running. Browser transport profile opened at chatgpt.com using localhost-only CDP. Browser worker heartbeat reports waiting_login (new isolated profile not authenticated). Two MCP computers connected. Rollback snapshot v0.2.35 retained. No real chat E2E accepted yet.
+
 # Current state
 
 ## 2026-10-30 MSK: stable GitHub v0.2.35 release
