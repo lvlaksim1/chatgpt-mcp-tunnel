@@ -285,6 +285,7 @@ internal sealed class TrayContext : ApplicationContext
     private readonly System.Windows.Forms.Timer _timer = new() { Interval = 1500 };
     // Reopen verified ordinary ChatGPT threads when local delivery stalls.
     private readonly ChatThreadActivator _chatThreadActivator = new();
+    private readonly BrowserChatWorker _browserChatWorker = new();
     private readonly bool _diagnosticMode;
     private readonly ControlOverlay _controlOverlay = new();
     internal bool ControlOverlayVisible => _controlOverlay.NativeVisible;
@@ -403,6 +404,9 @@ internal sealed class TrayContext : ApplicationContext
                 AgentStorage.SelectedRole == "server" &&
                 !_serverProbePending && DateTime.UtcNow >= _nextServerProbe)
                 _ = PollServerStatusAsync();
+            if (!_diagnosticMode && !_stopping && !_updating &&
+                !ControlState.IsStopped)
+                _browserChatWorker.EnsureRunning();
             // MCP Apps are host-owned. Never launch the deprecated DOM/browser
             // sender, and never trigger hidden browser clicks to create messages.
             var label = "ChatGPT MCP Tunnel — " + _connection;
@@ -742,6 +746,7 @@ internal sealed class TrayContext : ApplicationContext
         if (_stopping) return;
         _stopping = true;
         _timer.Stop();
+        _browserChatWorker.Stop();
         if (_settingsWindow is { IsDisposed: false } window)
             window.Close();
         if (_transferWindow is { IsDisposed: false } transfers) transfers.Close();

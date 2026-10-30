@@ -10,19 +10,16 @@ for term in must:
 for forbidden in ["ExecuteScriptAsync","AddScriptToExecuteOnDocumentCreated",
     "Input.insertText","MutationObserver","CallDevToolsProtocolMethodAsync",
     "GetCookiesAsync","CookieManager"]:
-    assert forbidden not in s,"WebView2 authentication must not use chat scripting: "+forbidden
+    assert forbidden not in s,"Legacy WebView2 auth UI must remain script-free: "+forbidden
 program=(root/"src/ChatGptMcpAgent/Program.cs").read_text(encoding="utf-8")
-assert "BrowserChatWorker" not in program
+assert "BrowserChatWorker" in program
 assert "chat.ui.open" not in s
 build=(root/"scripts/Build-LocalRelease.ps1").read_text(encoding="utf-8")
-assert "OpenAI\\node.exe" not in build
-assert "BrowserChatBridge.js" not in build
+assert "OpenAI\\node.exe" in build
+assert "BrowserChatBridge.js" in build
 cs=(root/"src/ChatGptMcpAgent/ChatGptMcpAgent.csproj").read_text(encoding="utf-8")
-assert "Microsoft.Web.WebView2" in cs and "<Version>" in cs
-html=(root/"src/ChatGptMcpTunnel/ChatRelayApp.html").read_text(encoding="utf-8")
-assert 'annotations:{audience:["assistant"]}' in html
-assert 'formatMessage(message)' in html
-assert '"ui/message"' in html
-assert 'autoStart = true;' in html
-assert '"chat.ui.ack"' in html
-print("WEBVIEW2_AUTH_ONLY_MCP_MESSAGE_BOUNDARY_CONFIRMED")
+assert "Microsoft.Web.WebView2" in cs and "<Version>0.2.47</Version>" in cs
+bridge=(root/"src/ChatGptMcpAgent/BrowserChatBridge.js").read_text(encoding="utf-8")
+assert 'Input.insertText' in bridge and 'Runtime.evaluate' in bridge
+assert 'api.openai.com' not in bridge
+print("WEBVIEW_AUTH_SEPARATE_FROM_BROWSER_TRANSPORT_OK")

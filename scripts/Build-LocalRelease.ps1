@@ -32,6 +32,13 @@ try {
   foreach($file in @('AutomationWorker.ps1','ChatRelayApp.html','ChatGlobalHubApp.html','ChatLifecycleApp.html','ChatBootstrapApp.html')){
     if(-not (Test-Path (Join-Path $runtime $file))){throw "Missing resource: $file"}
   }
+  $node = (Get-Command node.exe -ErrorAction Stop).Source
+  Copy-Item $node (Join-Path $publish 'OpenAI\node.exe')
+  Copy-Item (Join-Path $repo 'src\ChatGptMcpAgent\NodeRuntimeLicense.txt') (Join-Path $publish 'OpenAI\LICENSE.node.txt')
+  Copy-Item (Join-Path $repo 'src\ChatGptMcpAgent\BrowserChatBridge.js') (Join-Path $runtime 'BrowserChatBridge.js')
+  & node (Join-Path $runtime 'BrowserChatBridge.js') --selftest
+  if($LASTEXITCODE -ne 0) { throw 'Browser transport selftest failed' }
+  if((Get-FileHash $node -Algorithm SHA256).Hash -ne (Get-FileHash (Join-Path $publish 'OpenAI\node.exe') -Algorithm SHA256).Hash) { throw 'Node hash mismatch' }
   Copy-Item $client (Join-Path $publish 'OpenAI\tunnel-client.exe')
   $cloudflared=Join-Path $ClientSource 'cloudflared.exe'
   if(Test-Path $cloudflared){Copy-Item $cloudflared (Join-Path $publish 'OpenAI\cloudflared.exe')}
@@ -55,7 +62,7 @@ try {
         if($LASTEXITCODE -ne 0){throw "MCP test failed: $test"}
       }
     }finally{Remove-Item Env:CHATGPT_MCP_TEST_DLL -ErrorAction SilentlyContinue}
-    foreach($test in @('test_chat_ui_bridge.js','test_chat_relay_resilience.js','test_chat_route_modes.js','test_multichat_widget.js')){
+    foreach($test in @('test_chat_ui_bridge.js','test_chat_relay_resilience.js','test_chat_route_modes.js','test_multichat_widget.js','test_browser_chat_bridge.js','test_browser_heartbeat.js','test_browser_transport_v0243.js','test_browser_recovery_bindings_v0247.js')){
       Write-Output "NODE_TEST $test"
       & node (Join-Path $repo "tests\$test")
       if($LASTEXITCODE -ne 0){throw "Node test failed: $test"}

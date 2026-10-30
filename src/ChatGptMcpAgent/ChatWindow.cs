@@ -37,7 +37,7 @@ internal sealed class ChatWindow : Form
     };
     private readonly Label _status = new()
     {
-        Text = "Авторизация через WebView2; сообщения передаются исключительно через MCP Apps. Статус соединения определяется ChatGPT Host.",
+        Text = "Чат: автономный браузерный транспорт · авторизация через отдельный профиль ChatGPT.",
         Dock = DockStyle.Bottom, Height = 43, ForeColor = Color.DimGray
     };
     private readonly System.Windows.Forms.Timer _refresh = new() { Interval = 1000 };
@@ -56,6 +56,7 @@ internal sealed class ChatWindow : Form
     private readonly Button _signIn = new() {
         Text = "Вход в ChatGPT", Dock = DockStyle.Right, Width = 150
     };
+    private readonly Button _importChat = new() { Text = "Импорт чата", Dock = DockStyle.Top, Height = 36 };
     private readonly Button _newChat = new() {
         Text = "＋ Новый чат", Dock = DockStyle.Top, Height = 44,
         Font = new Font("Segoe UI Semibold", 10), FlatStyle = FlatStyle.Flat
@@ -103,10 +104,12 @@ internal sealed class ChatWindow : Form
             ForeColor = Color.FromArgb(65, 75, 93)
         };
         sidebar.Controls.Add(_chatList);
+        sidebar.Controls.Add(_importChat);
         sidebar.Controls.Add(caption);
         sidebar.Controls.Add(_newChat);
         _newChat.FlatAppearance.BorderSize = 0;
         _newChat.Click += (_, _) => CreateChat();
+        _importChat.Click += (_, _) => ImportCloudChat();
         _chatList.DrawItem += DrawChatItem;
         _chatList.SelectedIndexChanged += (_, _) => {
             if (!_changingChat && _chatList.SelectedItem is ChatListItem item)
@@ -121,7 +124,7 @@ internal sealed class ChatWindow : Form
         login.Controls.Add(_signIn);
         Controls.Add(login);
         login.BringToFront();
-        _signIn.Click += (_, _) => ChatGptWebViewAuthForm.ShowOrActivate(this);
+        _signIn.Click += (_, _) => BrowserChatWorker.ShowSignIn(this);
 
         _attach.Click += (_, _) => SelectFiles();
         _send.Click += (_, _) => SendMessage();
@@ -244,6 +247,18 @@ internal sealed class ChatWindow : Form
         RefreshSessions();
         RefreshMessages();
         _input.Focus();
+    }
+
+    private void ImportCloudChat()
+    {
+        using var dialog = new ChatCloudImportDialog();
+        if (dialog.ShowDialog(this) != DialogResult.OK || dialog.ImportedChatId is null) return;
+        SaveDraft();
+        _activeChatId = dialog.ImportedChatId;
+        ChatSessionStore.Select(_activeChatId);
+        _snapshot = "";
+        RefreshSessions();
+        RefreshMessages();
     }
 
     private void SelectFiles()
@@ -408,7 +423,7 @@ internal sealed class ChatWindow : Form
             return;
         }
         _sending = true;
-        _send.Enabled = _attach.Enabled = _newChat.Enabled = _chatList.Enabled = false;
+        _send.Enabled = _attach.Enabled = _newChat.Enabled = _importChat.Enabled = _chatList.Enabled = false;
         _messageStatus = "Сохранение вложений…";
         UpdateCycleStatus();
         var attachments = _pending.ToArray();
@@ -435,7 +450,7 @@ internal sealed class ChatWindow : Form
         finally
         {
             _sending = false;
-            if (!IsDisposed) _send.Enabled = _attach.Enabled = _newChat.Enabled = _chatList.Enabled = true;
+            if (!IsDisposed) _send.Enabled = _attach.Enabled = _newChat.Enabled = _importChat.Enabled = _chatList.Enabled = true;
         }
     }
 
@@ -521,11 +536,46 @@ internal sealed class ChatWindow : Form
                     .ToArray()
                 : Array.Empty<ChatRecord?>();
 
-            var snapshot = JsonSerializer.Serialize(rows);
+            var historyPath = Path.Combine(ChatRoot, "browser-history", _activeChatId + ".json");
+            var historyJson = File.Exists(historyPath) ? File.ReadAllText(historyPath) : "";
+            var partials = new Dictionary<string, string>();
+            foreach (var row in rows)
+            {
+                if (row is not { Status: "pending" }) continue;
+                var part = Path.Combine(ChatRoot, "browser-partials", row.Id + ".json");
+                if (!File.Exists(part)) continue;
+                try
+                {
+                    using var doc = JsonDocument.Parse(File.ReadAllText(part));
+                    partials[row.Id] = doc.RootElement.GetProperty("text").GetString() ?? "";
+                }
+                catch (Exception ex) when (ex is IOException or JsonException) { }
+            }
+            var snapshot = JsonSerializer.Serialize(rows) + historyJson + JsonSerializer.Serialize(partials);
             if (snapshot == _snapshot) return;
             _snapshot = snapshot;
             _history.SuspendLayout();
             _history.Clear();
+            if (historyJson.Length != 0)
+            {
+                try
+                {
+                    using var cloud = JsonDocument.Parse(historyJson);
+                    if (cloud.RootElement.TryGetProperty("items", out var entries))
+                        foreach (var item in entries.EnumerateArray())
+                        {
+                            var role = item.GetProperty("role").GetString();
+                            var body = item.GetProperty("text").GetString() ?? "";
+                            if (role is not ("assistant" or "user") || body.Length == 0) continue;
+                            Append(role == "assistant" ? "ChatGPT · история" : "Вы · история",
+                                role == "assistant" ? Color.FromArgb(24,125,86) :
+                                Color.FromArgb(24,95,160), true);
+                            Append(body, Color.Black, false);
+                            Append("", Color.Gray, false);
+                        }
+                }
+                catch (JsonException) { }
+            }
             _lastReplyUtc = rows.Where(m => m?.Status == "answered" && m.RepliedUtc is not null)
                 .Max(m => m?.RepliedUtc);
             foreach (var row in rows)
@@ -551,6 +601,11 @@ internal sealed class ChatWindow : Form
                         Color.FromArgb(24, 125, 86), true);
                     Append(row.Reply, Color.Black, false);
                 }
+                else if (partials.TryGetValue(row.Id, out var draftReply) && draftReply.Length != 0)
+                {
+                    Append("ChatGPT · печатает…", Color.FromArgb(24,125,86), true);
+                    Append(draftReply, Color.Black, false);
+                }
                 else Append("Ожидает ответа", Color.Gray, false);
                 Append("", Color.Gray, false);
             }
@@ -568,10 +623,25 @@ internal sealed class ChatWindow : Form
 
     private void UpdateCycleStatus()
     {
-        var delivery = _lastReplyUtc.HasValue
-            ? "Ответ ChatGPT получен " + _lastReplyUtc.Value.ToLocalTime().ToString("dd.MM HH:mm:ss") + " · через MCP"
-            : "MCP: ожидается активная привязка Host к диалогу. Вход через WebView2 не запускает MCP Apps автоматически.";
-        _status.Text = _messageStatus + Environment.NewLine + delivery;
+        var heartbeatPath = Path.Combine(ChatRoot, "browser-bridge", "heartbeat.json");
+        try
+        {
+            if (File.Exists(heartbeatPath))
+            {
+                using var heartbeat = JsonDocument.Parse(File.ReadAllText(heartbeatPath));
+                var mode = heartbeat.RootElement.GetProperty("mode").GetString();
+                var at = heartbeat.RootElement.GetProperty("at").GetDateTimeOffset();
+                var fresh = DateTimeOffset.UtcNow - at < TimeSpan.FromSeconds(12);
+                _status.Text = _messageStatus + Environment.NewLine +
+                    (fresh ? (mode == "browser" ? "Браузерный транспорт работает · ChatGPT" :
+                        "Ожидается вход в ChatGPT: нажмите «Вход в ChatGPT»") :
+                        "Браузерный транспорт отключён");
+                return;
+            }
+        }
+        catch (Exception e) when (e is JsonException or IOException or UnauthorizedAccessException) { }
+        _status.Text = _messageStatus + Environment.NewLine + "Браузерный транспорт пока не запущен.";
+        return;
     }
 
     private void Append(string text, Color color, bool bold)
@@ -638,6 +708,13 @@ internal sealed class ChatWindow : Form
             using var reopened = new ChatWindow();
             if (reopened._activeChatId != second) return 82;
             if (Directory.EnumerateFiles(messages, "*.json").Count() != 3) return 83;
+            var cloudUrl = "https://chatgpt.com/c/01234567-89ab-cdef-0123-456789abcdef";
+            var imported = ChatSessionStore.ImportCloud(cloudUrl, "Исторический чат");
+            if (ChatSessionStore.ImportCloud(cloudUrl, "Другой заголовок") != imported) return 87;
+            var cloud = ChatSessionStore.List().Single(s => s.Id == imported);
+            if (cloud.CreateCloudThread || cloud.CloudUrl != cloudUrl ||
+                cloud.Title != "Исторический чат") return 88;
+            if (!File.Exists(Path.Combine(root, "browser-threads", imported + ".json"))) return 89;
             return 0;
         }
         finally

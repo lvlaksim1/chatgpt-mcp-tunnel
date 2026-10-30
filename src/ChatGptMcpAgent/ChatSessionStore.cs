@@ -15,6 +15,7 @@ internal sealed class ChatSession
     public string LastPreview { get; set; } = "";
     // Only the explicit + New Chat action permits creating a cloud thread.
     public bool CreateCloudThread { get; set; }
+    public string? CloudUrl { get; set; }
 }
 internal static class ChatSessionStore
 {
@@ -142,6 +143,46 @@ internal static class ChatSessionStore
             return item;
         }
     }
+    internal static string ImportCloud(string url, string title)
+    {
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) ||
+            uri.Scheme != "https" || !uri.Host.Equals("chatgpt.com", StringComparison.OrdinalIgnoreCase) ||
+            !Regex.IsMatch(uri.AbsolutePath, @"^/c/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$",
+                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant) ||
+            uri.Query.Length != 0 || uri.Fragment.Length != 0 || !uri.IsDefaultPort)
+            throw new ArgumentException("Недопустимый адрес ChatGPT", nameof(url));
+        lock (Gate)
+        {
+            var existing = List().FirstOrDefault(s => string.Equals(s.CloudUrl, url, StringComparison.OrdinalIgnoreCase));
+            if (existing != null) return existing.Id;
+            var bindingFolder = Path.Combine(Root, "browser-threads");
+            Directory.CreateDirectory(bindingFolder);
+            foreach (var file in Directory.EnumerateFiles(bindingFolder, "*.json"))
+            {
+                try
+                {
+                    using var doc = JsonDocument.Parse(File.ReadAllText(file));
+                    if (doc.RootElement.TryGetProperty("url", out var v) &&
+                        string.Equals(v.GetString(),url,StringComparison.OrdinalIgnoreCase))
+                    {
+                        var id = Path.GetFileNameWithoutExtension(file);
+                        if (List().Any(s => s.Id == id)) return id;
+                    }
+                }
+                catch (Exception e) when (e is IOException or JsonException or UnauthorizedAccessException) { }
+            }
+            var now = DateTimeOffset.UtcNow;
+            var item = new ChatSession { Id = Guid.NewGuid().ToString("N"),
+                Title = string.IsNullOrWhiteSpace(title) ? "Импортированный чат" : title.Trim()[..Math.Min(title.Trim().Length, 100)],
+                CreatedUtc = now, UpdatedUtc = now, CloudUrl = url,
+                CreateCloudThread = false };
+            WriteAtomic(Path.Combine(bindingFolder, item.Id + ".json"),
+                JsonSerializer.Serialize(new { chatId = item.Id, url }));
+            Save(item);
+            return item.Id;
+        }
+    }
+
     internal static void Touch(string id, string text)
     {
         lock (Gate)

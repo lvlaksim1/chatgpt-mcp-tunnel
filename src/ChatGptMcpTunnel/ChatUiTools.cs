@@ -175,6 +175,9 @@ public static class ChatUiTools
 
     private static bool BrowserTransportActive()
     {
+        // Activation is durable: do not fall back to MCP Apps even if the browser
+        // worker is stopped or waiting for the user to authenticate.
+        if (File.Exists(Path.Combine(Root,"browser-bridge","activated.json"))) return true;
         var path=Path.Combine(Root,"browser-bridge","heartbeat.json");
         try
         {
