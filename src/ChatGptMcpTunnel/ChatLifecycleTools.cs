@@ -15,7 +15,8 @@ public static class ChatLifecycleTools
     // pointers. Return the latest SAFE ordinary-chat bootstrap for both.
     public const string BootstrapLegacyV0224Uri = "ui://chatgpt-mcp-tunnel/chat-bootstrap-v0224";
     public const string BootstrapLegacyV0225Uri = "ui://chatgpt-mcp-tunnel/chat-bootstrap-v0225";
-    public const string ThreadUri = "ui://chatgpt-mcp-tunnel/lifecycle-thread-v0220";
+    public const string ThreadUri = ChatThreadRelayProbeTools.Uri;
+    public const string LegacyThreadUri = "ui://chatgpt-mcp-tunnel/lifecycle-thread-v0220";
     private static string Root => Environment.GetEnvironmentVariable("CHATGPT_MCP_CHAT_TEST_ROOT") ??
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "ChatGPTMCPAgent", "Chat");
@@ -54,13 +55,17 @@ public static class ChatLifecycleTools
     }
 
     [McpServerTool(Name = "chat.thread.open", Title = "ChatGPT MCP Tunnel · Thread Relay (diagnostic)", ReadOnly = true)]
-    [McpMeta("ui", JsonValue = """{"resourceUri":"ui://chatgpt-mcp-tunnel/lifecycle-thread-v0220","visibility":["model","app"]}""")]
+    [McpMeta("ui", JsonValue = """{"resourceUri":"ui://chatgpt-mcp-tunnel/thread-relay-probe-v0240","visibility":["model","app"]}""")]
     [McpMeta("openai/ui", JsonValue = """{"entrypoints":[{"type":"thread"}]}""")]
     [Description("Experimental thread MCP Apps lifecycle entrypoint. It records technical handshake events only; it does not send user messages or replace the existing relay.")]
     public static string OpenThread()
     {
-        WriteEvent("thread", "tool-open", "server", "{}");
-        return JsonSerializer.Serialize(new {ok=true,mode="thread",resource=ThreadUri});
+        WriteEvent("thread", "tool-open", "server",
+            """{"source":"thread-relay-probe"}""");
+        return JsonSerializer.Serialize(new {
+            ok=true,mode="thread",resource=ThreadUri,
+            chat_id=ChatThreadRelayProbeTools.SelectedTestChatId()
+        });
     }
 
     [McpServerTool(Name = "chat.lifecycle.event", Title = "ChatGPT MCP Tunnel · Lifecycle event")]
@@ -173,7 +178,7 @@ public static class ChatLifecycleResources
     [Description("Compatibility resource for old ChatGPT connector snapshots; serves the current protected ordinary-chat transport.")]
     public static string BootstrapLegacyV0225() => Load("chat", "ChatBootstrapApp.html");
 
-    [McpServerResource(UriTemplate = ChatLifecycleTools.ThreadUri, Name = "chat_lifecycle_thread_v0219", MimeType = "text/html;profile=mcp-app")]
+    [McpServerResource(UriTemplate = ChatLifecycleTools.LegacyThreadUri, Name = "chat_lifecycle_thread_v0219", MimeType = "text/html;profile=mcp-app")]
     [Description("Diagnostic Thread MCP Apps lifecycle view; no messaging.")]
     public static string Thread() => Load("thread", "ChatLifecycleApp.html");
 }

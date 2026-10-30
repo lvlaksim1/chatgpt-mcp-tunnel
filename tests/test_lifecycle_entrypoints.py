@@ -39,7 +39,7 @@ with tempfile.TemporaryDirectory(prefix="mcp-lifecycle-probe-") as temp:
   assert len(tools)==59,len(tools)
   for name,mode,uri in (
    ("chat.hub.open","global","ui://chatgpt-mcp-tunnel/hub-observer-v0229"),
-   ("chat.thread.open","thread","ui://chatgpt-mcp-tunnel/lifecycle-thread-v0220")
+   ("chat.thread.open","thread","ui://chatgpt-mcp-tunnel/thread-relay-probe-v0240")
   ):
    meta=tools[name]["_meta"]
    assert meta["ui"]["resourceUri"]==uri,meta
@@ -51,16 +51,24 @@ with tempfile.TemporaryDirectory(prefix="mcp-lifecycle-probe-") as temp:
    content=request("resources/read",{"uri":uri})["contents"][0]
    assert content["mimeType"]=="text/html;profile=mcp-app"
    assert len(content["text"])>1500
-   assert 'const mode = "'+mode+'"' in content["text"]
    assert "ui/initialize" in content["text"]
-   assert "ui/notifications/host-context-changed" in content["text"]
    assert "ui/resource-teardown" in content["text"]
+   if mode=="thread":
+    assert "chat.ui.pending" in content["text"]
+    assert "discover:true" not in content["text"]
+   else:
+    assert 'const mode = "global"' in content["text"]
+    assert "ui/notifications/host-context-changed" in content["text"]
    if mode=="global":
     assert 'chat.ui.pending' not in content["text"]
     assert '"ui/message"' not in content["text"]
     assert 'chat.ui.ack' not in content["text"]
    else:
-    assert 'chat.ui.pending' not in content["text"]
+    assert "chat.ui.pending" in content["text"]
+  legacy=request("resources/read",{"uri":"ui://chatgpt-mcp-tunnel/lifecycle-thread-v0220"})
+  assert "ui/initialize" in legacy["contents"][0]["text"]
+  assert "chat.ui.pending" not in legacy["contents"][0]["text"]
+  print("LEGACY_THREAD_LIFECYCLE_RESOURCE_PRESERVED")
   # The only auto-dispatching bridge must be invoked from an ordinary
   # ChatGPT conversation, not registered as a Global/Work entrypoint.
   boot=tools["chat.bootstrap.open"]

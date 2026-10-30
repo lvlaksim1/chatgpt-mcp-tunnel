@@ -30,7 +30,7 @@ with tempfile.TemporaryDirectory(prefix="mcp-thread-relay-") as temp:
   tools={t["name"]:t for t in request("tools/list")["tools"]}
   assert len(tools)==59,len(tools)
   item=tools["chat.thread.relay.probe"]
-  uri="ui://chatgpt-mcp-tunnel/thread-relay-probe-v0239"
+  uri="ui://chatgpt-mcp-tunnel/thread-relay-probe-v0240"
   assert item["_meta"]["ui"]["resourceUri"]==uri
   assert item["_meta"]["openai/ui"]["entrypoints"]==[{"type":"thread"}]
   assert "chat_id" in item["inputSchema"].get("required",[])
