@@ -1,5 +1,12 @@
 # Current state
 
+## ТЕКУЩЕЕ на 30.10.2026 — читать перед историей
+- Менеджер `project-manager` v2.1.0, Git `main`, проект `lvlaksim1/chatgpt-mcp-tunnel`, основная локальная папка `D:\Dev\ChatGPT-MCP-Tunnel`, `D:\ChatGPTMCPAgent` — установленный агент, `D:\ChatGPT-MCP-Tunnel` — прежняя копия.
+- DOMKAT установленная `v0.2.27`, агент/runtime/tunnel-client и bridge_ping после обновления подтверждены. MKATUSHONOK сейчас не перепроверялся. В GitHub v0.2.27 размещена прямой загрузкой локальных Inno установщиков; Actions (три workflow) выключены.
+- Четыре незакоммиченные правки v0.2.28 исправляют буквальные `?` в меню и 4 unsafe-category подписях; первый C# build прошёл с CS0162; release ещё нет.
+- Требование владельца: планировать и выполнять **пакетами** на DOMKAT, GUI ~1s, CLI без задержки, безопасный STOP. Индикация ожидания и достоверного завершения — backlog, не реализована.
+- Полная последовательность и решения: `.context/decisions/operating-model-2026-10-30.md`, `docs/PROJECT-MANAGER-HANDOFF-2026-10-30.md`. Ниже — исторические срезы предыдущих версий.
+
 ## 2026-10-30: v0.2.24 return to ordinary ChatGPT instead of Work
 - DOMKAT installed v0.2.23. Confirmed newest cloud chat 'Проверка предыдущего ответа' is Work/Astra (GPT-6 Astra and results sidebar) despite /c URL; old 'Приёмка MCP Tunnel v0.2.18' is ordinary ChatGPT (composer High). Separate Global tool invocation inside ordinary chat displayed widget unavailable, confirming need for a dedicated non-entrypoint tool.
 - Source v0.2.24 created chat.bootstrap.open with own ui://chat-bootstrap-v0224 and no static entrypoint; its iframe auto-polls queue and sends target:new. Global chat.hub.open ui://hub-observer-v0224 no longer sends messages; agent accepts only /c/<uuid> URL and chatbridge-* heartbeat. Local build + contract/multichat/Router Lite/observer JS tests PASS; not installed or cloud accepted yet.

@@ -1,5 +1,12 @@
 # Next actions
 
+## Следующие действия — 30.10.2026
+1. Восстановить того же менеджера по `.context/ENTRYPOINT.md` и integrity seal. Первоочередно читать новую политику `.context/decisions/operating-model-2026-10-30.md` и развёрнутую передачу `docs/PROJECT-MANAGER-HANDOFF-2026-10-30.md`.
+2. Беречь **четыре текущие незакоммиченные правки v0.2.28**, проверить Unicode-строки в меню и классификаторе, убрать CS0162, запустить локальные сборки/тесты одним пакетом. Установленный v0.2.27 не заменять без отдельной команды.
+3. Дальнейшие задачи — этапы с большим локальным сценарием (план → изменения → проверки → итог); GUI 1s, CLI без задержек; STOP обязателен.
+4. Если владелец поручит релиз, только локальный Inno + Git storage/upload, без workflow_dispatch/GitHub Actions.
+5. Отдельный backlog: переходы индикатора между действиями, ожиданием модели и истинным концом; STOP для долгих сценариев; ранее открытые ChatGPT MCP Apps E2E.
+
 ## 2026-10-30: v0.2.24 return to ordinary ChatGPT instead of Work
 1. Publish v0.2.24 verified Windows installers with separate ordinary chat bootstrap tool, observer-only Global, /c-only agent activator.
 2. Update DOMKAT, refresh plugin actions; in known ordinary ChatGPT /c conversation invoke chat.bootstrap.open once and verify UI iframe/heartbeat.

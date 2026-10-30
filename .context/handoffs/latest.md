@@ -1,5 +1,12 @@
 # Latest handoff
 
+## АКТУАЛЬНАЯ ПЕРЕДАЧА 30.10.2026, ~03:15 MSK
+Продолжается тот же `manager_id=project-manager` v2.1.0. Владелец потребовал восстановить менеджера и передать весь разговор. **Прочитать прежде старой истории:** `.context/decisions/operating-model-2026-10-30.md` и `docs/PROJECT-MANAGER-HANDOFF-2026-10-30.md`.
+
+Новое обязательное решение: **DOMKAT `D:\Dev\ChatGPT-MCP-Tunnel`** для разработки, сборок/тестов/инсталляторов; GitHub только исходники/история/готовые Release; Actions disabled. Локально выпущена и установлена v0.2.27, MCP работает. В исходниках четыре **незакоммиченные** Unicode-правки v0.2.28, локальная сборка с предупреждением CS0162, релиза ещё нет. Не потерять их. Пакетное исполнение вместо микровызовов; GUI ~1 сек, CLI без паузы, STOP локальный. Разделение «работаю/жду модель/закончил» ещё не реализовано.
+
+Продолжать с проверки этих правок и локальных тестов. Старые CI-планы в архивных записях **superseded**, GitHub Actions не запускать. Не Work/Codex/API; не выключать Happ; не создавать второй tunnel, не удалять старую папку или пользовательские данные. Источник: владелец 29–30.10.2026, git/runtime verification. Историческая передача ниже сохраняется.
+
 ## 2026-10-30: v0.2.24 return to ordinary ChatGPT instead of Work
 - User reports newly generated tunnel chats are Work. Direct browser inspection of 'Проверка предыдущего ответа' found GPT-6 Astra + Work-style execution/results, whereas v0.2.18 'Приёмка MCP Tunnel' remains normal ChatGPT with High thinking. Global entrypoint origin /mcp-app causes model request target:new in Work host context; normal chat did not.
 - v0.2.24 SOURCE ONLY: new chat.bootstrap.open (non-entrypoint, model-visible), ui://chat-bootstrap-v0224 auto-dispatch in ordinary existing /c. Old Global becomes observer-only; Windows activator changed to strict /c/<uuid> and only chatbridge-* heartbeat. Local tests and builds PASS. Need CI release, install, one-time ordinary chat bootstrap and cold /c auto reopen + mode verification.

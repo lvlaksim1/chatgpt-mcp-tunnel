@@ -1,5 +1,12 @@
 # Manager plans
 
+## Рабочий план от 30.10.2026 (актуальнее устаревших CI-планов)
+1. Продолжить незакоммиченные исправления Unicode v0.2.28, проверить все точные русские тексты, убрать CS0162. Одним локальным сценарием выполнить анализ → патч → `dotnet build` → WinForms/MCP тесты → краткий итог.
+2. При прямом поручении на выпуск: только локальный `scripts/Build-LocalRelease.ps1 -Version 0.2.28`, SHA-256, Git push исходников, прямой GitHub Release upload; без GitHub Actions.
+3. Следующим отдельным техническим этапом разработать достоверную индикацию «действия / ожидание решения модели / завершение задания», соблюдая локальный STOP; не приравнивать временное отсутствие команды к завершению.
+4. Прежние ChatGPT/MCP Apps задачи не считать закрытыми без живого подтверждения обычного режима, чата и восстановлений. Не переводить в Work/Codex/API, не выключать VPN Happ.
+5. Не стирать старую рабочую папку, установленную программу и существующие незакоммиченные файлы. Следовать `.context/decisions/operating-model-2026-10-30.md`.
+
 ## 2026-10-30: v0.2.24 return to ordinary ChatGPT instead of Work
 1. DONE investigation: visible Work/Astra UI and results in newest chats, normal Chat in v0.2.18. Official ui/message target:new has no independent mode selector.
 2. DONE code v0.2.24: chat.bootstrap.open normal-thread only (non-global), Global Hub observer no pending/ui/message, separate versioned resources; activator requires /c/<uuid>, chatbridge-only heartbeat. Local builds and tests PASS.

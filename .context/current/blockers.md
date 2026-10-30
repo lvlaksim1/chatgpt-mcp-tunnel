@@ -1,5 +1,13 @@
 # Current blockers and open risks
 
+## Риски на 30.10.2026
+- Пользователь показал буквальные знаки `????` в названии пункта трея и четырёх сообщениях. Исправление v0.2.28 не окончено, локальная компиляция сообщила CS0162. Требуются регрессионные тесты, корректная кириллица в реальном интерфейсе.
+- Индикация «управление завершено» по пустой очереди MCP может означать только временную паузу модели. Различение выполнения, ожидания и завершения ещё отсутствует.
+- Проблема производительности — слишком много отдельных tool/model циклов. Выполнять сцепленные действия локальными сценариями, не опрашивать GitHub Actions (они запрещены).
+- Нельзя утверждать, что STOP прерывает **любой** отделённый фоновый PowerShell; проектировать отдельную отмену и fail-fast.
+- В апдейте v0.2.27 внешний `Start-Process -Wait` продолжал ждать потомка tray после успешного Inno. Нужны timeout/WaitForExit по конкретному процессу и удаление одноразовых задач.
+- Статус обычного ChatGPT host и удалённого компьютера в каждом новом E2E испытании перепроверять. Старые риски ниже — исторические.
+
 ## 2026-10-30: v0.2.24 return to ordinary ChatGPT instead of Work
 - Critical Work regression in v0.2.23: Global entrypoint-created conversations run Astra/Work rather than normal ChatGPT. Source v0.2.24 fixes routing but awaits actual host acceptance. Important potential issue: ordinary /c anchor conversation must auto-mount model-invoked chat.bootstrap.open iframe after cold reopen; if not, route needs further engineering. Do not accept Work mode as successful despite answered local messages.
 

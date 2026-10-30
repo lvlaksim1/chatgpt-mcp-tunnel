@@ -1,5 +1,13 @@
 # Manager beliefs
 
+## 30.10.2026 — актуальная сверка, имеющая приоритет над версиями ниже
+- Прямое решение Owner: локальная разработка, компиляция, тесты и Inno на DOMKAT `D:\Dev\ChatGPT-MCP-Tunnel`; GitHub **только** хранение исходников, истории и готовых Releases; GitHub Actions запрещены/отключены (3 disabled_manually). Прежние указания запускать CI заменены.
+- Факт: `v0.2.27` собрана локально и установлена на DOMKAT в `D:\ChatGPTMCPAgent`, после обновления `bridge_ping` работал; исходники текущего Git `main` до передачи `2f7fe42`.
+- Факт: в рабочем дереве **четыре незакоммиченных файла** поправки Unicode `v0.2.28`, первоначальная C# сборка с предупреждением CS0162; не удалять и не считать релизом.
+- Владелец требует **пакетное выполнение**, сокращение числа model/tool-циклов; GUI ~1 сек между изменениями, CLI без задержки. STOP локальный и неотложный; индикация ожидания модели и реального завершения пока не реализована.
+- История дефектов: v0.2.25 индикатор не создавался в реальном TrayContext, исправлен v0.2.26; v0.2.27 улучшила имена операций, но допустила пять буквально вопросительных строк в русском UI.
+- Источник: прямой чат владельца 29–30.10 + проверенные Git, Windows, releases. Полный контекст: `docs/PROJECT-MANAGER-HANDOFF-2026-10-30.md`.
+
 ## 2026-10-30: v0.2.24 return to ordinary ChatGPT instead of Work
 - User identified critical regression: newest cloud threads created from Global MCP Apps appear in Work (observed GPT-6 Astra, Work execution time/results), while v0.2.18 model-invoked chat.ui.open generated ordinary ChatGPT threads from existing /c conversation with normal Chat model. Real browser comparison confirmed even Work threads can have /c URL and a top-level 'ChatGPT' mode selector, which are insufficient proof of billing/model mode.
 - Root architecture: Global entrypoint /mcp-app/chat.hub.open creates new threads via ui/message target:new in the Global host context. OpenAI extensions do not specify a parameter to force ordinary ChatGPT mode; Web support refers to Work browser. New design v0.2.24: Global becomes observer with no ui/message, model-only chat.bootstrap.open is invoked once in an existing ordinary /c thread and auto-dispatches target:new from that normal host context; OS activator launches anchored /c URL, not /mcp-app. New source and isolated tests PASS. Real cloud host acceptance NOT YET performed. Documentation docs/ordinary-chat-bootstrap-v0.2.24.md.

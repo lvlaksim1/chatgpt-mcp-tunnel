@@ -1,5 +1,12 @@
 # Project constraints
 
+## Приоритетные ограничения владельца — 30.10.2026
+- Главная локальная копия `D:\Dev\ChatGPT-MCP-Tunnel` на DOMKAT; рабочий `D:\ChatGPTMCPAgent` отдельно. GitHub только storage/source/history/Releases, **Actions не использовать** (старое требование CI отменено).
+- Связные CLI/файловые задачи выполнять одним локальным пакетом, GUI изменения с ~1s интервалом, чтения и shell без принудительного ожидания. STOP локально, безопасно, с ручным возобновлением.
+- Win10, системный Happ VPN, обычный ChatGPT без Work/Codex/API, один Tunnel, без TinyFish/Desktop Commander. Не терять незакоммиченный Unicode-патч v0.2.28.
+- Идеи P2P равных узлов, собственного VPN и offline голоса остаются обсуждением, не санкцией на реализацию.
+- Источник: owner-directive 30.10.2026; предыдущие транспортные исторические ограничения ниже действуют в непротиворечащей части.
+
 ## Approved transport decision after owner execution order — 28.10.2026
 - Tailscale/WireGuard virtual network chosen for different physical LANs. Keep one OpenAI MCP Tunnel and do not expose unencrypted ws:// publicly.
 - Only exact authorized Tailscale client IPv4 may receive inbound firewall rule for Router Lite at exact local Tailscale IP and port 55201. The VPN adapter must actually exist and belong to the server before firewall setup; Windows UAC approval is required.

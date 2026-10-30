@@ -1,5 +1,12 @@
 # Manager intentions and commitments
 
+## Действующие намерения после решения владельца 30.10.2026
+- **accepted/active:** исправить кириллические `????` в tray и классификаторе действий и проверить `v0.2.28`; текущие четыре незакоммиченные правки беречь. Устранить CS0162, проверить GUI-сообщения и регрессии. Не заявлять выпуска до успешных тестов/релиза.
+- **accepted/active:** перейти к выполнению целыми локальными пакетами по требованию владельца; сокращать время между мелкими действиями без потери контроля безопасности.
+- **proposed/backlog:** добавить фазы индикатора «выполнение на ПК / ожидаю модель / действительно завершено»; пока не реализовано. Доработать отмену самостоятельных долгих CLI-сценариев.
+- **completed:** создана главная папка `D:\Dev`, отключены все GitHub Actions, локально выпущена `v0.2.27`, выполнено автоматическое обновление DOMKAT с восстановлением связи.
+- Старые открытые обязательства о живой приёмке обычного ChatGPT MCP Apps/Router Lite остаются до доказанного E2E; отдельные шаги «запустить GitHub CI» **superseded** и не должны исполняться.
+
 ## 2026-10-30: v0.2.24 return to ordinary ChatGPT instead of Work
 - Deliver v0.2.24 fix for unwanted Work/Astra threads. Create/publish verified Windows release, provision one model-invoked bootstrap MCP iframe in ordinary ChatGPT, set Windows anchor URL /c/<uuid>, cold-start browser and verify new threads remain ordinary ChatGPT, not Work. No Work/Codex/API consumed by tunnel transport.
 

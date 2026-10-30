@@ -1,5 +1,13 @@
 # Procedural memory
 
+## 30.10.2026 — новый способ разработки и выпусков
+1. На DOMKAT в `D:\Dev\ChatGPT-MCP-Tunnel` сначала собрать достаточный контекст, затем локальным PowerShell/Python сценарием в одном tool call провести серию правок, сборок, тестов и итог. Ошибка => fail-fast и возвращение модели. Не выполнять десятки микрокоманд.
+2. GUI: ~1 сек между управляющими действиями (включая `desktop.batch`); чтение и CLI без искусственной паузы. STOP локальный, но долгий самостоятельный скрипт обязан иметь отдельное прерывание.
+3. `scripts/Build-LocalRelease.ps1 -Version X.Y.Z` делает локальный .NET publish, selftests, Inno Setup full/update и SHA256 в `.tools/local-release/vX.Y.Z/dist`. GitHub Releases — прямой API upload, Actions не вызывать.
+4. Перед выпуском сверять русские тексты на literal `????` и проводить интеграционную проверку реально запущенного окна/трея, а не только независимый selftest формы.
+5. Для автоапдейта отдельно запускаем процесс, штатно освобождаем рабочие файлы, проверяем SHA256/версию/MCP после. В v0.2.27 установщик завершился, но внешний `Start-Process -Wait` висел из-за дочернего tray — ждать конкретный PID с таймаутом.
+6. Для Context Capsule Windows CRLF: прямой Git hash-object --stdin даёт ложное расхождение; проверять `git hash-object --path=...` либо Git-объекты. Все восемь прежних хешей поколения 45 были валидны. Источник: проверенные операции 30.10.2026.
+
 ## Router Lite development test and serialization pitfall (28.10.2026)
 - Use a separate `dotnet build -o .tools/router-lite-build` to avoid overwriting DLLs loaded by the live tunnel.
 - Run `CHATGPT_MCP_TEST_DLL=...` with `tests/test_mcp_stdio.py` and `tests/test_router_lite.py`; the latter starts router + agent as independent local processes, checks discovery, call, unknown address and disconnect.
