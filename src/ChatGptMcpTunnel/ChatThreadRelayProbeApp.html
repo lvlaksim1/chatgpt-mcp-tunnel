@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ChatGPT MCP Tunnel — связка чата</title>
+<style>
+:root { color-scheme:light dark; font-family:system-ui,"Segoe UI",sans-serif; }
+* { box-sizing:border-box; }
+body { margin:0; padding:16px; background:var(--color-background-primary,transparent); color:var(--color-text-primary,inherit); }
+main { max-width:650px; margin:0 auto; }
+h2 { font-size:17px; margin:0 0 10px; }
+p { line-height:1.5; font-size:13px; }
+.controls { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+button { appearance:none; border:1px solid #7b8591; padding:10px 15px; font-size:14px; border-radius:9px; background:#1960a5; color:white; cursor:pointer; }
+button.secondary { background:transparent; color:inherit; }
+button:disabled { opacity:.5; cursor:wait; }
+.status { background:color-mix(in srgb,currentColor 7%,transparent); padding:10px; border-radius:8px; margin:12px 0; font-size:13px; white-space:pre-wrap; }
+.detail { color:var(--color-text-secondary,#777); }
+pre { font-size:11px; overflow-wrap:anywhere; white-space:pre-wrap; }
+</style>
+</head>
+<body>
+<main>
+<h2>Диагностика MCP Thread Relay</h2>
+<p>Сообщения из окна <b>ChatGPT MCP Tunnel</b> будут передаваться в этот диалог через <code>ui/message</code>. Никаких API-ключей, Codex и планировщика.</p>
+<div class="controls">
+<button id="start" type="button">Возобновить передачу</button>
+<button class="secondary" id="stop" type="button" disabled>Остановить</button>
+<button class="secondary" id="check" type="button">Проверить очередь</button>
+<button class="secondary" id="probe" type="button" disabled>Тест ui/message</button>
+</div>
+<div role="status" aria-live="polite" class="status" id="status">Подключение к MCP Apps…</div>
+<p class="detail">Передача начинается автоматически, когда ChatGPT открывает этот MCP Apps-компонент. Отдельное нажатие «Начать передачу» не нужно. Кнопка теста — только для диагностики.</p>
+<p class="detail">Эксперимент: компонент должен оставаться открытым в ChatGPT. Если ChatGPT приостановит или закроет его, передача сообщений остановится. Неотправленные сообщения сохранятся в локальной очереди.</p>
+<pre id="details"></pre>
+</main>
+<script>
+(() => {
+  "use strict";
+  const status = document.getElementById("status");
+  const details = document.getElementById("details");
+  const start = document.getElementById("start");
+  const stop = document.getElementById("stop");
+  const check = document.getElementById("check");
+  const probe = document.getElementById("probe");
+  let serial = 0;
+  const calls = new Map();
+  let initialized = false, running = false, busy = false, disposed = false;
+  let boundChatId = null, autoStart = false;
+  const chatIdPattern = /^[a-f0-9]{32}$/i;
+  const probeInstance = "relay-" + Math.random().toString(36).slice(2,12) +
+    "-" + Date.now().toString(36);
+  let telemetryTimer = null;
+  function probeLog(kind, details={}) {
+    if (disposed) return Promise.resolve();
+    return request("tools/call",{
+      name:"chat.lifecycle.event",
+      arguments:{
+        mode:"thread",kind,instance_id:probeInstance,
+        details_json:JSON.stringify(details)
+      }
+    }).catch(()=>{});
+  }
+  const reportLifecycle = () => {
+    if (disposed || !initialized) return;
+    void probeLog("heartbeat",{
+      source:running?"relay-running":"relay-idle",
+      visibility:document.visibilityState==="visible"?"visible":"hidden"
+    });
+  };
+
+  let timer = null, count = 0;
+  let retryFailures = 0, ackPending = null, uncertainMessage = null;
+  const isExplicitRejection = e => !!e?.mcpRejected;
+  const cooldown = () => Math.min(90000, 3000 * Math.pow(2, Math.min(retryFailures-1, 5)));
+  const tell = (message) => { status.textContent = message; };
+  const report = (message) => { details.textContent = message; };
+  const delay = (ms) => { if (timer !== null) clearTimeout(timer); timer = setTimeout(poll, ms); };
+
+  window.addEventListener("message", (event) => {
+    if (event.source !== window.parent) return;
+    const value = event.data;
+    if (!value || value.jsonrpc !== "2.0") return;
+    if (value.method === "ui/notifications/tool-input") {
+      const args = value.params?.arguments || value.params?.input || {};
+      void probeLog("tool-input",{source:chatIdPattern.test(args.chat_id||"")?"relay-bound":"relay-unbound"});
+      if (chatIdPattern.test(args.chat_id || "")) {
+        boundChatId = args.chat_id;
+        autoStart = true;
+        if (initialized && !running) begin();
+      }
+      return;
+    }
+    if (value.method === "ui/notifications/tool-result") {
+      const payload = value.params?.result || value.params;
+      const content = payload?.content?.find?.(item => item.type === "text");
+      if (content) {
+        try {
+          const parsed = JSON.parse(content.text);
+          void probeLog("tool-result",{source:chatIdPattern.test(parsed.chat_id||"")?"relay-bound":"relay-unbound"});
+          if (chatIdPattern.test(parsed.chat_id || "")) {
+            boundChatId = parsed.chat_id;
+            autoStart = true;
+            if (initialized && !running) begin();
+          }
+        } catch (_) {}
+      }
+      return;
+    }
+    if (value.method === "ui/resource-teardown") {
+      void probeLog("teardown",{source:"relay"});
+      disposed = true; running = false;
+      if (telemetryTimer !== null) clearInterval(telemetryTimer);
+      if (timer !== null) clearTimeout(timer);
+      window.parent.postMessage({ jsonrpc:"2.0", id:value.id, result:{} }, "*");
+      return;
+    }
+    if (!calls.has(value.id)) return;
+    const call = calls.get(value.id);
+    calls.delete(value.id);
+    clearTimeout(call.timeout);
+    if (value.error) {
+      const e = new Error(String(value.error.message || "MCP rejected"));
+      e.mcpRejected = true;
+      e.code = value.error.code;
+      call.reject(e);
+    } else call.resolve(value.result);
+  });
+  function request(method, params) {
+    if (disposed) return Promise.reject(new Error("Компонент закрыт"));
+    const id = ++serial;
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        calls.delete(id);
+        const e = new Error("Хост MCP не ответил за 20 секунд");
+        e.mcpTimeout = true;
+        reject(e);
+      }, 20000);
+      calls.set(id, { resolve, reject, timeout });
+      window.parent.postMessage({ jsonrpc:"2.0", id, method, params }, "*");
+    });
+  }
+  async function tool(name, args={}) {
+    const response = await request("tools/call", { name, arguments:args });
+    if (response?.isError) throw new Error("Ошибка инструмента " + name);
+    const first = response?.content?.find(x => x.type === "text");
+    if (!first) throw new Error("Не получен текстовый результат " + name);
+    const payload = JSON.parse(first.text);
+    if (!payload.ok) throw new Error(String(payload.error || "Ошибка очереди"));
+    return payload;
+  }
+  function formatMessage(message) {
+    const attachments = Array.isArray(message.attachments) ? message.attachments : [];
+    const files = attachments.map(a => a.name).join(", ");
+    const body = String(message.text || "").trim();
+    return body || (files ? "Вложения: " + files : "");
+  }
+  // Per OpenAI's MCP Apps extension, assistant-audience blocks are hidden
+  // from the user but visible to the model. They carry the precise MCP reply
+  // route so no technical text is rendered in the normal chat.
+  function routingContext(message, newThread) {
+    const id = JSON.stringify(message.id);
+    const chat = JSON.stringify(message.chat_id);
+    const directive = "MCP Tunnel route for this user message: " +
+      "send your final answer to the local chat by calling the installed " +
+      "MCP tool chat.reply with message_id=" + id + " and reply=(your answer). " +
+      "Do not narrate this routing metadata to the user.";
+    const opening = newThread
+      ? " This is an explicitly new local chat. In this conversation, invoke " +
+        "chat.ui.open with chat_id=" + chat + " to attach this MCP Apps relay " +
+        "for subsequent local messages."
+      : "";
+    return {
+      type:"text",
+      text:directive + opening,
+      annotations:{audience:["assistant"]}
+    };
+  }
+  async function poll() {
+    timer = null;
+    if (!initialized || !running || busy || disposed || !boundChatId) return;
+    busy = true;
+    let nextDelay = 1800;
+    try {
+      void probeLog("tool-call",{source:"relay-poll"});
+      if (ackPending) {
+        // ui/message has ALREADY been accepted by the host: never resend it.
+        await tool("chat.ui.ack", ackPending);
+        tell("Подтверждение доставки сохранено: " + ackPending.message_id + ".");
+        ackPending = null;
+        retryFailures = 0;
+      } else {
+        // Each iframe forwards messages for the local conversation to which it is bound.
+        const current = await tool("chat.ui.pending", {chat_id:boundChatId || ""});
+        void probeLog("tool-result",{source:"relay-pending",hasMessage:!!current.message});
+        // Discover only sessions created with the explicit '+ New Chat' action.
+        // The server rejects discovery of existing/answered sessions.
+        // Isolated experiment: never discover another local conversation.
+        const different = null;
+        const next = current.message ? current : different;
+        count = next?.count || 0;
+        if (next?.message) {
+          const message = next.message;
+          const needsNew = message.chat_id !== boundChatId;
+          if (message.id === uncertainMessage) {
+            // A timeout after ui/message may mean the host accepted it.
+            // Never silently retry an uncertain delivery and create a duplicate model turn.
+            tell("Неизвестен результат отправки " + message.id +
+              ". Автоматический повтор заблокирован для защиты от дублей.");
+            report("Сообщение сохранено. Требуется проверить, появилось ли оно в ChatGPT. " +
+              "Другие сообщения не удаляются.");
+            nextDelay = 12000;
+          } else {
+            tell((needsNew ? "Создаю новый диалог для " : "Передаю сообщение ") +
+              message.id + " через ui/message:");
+            let sent;
+            try {
+              void probeLog("tool-call",{source:"relay-ui-message"});
+              sent = await request("ui/message", {
+                role:"user",
+                content:[
+                  {type:"text", text:formatMessage(message)},
+                  routingContext(message, needsNew)
+                ],
+                _meta:{ "openai/message":{ target:needsNew ? "new" : "active", send:true } }
+              });
+              if (sent?.isError) {
+                const e = new Error("Хост отклонил ui/message");
+                e.mcpRejected = true;
+                throw e;
+              }
+            } catch(e) {
+              if (!isExplicitRejection(e)) {
+                // No reliable rejection acknowledgement: cannot assume a retry is safe.
+                uncertainMessage = message.id;
+              }
+              throw e;
+            }
+            void probeLog("tool-result",{source:"relay-ui-accepted"});
+            ackPending = {message_id:message.id, new_chat:needsNew};
+            await tool("chat.ui.ack", ackPending);
+            ackPending = null;
+            retryFailures = 0;
+            uncertainMessage = null;
+            tell(needsNew ? "Запущен новый диалог ChatGPT для <" +
+              (message.chat_title || "Новый чат") + ">." :
+              "Сообщение передано в ChatGPT.");
+          }
+        } else {
+          retryFailures = 0;
+          tell("Ожидание сообщений чата " + (boundChatId || "") + ".");
+        }
+      }
+      report("Последний опрос: " + new Date().toLocaleTimeString("ru-RU") +
+        "\nОтправка: " + (running ? "включена" : "выключена"));
+    } catch (e) {
+      // Do not turn off the relay on cloudflare_challenge or transient network errors.
+      // Explicit host rejection keeps the message pending without acknowledgement.
+      retryFailures++;
+      nextDelay = cooldown();
+      const reason = String(e?.message || e);
+      tell("Пауза передачи: " + reason + ". Повтор через " +
+        Math.ceil(nextDelay / 1000) + " с. Кнопку нажимать не нужно.");
+      report(ackPending
+        ? "Хост принял сообщение; повторяется только chat.ui.ack, без отправки дубля."
+        : uncertainMessage
+          ? "Результат ui/message неопределён: автоматический повтор этого сообщения заблокирован."
+          : "Сообщение осталось в очереди. Повтор при явном отказе хоста.");
+    } finally {
+      busy = false;
+      if (running && !disposed) delay(nextDelay);
+    }
+  }
+  function begin() {
+    if (!initialized || disposed || running) return;
+    if (!boundChatId) {
+      tell("Для передачи привяжите чат: вызовите chat.ui.open с ID локального чата.");
+      return;
+    }
+    running = true; start.disabled = true; stop.disabled = false;
+    void probeLog("tool-call",{source:"relay-begin"});
+    tell("Передача включена для чата " + (boundChatId || "по умолчанию") + ".");
+    delay(0);
+  }
+  start.addEventListener("click", begin);
+  stop.addEventListener("click", () => {
+    running = false; start.disabled = false; stop.disabled = true;
+    if (timer !== null) clearTimeout(timer);
+    timer = null; tell("Передача остановлена.");
+  });
+  probe.addEventListener("click", async () => {
+    if (!initialized || disposed || busy) return;
+    probe.disabled = true;
+    const nonce = Math.random().toString(36).slice(2,10);
+    tell("Проверка ui/message по нажатию пользователя…");
+    try {
+      const result = await request("ui/message", {
+        role:"user",
+        content:[{type:"text",text:"Контрольный сигнал MCP Apps ui/message, код "+nonce+". Ответь кратко: «Сигнал получен, код "+nonce+"». Это проверка связи, не сообщение локальной очереди."}],
+        _meta:{"openai/message":{target:"active",send:true}}
+      });
+      if (result?.isError) throw new Error("Хост отклонил тест ui/message");
+      tell("Проверка ui/message: хост принял запрос. Код "+nonce+". Проверьте появление нового сообщения.");
+      report("Ручной тест принят хостом. Это ещё не подтверждает автоматическую пересылку.");
+    } catch(e) {
+      tell("Пробный ui/message отклонён: "+e.message);
+      report("Снимите текст ошибки. Ни одно сообщение локальной очереди не помечено отправленным.");
+    } finally { if (!disposed) probe.disabled = false; }
+  });
+  check.addEventListener("click", async () => {
+    try {
+      const next = await tool("chat.ui.pending", {chat_id:boundChatId || ""});
+      tell("В этом чате в очереди: " + next.count + ". " +
+        (next.message ? "Следующий ID: "+next.message.id : ""));
+    } catch (e) { tell("Ошибка проверки: " + e.message); }
+  });
+  request("ui/initialize", {
+    protocolVersion:"2026-01-26",
+    appInfo:{name:"ChatGPT MCP Tunnel Chat Relay",version:"0.2.39-thread-test"},
+    appCapabilities:{availableDisplayModes:["inline","fullscreen"]}
+  }).then((response) => {
+    initialized = true;
+    probe.disabled = false;
+    const hostCaps = response?.hostCapabilities || {};
+    void probeLog("ui-initialize",{
+      source:"thread-relay-probe",host:String(response?.hostInfo?.name||"unknown").slice(0,40),
+      hasMessage:!!hostCaps.message?.text,
+      hasOpenAiMessage:!!hostCaps.experimental?.["openai/message"]
+    });
+    telemetryTimer = setInterval(reportLifecycle,7500);
+    void probeLog("ui-initialized",{source:"thread-relay-probe"});
+    window.parent.postMessage({jsonrpc:"2.0",method:"ui/notifications/initialized"}, "*");
+    const caps = response?.hostCapabilities || {};
+    if (autoStart && boundChatId) begin();
+    report("Хост: " + (response?.hostInfo?.name || "неизвестен") +
+        "\nВозможности: " + JSON.stringify(caps));
+    const standard = !!caps.message?.text;
+    const extension = !!caps.experimental?.["openai/message"];
+    tell("MCP подключён. Отправка текста: "+(standard?"объявлена":"не объявлена")+"; расширение OpenAI: "+(extension?"объявлено":"не объявлено")+". Ожидаю привязку локального чата от Host.");
+  }).catch((err) => { tell("Хост не поддерживает MCP Apps: " + err.message); start.disabled = true; });
+})();
+</script>
+</body>
+</html>

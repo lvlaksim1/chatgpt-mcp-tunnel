@@ -72,7 +72,7 @@ with tempfile.TemporaryDirectory(prefix="mcp-chat-ui-contract-") as temp:
         proc.stdin.write('{"jsonrpc":"2.0","method":"notifications/initialized"}\n')
         proc.stdin.flush()
         tools = {t["name"]:t for t in request("tools/list")["tools"]}
-        assert len(tools)==58,len(tools)
+        assert len(tools)==59,len(tools)
         item = tools["chat.ui.open"]
         assert item["_meta"]["ui"]["resourceUri"]==resource_uri,item
         assert "openai/ui" not in item["_meta"],item

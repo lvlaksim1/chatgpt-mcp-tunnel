@@ -29,7 +29,7 @@ try {
   Write-Output 'LOCAL_PUBLISH_RUNTIME'
   & dotnet publish src/ChatGptMcpTunnel/ChatGptMcpTunnel.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -p:DebugType=None -p:DebugSymbols=false "-p:Version=$Version" -o $runtime --nologo
   if($LASTEXITCODE -ne 0){throw 'Runtime publish failed'}
-  foreach($file in @('AutomationWorker.ps1','ChatRelayApp.html','ChatGlobalHubApp.html','ChatLifecycleApp.html','ChatBootstrapApp.html')){
+  foreach($file in @('AutomationWorker.ps1','ChatRelayApp.html','ChatThreadRelayProbeApp.html','ChatGlobalHubApp.html','ChatLifecycleApp.html','ChatBootstrapApp.html')){
     if(-not (Test-Path (Join-Path $runtime $file))){throw "Missing resource: $file"}
   }
   Copy-Item $client (Join-Path $publish 'OpenAI\tunnel-client.exe')
@@ -45,7 +45,7 @@ try {
     }
     $env:CHATGPT_MCP_TEST_DLL=Join-Path $runtime 'ChatGptMcpTunnel.dll'
     try{
-      foreach($test in @('test_mcp_stdio.py','test_windows_tools.py','test_lifecycle_entrypoints.py','test_uia_worker_persistent.py','test_chat_ui_mcp.py','test_multichat_routing.py','test_webview_auth_only.py','test_utf8_filesystem.py','test_v0218_stable_relay.py')){
+      foreach($test in @('test_mcp_stdio.py','test_windows_tools.py','test_lifecycle_entrypoints.py','test_thread_relay_probe.py','test_uia_worker_persistent.py','test_chat_ui_mcp.py','test_multichat_routing.py','test_webview_auth_only.py','test_utf8_filesystem.py','test_v0218_stable_relay.py')){
         Write-Output "TEST $test"
         & python (Join-Path $repo "tests\$test")
         if($LASTEXITCODE -ne 0){throw "MCP test failed: $test"}

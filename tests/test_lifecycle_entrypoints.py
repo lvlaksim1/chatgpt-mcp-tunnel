@@ -36,7 +36,7 @@ with tempfile.TemporaryDirectory(prefix="mcp-lifecycle-probe-") as temp:
   proc.stdin.write('{"jsonrpc":"2.0","method":"notifications/initialized"}\n')
   proc.stdin.flush()
   tools={x["name"]:x for x in request("tools/list")["tools"]}
-  assert len(tools)==58,len(tools)
+  assert len(tools)==59,len(tools)
   for name,mode,uri in (
    ("chat.hub.open","global","ui://chatgpt-mcp-tunnel/hub-observer-v0229"),
    ("chat.thread.open","thread","ui://chatgpt-mcp-tunnel/lifecycle-thread-v0220")

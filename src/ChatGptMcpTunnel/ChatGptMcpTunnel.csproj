@@ -19,6 +19,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Update="ChatRelayApp.html" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="ChatThreadRelayProbeApp.html" CopyToOutputDirectory="PreserveNewest" />
     <None Update="ChatLifecycleApp.html" CopyToOutputDirectory="PreserveNewest" />
     <None Update="ChatGlobalHubApp.html" CopyToOutputDirectory="PreserveNewest" />
     <None Update="ChatBootstrapApp.html" CopyToOutputDirectory="PreserveNewest" />
