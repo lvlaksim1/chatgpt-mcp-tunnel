@@ -12,6 +12,12 @@ p {font-size:12px;line-height:1.35}
 </head>
 <body>
 <p role="status" id="status">MCP Tunnel: проверка соединения…</p>
+<div style="display:flex;gap:5px;flex-wrap:wrap">
+ <button id="test-pip" type="button" disabled>Проверить pip</button>
+ <button id="test-fullscreen" type="button" disabled>Проверить fullscreen</button>
+ <button id="test-inline" type="button" disabled>Вернуть inline</button>
+</div>
+<pre role="status" id="capabilities" style="white-space:pre-wrap;font-size:11px"></pre>
 <script>
 (() => {
   "use strict";
@@ -21,8 +27,56 @@ p {font-size:12px;line-height:1.35}
     "-" + Date.now().toString(36);
   const pending = new Map();
   let serial = 0, initialized = false, disposed = false, busy = false;
-  let lastContext = null;
+  let lastContext = null, hostCapabilities = null;
   let heartbeat = null;
+  const controls = {
+    pip:document.getElementById("test-pip"),
+    fullscreen:document.getElementById("test-fullscreen"),
+    inline:document.getElementById("test-inline")
+  };
+  const capsText = document.getElementById("capabilities");
+  const supported = context => Array.isArray(context?.availableDisplayModes)
+    ? context.availableDisplayModes.filter(x => ["inline","fullscreen","pip"].includes(x)) : [];
+  const symbol = v => typeof v === "string" ? v.slice(0,45) : "";
+  const display = () => {
+    const modes = supported(lastContext);
+    const caps = hostCapabilities || {};
+    capsText.textContent = "Текущий режим: "+(lastContext?.displayMode || "?")+
+      "\nДоступные режимы: "+(modes.join(", ") || "host не объявил")+
+      "\nui/message: "+Boolean(caps.message?.text)+
+      "\nOpenAI message: "+Boolean(caps.experimental?.["openai/message"])+
+      "\nSampling: "+Boolean(caps.sampling)+
+      "\nTools: "+Boolean(caps.serverTools || caps.tools)+
+      "\nПоддержка pip будет проверена запросом, включая отказ.";
+  };
+  async function probeMode(requested,reason) {
+    if (!initialized || disposed) return;
+    const advertised=supported(lastContext).includes(requested);
+    // This is an isolated conformance probe. Even if pip is NOT advertised,
+    // request it once to observe the actual host response. The same test
+    // can be repeated via a genuine user click on the diagnostic control.
+    await log("tool-call",{source:"display-probe",mode:requested,
+      pathKind:advertised?"advertised":"unadvertised"});
+    try {
+      const result=await request("ui/request-display-mode",{mode:requested});
+      if(result?.mode && ["inline","fullscreen","pip"].includes(result.mode))
+        lastContext={...lastContext,displayMode:result.mode};
+      await log("host-context-changed",{source:"display-result",
+        mode:requested,displayMode:symbol(result?.mode || "missing"),
+        pathKind:advertised?"advertised":"unadvertised"});
+      state.textContent="MCP display: requested "+requested+
+        ", resulting "+(result?.mode || "no mode");
+    }catch(e) {
+      await log("ui-error",{source:"display-request",mode:requested,
+        errorCode:symbol(e.message||"failed")});
+      state.textContent="MCP display "+requested+": "+symbol(e.message || "error");
+    }
+    display();
+  }
+  for (const [mode,button] of Object.entries(controls)) {
+    button.addEventListener("click",()=>void probeMode(mode,"button"));
+  }
+
   const bounded = (s) => typeof s === "string" ? s.slice(0,64) : "";
   function request(method, params={}) {
     if (disposed) return Promise.reject(new Error("disposed"));
@@ -78,8 +132,10 @@ p {font-size:12px;line-height:1.35}
       return;
     }
     if (msg.method === "ui/notifications/host-context-changed") {
-      lastContext = msg.params;
-      void log("host-context-changed", extractContext(msg.params));
+      lastContext = {...(lastContext||{}), ...(msg.params||{})};
+      display();
+      void log("host-context-changed", {...extractContext(lastContext),
+        pathKind:supported(lastContext).join(",").slice(0,60)});
       return;
     }
     if (msg.method === "ui/resource-teardown") {
@@ -108,21 +164,29 @@ p {font-size:12px;line-height:1.35}
   }
   request("ui/initialize", {
     protocolVersion:"2026-01-26",
-    appInfo:{name:"ChatGPT MCP Tunnel Lifecycle",version:"0.2.20"},
-    appCapabilities:{availableDisplayModes:["inline","fullscreen"]}
+    appInfo:{name:"ChatGPT MCP Tunnel Lifecycle Pip Probe",version:"0.2.38-test"},
+    appCapabilities:{availableDisplayModes:["inline","fullscreen","pip"]}
   }).then(async response => {
     initialized = true;
     lastContext = response?.hostContext || {};
+    hostCapabilities = response?.hostCapabilities || {};
+    Object.values(controls).forEach(button=>button.disabled=false);
+    display();
     window.parent.postMessage({jsonrpc:"2.0",method:"ui/notifications/initialized"},"*");
     await log("ui-initialize",{
       protocol:"2026-01-26",
       host:bounded(response?.hostInfo?.name || "unknown"),
       mode, ...capabilities(response?.hostCapabilities),
-      ...extractContext(lastContext)
+      ...extractContext(lastContext),
+      pathKind:supported(lastContext).join(",").slice(0,60),
+      source:hostCapabilities.sampling?"sampling-yes":"sampling-no"
     });
     await log("ui-initialized",{source:"iframe"});
     state.textContent = "MCP Tunnel: соединение установлено";
-    heartbeat = setInterval(tick,15000);
+    heartbeat = setInterval(tick,7500);
+    // Controlled one-off pip probe, without sending any chat message.
+    // Do not depend on host announcing pip; record both flags and reply.
+    setTimeout(() => {if(!disposed) void probeMode("pip","init");},350);
   }).catch(async e => {
     state.textContent = "MCP Tunnel: " + bounded(e.message);
     await log("ui-error",{errorCode:"initialize_failed"});

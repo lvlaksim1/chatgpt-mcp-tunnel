@@ -39,7 +39,7 @@ with tempfile.TemporaryDirectory(prefix="mcp-lifecycle-probe-") as temp:
   assert len(tools)==58,len(tools)
   for name,mode,uri in (
    ("chat.hub.open","global","ui://chatgpt-mcp-tunnel/hub-observer-v0229"),
-   ("chat.thread.open","thread","ui://chatgpt-mcp-tunnel/lifecycle-thread-v0220")
+   ("chat.thread.open","thread","ui://chatgpt-mcp-tunnel/lifecycle-thread-v0238-pip")
   ):
    meta=tools[name]["_meta"]
    assert meta["ui"]["resourceUri"]==uri,meta
@@ -61,6 +61,10 @@ with tempfile.TemporaryDirectory(prefix="mcp-lifecycle-probe-") as temp:
     assert 'chat.ui.ack' not in content["text"]
    else:
     assert 'chat.ui.pending' not in content["text"]
+  old_thread=request("resources/read",{"uri":"ui://chatgpt-mcp-tunnel/lifecycle-thread-v0220"})
+  assert 'ui/request-display-mode' in old_thread["contents"][0]["text"]
+  print("LEGACY_THREAD_ALIAS_PRESERVED")
+
   # The only auto-dispatching bridge must be invoked from an ordinary
   # ChatGPT conversation, not registered as a Global/Work entrypoint.
   boot=tools["chat.bootstrap.open"]

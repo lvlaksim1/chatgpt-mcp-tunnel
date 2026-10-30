@@ -9,7 +9,7 @@
     <Nullable>enable</Nullable>
     <AssemblyName>ChatGptMcpAgent</AssemblyName>
     <RootNamespace>ChatGptMcpAgent</RootNamespace>
-    <Version>0.2.37</Version>
+    <Version>0.2.38</Version>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../Shared/ControlState.cs" Link="ControlState.cs" />
