@@ -15,7 +15,7 @@ const host={postMessage(msg){
    result:{hostInfo:{name:"chatgpt"},hostCapabilities:{
     message:{text:true},experimental:{"openai/message":true},
     updateModelContext:{}
-   },hostContext:{"openai/deepLink":{url:"/probe/cold-test"},displayMode:"fullscreen"}}}});
+   },hostContext:{"openai/deepLink":{url:"/c/01234567-89ab-cdef-0123-456789abcdef"},displayMode:"fullscreen"}}}});
   return;
  }
  if(msg.method==="ui/message"){
@@ -58,13 +58,14 @@ const host={postMessage(msg){
 }};
 const callbacks={},docCallbacks={};
 const window={parent:host,addEventListener(n,f){callbacks[n]=f}};
-const document={getElementById(){return status;},visibilityState:"visible",
+const enableButton={hidden:true,addEventListener(){}};
+const document={getElementById(id){return id==="enable"?enableButton:status;},visibilityState:"visible",
  addEventListener(n,f){docCallbacks[n]=f}};
 function setTimeoutFake(fn){let id=++sequence;timeouts.set(id,fn);return id}
 function clearTimeoutFake(id){timeouts.delete(id)}
 function setIntervalFake(fn){let id=++sequence;intervals.set(id,fn);return id}
 function clearIntervalFake(id){intervals.delete(id)}
-const context={window,document,Math,Date,JSON,console,
+const context={window,document,Math,Date,JSON,URL,console,
  setTimeout:setTimeoutFake,clearTimeout:clearTimeoutFake,
  setInterval:setIntervalFake,clearInterval:clearIntervalFake};
 async function drain(){for(let i=0;i<45;i++)await Promise.resolve();}

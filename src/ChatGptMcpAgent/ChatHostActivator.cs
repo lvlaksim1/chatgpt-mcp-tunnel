@@ -51,7 +51,7 @@ internal sealed class ChatHostActivator
                     using var doc = JsonDocument.Parse(line);
                     var root = doc.RootElement;
                     if (!root.TryGetProperty("mode", out var mode) ||
-                        mode.GetString() != "global" ||
+                        mode.GetString() is not ("global" or "chat") ||
                         !root.TryGetProperty("instance", out var instance) ||
                         instance.ValueKind != JsonValueKind.String ||
                         !(instance.GetString() ?? "").StartsWith("chatbridge-", StringComparison.Ordinal) ||

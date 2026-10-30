@@ -39,7 +39,7 @@ async function drain(){for(let i=0;i<65;i++)await Promise.resolve();}
  assert.ok(logs.some(x=>x.kind==="ui-initialized"));
  assert.equal(timeouts.size,0,"Global entrypoint must not schedule queue polling");
  assert.equal(calls.filter(x=>x.method==="ui/message").length,0);
- assert.equal(status.textContent,"MCP Tunnel: Global status observer");
+ assert.equal(status.textContent,"MCP Tunnel: Global observer only (no message dispatch)");
  assert.ok(logs.every(x=>x.instance_id.startsWith("hub-")));
  listeners.message({source:host,data:{jsonrpc:"2.0",id:700,method:"ui/resource-teardown",params:{}}});
  await drain();

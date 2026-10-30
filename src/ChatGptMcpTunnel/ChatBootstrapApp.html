@@ -6,10 +6,14 @@
 body{margin:0;padding:8px;background:transparent;color:var(--color-text-secondary,#777)}
 #status{font-size:11px;margin:0;line-height:1.4}</style></head>
 <body><p role="status" id="status">MCP Tunnel: starting ordinary ChatGPT bridge</p>
+<button id="enable" type="button" hidden style="margin-top:8px;padding:7px 12px;cursor:pointer">
+  ???????????: ??? ??????? ??? ChatGPT. ???????? ?????????
+</button>
 <script>
 (() => {
   "use strict";
-  const mode = "global", status = document.getElementById("status");
+  const mode = "chat", status = document.getElementById("status");
+  const enableButton = document.getElementById("enable");
   const chatTransport = "chat" === "chat";
   const instanceId = (chatTransport ? "chatbridge-" : "hub-") +
     Math.random().toString(36).slice(2,12) +
@@ -17,6 +21,7 @@ body{margin:0;padding:8px;background:transparent;color:var(--color-text-secondar
   const calls = new Map();
   const idPattern=/^[a-f0-9]{32}$/i;
   let seq=0, initialized=false, disposed=false, polling=false;
+  let capability=false, context=null, transportAllowed=false, userConfirmed=false;
   let pollTimer=null, heartbeatTimer=null;
   const symbolic=(value)=>typeof value==="string" ? value.slice(0,50):"";
   function request(method,params={}) {
@@ -50,6 +55,43 @@ body{margin:0;padding:8px;background:transparent;color:var(--color-text-secondar
       displayMode:symbolic(ctx?.displayMode||""),
       pathKind:ctx?.["openai/deepLink"]?.url?"route":"none"};
   }
+  // ChatGPT does not guarantee that ui/message target:new preserves the
+  // current conversation mode. Only attempt it from a known ordinary-chat
+  // route when the host explicitly advertises the OpenAI new-message extension.
+  // Never guess a conversation route from window.parent or URL fragments.
+  function routeKind(ctx){
+    const raw=ctx?.["openai/deepLink"]?.url;
+    if(typeof raw!=="string" || !raw) return "unknown";
+    if(raw.length>320) return "unsafe";
+    try {
+      const uri=new URL(raw,"https://chatgpt.com");
+      return uri.origin==="https://chatgpt.com" &&
+        /^\/c\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uri.pathname) &&
+        !uri.search && !uri.hash ? "ordinary" : "unsafe";
+    }catch(_){return "unsafe";}
+  }
+  function updateEligibility(){
+    const route=routeKind(context);
+    transportAllowed=capability && (route==="ordinary" ||
+      (route==="unknown" && userConfirmed));
+    enableButton.hidden=!(capability && route==="unknown" && !userConfirmed);
+    if(!capability){
+      status.textContent="MCP Tunnel: no openai/message capability; queue retained";
+    }else if(route==="unsafe"){
+      status.textContent="MCP Tunnel: Work/Global or unsafe host route; queue retained";
+    }else if(!transportAllowed){
+      status.textContent="MCP Tunnel: route unavailable. Confirm normal ChatGPT above to enable delivery; queue retained";
+    }else{
+      status.textContent="MCP Tunnel: ordinary ChatGPT dispatch enabled";
+      schedule(500);
+    }
+  }
+  enableButton.addEventListener("click",()=>{
+    if(!initialized || disposed || !capability || routeKind(context)!=="unknown")return;
+    userConfirmed=true;
+    updateEligibility();
+    void log("tool-call",{source:"host"});
+  });
   function formatMessage(message){
     const files=Array.isArray(message.attachments)?message.attachments:[];
     const list=files.map(x=>"- "+x.name+" ("+x.media_type+"), attachment_id="+x.id).join("\n");
@@ -72,7 +114,7 @@ body{margin:0;padding:8px;background:transparent;color:var(--color-text-secondar
   }
   async function poll(){
     pollTimer=null;
-    if(!initialized || disposed || polling || !chatTransport)return;
+    if(!initialized || disposed || polling || !chatTransport || !transportAllowed)return;
     polling=true;
     let delay=2500;
     try{
@@ -95,6 +137,7 @@ body{margin:0;padding:8px;background:transparent;color:var(--color-text-secondar
           + "first call chat.ui.open(chat_id=\""+m.chat_id+"\") to establish the reply route. "
           + "Then answer the user and MUST call chat.reply(message_id=\""+m.id+"\",reply=<answer>) "
           + "before writing any final text. Do not use Work or Codex.\n\n";
+        if(!transportAllowed)throw new Error("unsafe_host_context");
         const sent=await request("ui/message",{
           role:"user",
           content:[{type:"text",text:context+instruction+formatMessage(m)}],
@@ -103,18 +146,20 @@ body{margin:0;padding:8px;background:transparent;color:var(--color-text-secondar
         if(sent?.isError)throw new Error("host_message_rejected");
         await tool("chat.ui.ack",{message_id:m.id,new_chat:true});
         await log("hub-forwarded",{hasMessage:true,source:"host"});
-        status.textContent="MCP Tunnel: ordinary ChatGPT bridge active";
+        status.textContent="MCP Tunnel: ordinary ChatGPT dispatch enabled";
         delay=900;
       } else {
-        status.textContent="MCP Tunnel: ordinary ChatGPT bridge active";
+        status.textContent="MCP Tunnel: ordinary ChatGPT dispatch enabled";
       }
     }catch(e){
-      status.textContent="MCP Tunnel: ordinary ChatGPT bridge active";
+      if(transportAllowed) status.textContent="MCP Tunnel: ordinary ChatGPT dispatch enabled";
       await log("hub-error",{errorCode:"relay_failed"});
       delay=7000;
     }finally{
       polling=false;
-      schedule(delay);
+      // A host-context change may disable transport while a poll is in flight.
+      // Never re-arm polling after it was revoked.
+      if(transportAllowed && !disposed) schedule(delay);
     }
   }
   window.addEventListener("message",event=>{
@@ -128,7 +173,16 @@ body{margin:0;padding:8px;background:transparent;color:var(--color-text-secondar
       void log("tool-result",{source:"host"});return;
     }
     if(msg.method==="ui/notifications/host-context-changed"){
-      void log("host-context-changed",ctxDetails(msg.params));return;
+      context=msg.params || {};
+      // A context switch invalidates any prior user confirmation.
+      userConfirmed=false;
+      void log("host-context-changed",ctxDetails(context));
+      const previouslyAllowed=transportAllowed;
+      updateEligibility();
+      if(previouslyAllowed && !transportAllowed && pollTimer!==null){
+        clearTimeout(pollTimer);pollTimer=null;
+      }
+      return;
     }
     if(msg.method==="ui/resource-teardown"){
       if(pollTimer!==null)clearTimeout(pollTimer);
@@ -154,14 +208,18 @@ body{margin:0;padding:8px;background:transparent;color:var(--color-text-secondar
     appCapabilities:{availableDisplayModes:["fullscreen","inline"]}
   }).then(async response=>{
     initialized=true;
+    context=response?.hostContext||{};
+    const experimental=response?.hostCapabilities?.experimental;
+    capability=!!response?.hostCapabilities?.message?.text &&
+      !!experimental && Object.prototype.hasOwnProperty.call(experimental,"openai/message");
     window.parent.postMessage({jsonrpc:"2.0",method:"ui/notifications/initialized"},"*");
     await log("ui-initialize",{
       protocol:"2026-01-26",
       host:symbolic(response?.hostInfo?.name||"unknown"),mode,
       hasMessage:!!response?.hostCapabilities?.message?.text,
-      hasOpenAiMessage:!!response?.hostCapabilities?.experimental?.["openai/message"],
+      hasOpenAiMessage:capability,
       hasContextUpdate:!!response?.hostCapabilities?.updateModelContext,
-      ...ctxDetails(response?.hostContext||{})
+      ...ctxDetails(context)
     });
     await log("ui-initialized",{source:"iframe"});
     heartbeatTimer=setInterval(()=>{
@@ -169,8 +227,8 @@ body{margin:0;padding:8px;background:transparent;color:var(--color-text-secondar
     },15000);
     // Only the component embedded in a NORMAL ChatGPT conversation can
     // create conversations. Global app may be hosted in Work.
-    if(chatTransport) schedule(500);
-    else status.textContent="MCP Tunnel: ordinary ChatGPT bridge active";
+    if(chatTransport) updateEligibility();
+    else status.textContent="MCP Tunnel: transport not enabled";
   }).catch(()=>{
     status.textContent="MCP Tunnel: ordinary ChatGPT bridge active";
   });
