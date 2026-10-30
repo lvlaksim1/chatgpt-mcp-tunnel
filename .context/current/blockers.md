@@ -1,3 +1,6 @@
+## 30.10.2026 — v0.2.37 (MCP-only + WebView2 auth)
+2026-10-30: Important host-lifecycle acceptance remains open. MCP Apps iframe is instantiated by ChatGPT host during MCP tool call; server cannot guarantee reopening an iframe after host teardown solely through standard server tools. WebView2 sign-in is independent of ChatGPT Host MCP connection and does not launch MCP Apps. Synthetic MCP host tests passed but no live local-chat-to-normal-ChatGPT-to-chat.reply full roundtrip verified; do not claim autonomous 10/10. Assistant-audience annotations supported by OpenAI MCP extension spec but real host behaviour still to test.
+
 ## 30 October 2026: automatic browser transport preview
 2026-10-30: Browser transport cannot send before Owner signs in once to dedicated Yandex profile (window opened on DOMKAT). Live two-turn user->model->local reply unverified. Existing local chats without verified cloud URL remain pending and are not silently migrated. Browser transport does not yet upload attachments; they remain queued. Do not claim 10/10 acceptance or autonomous recovery fully proven.
 

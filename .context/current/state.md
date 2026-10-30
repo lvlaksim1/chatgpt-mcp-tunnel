@@ -1,3 +1,6 @@
+## 30.10.2026 — v0.2.37 (MCP-only + WebView2 auth)
+2026-10-30 16:33 MSK: v0.2.37 installed DOMKAT, agent/runtime version 0.2.37+45d3289, GitHub prerelease v0.2.37 (setup/update/SHA256) published, origin/main source commit 45d3289. Independent offline installer SUCCESS; backup v0.2.36 retained. MCP ping OK and DOMKAT/MKATUSHONOK connected. Node.js/CDP browser transport removed and old packaged files deleted; WebView2 auth-only form compiled, packaged preview started with persisted profile. MCP Apps iframe tool called from this normal ChatGPT conversation and embedded UI displayed. Model messages via ui/message with assistant-only routing annotations in source; actual two-way host acceptance not yet verified.
+
 ## 30 October 2026: automatic browser transport preview
 2026-10-30 MSK: PREVIEW v0.2.36 installed on DOMKAT and GitHub prerelease published. Source commit 7367ae5. Agent, MCP runtime, tunnel-client, bundled Node background worker running. Browser transport profile opened at chatgpt.com using localhost-only CDP. Browser worker heartbeat reports waiting_login (new isolated profile not authenticated). Two MCP computers connected. Rollback snapshot v0.2.35 retained. No real chat E2E accepted yet.
 

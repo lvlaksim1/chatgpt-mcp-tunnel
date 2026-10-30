@@ -1,3 +1,6 @@
+## 30.10.2026 — v0.2.37 (MCP-only + WebView2 auth)
+2026-10-30: Continue MCP-only messaging; WebView2 is for persistent login only. Do not reintroduce BrowserChatBridge.js, DOM injection, synthetic ChatGPT replies or separate model API. Research the official host lifecycle capabilities and verify real normal ChatGPT browser/host mode; prioritize user chat convenience and stable connections.
+
 ## 30 October 2026: automatic browser transport preview
 Current intention 2026-10-30: accept browser-based normal ChatGPT chat only after one-time login and genuine two-turn local roundtrip, then multi-chat/restart/remote-computer test. Avoid requiring per-message chat.ui.open. Do not assert fully automatic until live tested.
 

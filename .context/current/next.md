@@ -1,3 +1,6 @@
+## 30.10.2026 — v0.2.37 (MCP-only + WebView2 auth)
+Next test after v0.2.37 install: sign in once in WinForms WebView2 profile via tray 'Вход в ChatGPT (WebView2)' or local-chat auth button, confirm persistence on restart, without DOM sends. Run one explicit user local chat message; observe MCP Apps automatic start from ChatGPT host tool-result and ui/message target:active; verify hidden assistant annotation and chat.reply return in same local chat. Test new-chat target:new and subsequent bound follow-up. On host close, inspect unacknowledged queue and avoid resend duplicates. Investigate host-approved automatic reactivation; do not substitute browser UI or APIs.
+
 ## 30 October 2026: automatic browser transport preview
 Next owner action: sign in once to ChatGPT in the separate Yandex Browser window opened by Tunnel. Then send a short message in a new local chat. Manager: check browser-bridge/heartbeat.json mode browser, browser-bridge/events.jsonl and local messages answered, then two consecutive turns, restart continuity, old verified-bound chat, MKATUSHONOK. Keep stable v0.2.35 backup, no Work/Codex/API.
 
