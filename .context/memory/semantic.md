@@ -1,5 +1,9 @@
 # Semantic memory
 
+## 2026-10-30 — chat new-target surface and real host capability
+- The ChatGPT Apps SDK `ui/message` `_meta["openai/message"].target:"new"` requires advertised host experimental capability. The operation response does not prove newly opened ChatGPT thread mode. A Global entrypoint can be hosted in Work; writing “ordinary” in the prompt does not change mode. Real host may advertise the capability yet omit the `openai/deepLink` URL.
+- v0.2.29 explicitly removes all Global dispatch logic; only `chat.bootstrap.open` in existing ordinary ChatGPT can deliver, with positive URL evidence or one-time user confirmation when host omits URL; unsafe contexts never poll or acknowledge pending messages. Four pre-existing pending items preserved. Source: historical code v0.2.18, verified test suite v0.2.29, real host diagnostic 30.10, owner directive. E2E not yet accepted.
+
 ## 30.10.2026 — подтверждённый релиз и роль менеджера
 - Продолжение текущего диалога — постоянный `project-manager` 2.1.0. Ошибочное высказывание «своя капсула супервизора» было неверной интерпретацией владельца; не создавать/не подменять manager_id и не обновлять чужую капсулу. Owner explicitly corrected role; authority: owner-directive 30.10.2026.
 - Verified runtime 30.10.2026 03:46 MSK: DOMKAT `D:\ChatGPTMCPAgent\ChatGptMcpAgent.exe` установлен `0.2.28+ad28e28`, исходный Git HEAD `ad28e28` и чистый status. Пользователь установил обновление сам, GitHub Release v0.2.28 опубликован напрямую после локальной сборки и тестов.

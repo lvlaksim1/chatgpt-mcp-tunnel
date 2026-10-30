@@ -1,5 +1,12 @@
 # Manager beliefs
 
+## 2026-10-30 04:14 MSK — ordinary ChatGPT Work-regression investigation
+- Verified historical code: v0.2.18 ChatRelayApp sent MCP Apps `ui/message` with `_meta["openai/message"].target="new"` from an iframe embedded in a normal ChatGPT conversation. A Global MCP entrypoint may have different host execution context; merely instructing the model "do not use Work" does not control that context.
+- Real diagnostic `chat.thread.open` from this ChatGPT conversation at approximately 04:05 MSK: `hasOpenAiMessage=true`, `hasDeepLink=false`, `displayMode=inline`. Earlier bootstrap observation 29.10 had `hasOpenAiMessage=false`. These are time- and host-context-dependent; do not assume capability from old recordings.
+- Owner directive: new dialogs created by tunnel must be **ordinary ChatGPT**, not Work or Codex, with no separate API. Refuse unsafe Global dispatch. `ui/message` acknowledgement alone does NOT prove the resulting thread is not Work.
+- Verified local fix and candidate: v0.2.29, commit `e80e3ea13f6eeaaa7611d9a065201f4edaba28ca`, prepared and published as GitHub pre-release from DOMKAT, without Actions. Global HTML now has no `ui/message` and no queue polling; ordinary `chat.bootstrap.open` resource v0229 verifies extension and route, prompts a one-time user confirmation when host omits deep link, revokes on context change, preserves unforwarded queue otherwise.
+- As of 30.10.2026 04:13 MSK installed DOMKAT remains `v0.2.28`, not v0.2.29. Four historical messages were pending and preserved. Real E2E ordinary-mode acceptance **NOT completed**. Authority: owner-directive and verified source/tests/host lifecycle/installed version. Details: `docs/ORDINARY-CHAT-ROUTING-2026-10-30.md`.
+
 ## Актуализация 30.10.2026, 03:46 MSK — подтверждённая v0.2.28 и текущая роль
 - **Verified runtime:** DOMKAT: установленный `D:\ChatGPTMCPAgent\ChatGptMcpAgent.exe` имеет версию `0.2.28+ad28e28218a404a645f0df805f8d4f205fd2e079`. Рабочее дерево `D:\Dev\ChatGPT-MCP-Tunnel`, ветка `main`, HEAD `ad28e28218a404a645f0df805f8d4f205fd2e079`, `git status` пуст. Проверено непосредственно на DOMKAT 30.10.2026. Установку `v0.2.28` пользователь выполнил самостоятельно; ассистент её не запускал.
 - **Verified release:** v0.2.28 локально собрана на DOMKAT, прошла .NET/WinForms/MCP/Router Lite/Node тесты и опубликована как готовые full/update EXE + SHA256 в GitHub Release. GitHub Actions для неё не использовались.

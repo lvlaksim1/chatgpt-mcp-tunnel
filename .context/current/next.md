@@ -1,5 +1,11 @@
 # Next actions
 
+## NEXT — 2026-10-30 ordinary-chat transport
+1. After owner installs pre-release v0.2.29, verify installed version and connectivity. Refresh MCP tools and open `chat.bootstrap.open` **from an existing normal ChatGPT /c thread**, not Global. If no deep link was advertised, click its manual confirmation button only after visually verifying ordinary ChatGPT mode.
+2. Verify with exactly one controlled local message and actual created ChatGPT thread, then return reply via `chat.reply` and inspect Windows chat receipt. Do not blindly replay four existing old pending messages. If Work appears, record failure and stop routing.
+3. No automatic installation from this task. Latest source/release `v0.2.29` (pre-release); installed DOMKAT v0.2.28 as last checked. `docs/ORDINARY-CHAT-ROUTING-2026-10-30.md` has proof and limits.
+4. Continue local batch development on DOMKAT, ~1s GUI pacing, STOP, GitHub only storage. Next tasks unrelated to ordinary-chat Work regression remain queued, not silently closed.
+
 ## СЛЕДУЮЩИЕ ДЕЙСТВИЯ 30.10.2026, 03:46 MSK
 1. После восстановления того же `project-manager` читать актуальное состояние выше, а не исторические «v0.2.28 не готова» ниже. В Git HEAD `ad28e28` и установленная версия DOMKAT `0.2.28+ad28e28`.
 2. При следующем взаимодействии с обновлённым MCP инструментом **с явным `executor="project-manager"`** проверить строку «Исполнитель: Менеджер проекта»; в отдельной проверке supervisor и default ChatGPT. Проверить отсутствие путаницы между одновременно работающими чатами. До живого GUI-теста не заявлять полную приёмку.

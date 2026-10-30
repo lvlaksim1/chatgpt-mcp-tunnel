@@ -1,5 +1,10 @@
 # Procedural memory
 
+## 2026-10-30 — ordinary ChatGPT acceptance protocol
+- For new local chat threads, never call `chat.hub.open` or use `/mcp-app/...` Global as a message dispatcher. Open `chat.bootstrap.open` in an existing visually verified ordinary `/c/...` chat. If no deep link is exposed but `openai/message` is advertised, the user must manually confirm the normal chat once in the component; later sends auto-dispatch until context changes.
+- Pending local messages must be ACKed only after host acceptance; uncertain mode, missing extension, explicit Work/Global route and context changes stop the transport without draining the queue. Before live E2E, inspect queued messages' count (4 on 30.10.2026) and avoid blindly replaying old messages.
+- After the candidate is manually installed, one controlled local message + actual resulting ChatGPT UI mode + chat.reply roundtrip are required to close acceptance. Never call it solved on local VM tests alone. Local build only D:\Dev; GitHub pre-release v0.2.29 storage; no Actions.
+
 ## 30.10.2026 — эксплуатация менеджера и фиксация новой версии
 1. При входе в обычный диалог восстановить `manager_id=project-manager` по `.context/ENTRYPOINT.md` и `state-integrity.json`, не отождествлять случайное имя в сообщении с новой ролью supervisor. Диалоги — временный runtime; identity — постоянная капсула.
 2. Сверять версию установленного EXE напрямую на DOMKAT перед статусом; 30.10.2026 проверено `0.2.28+ad28e28`. Выпуск `v0.2.28` уже размещён и пользователь установил его сам; не повторять выпуск/обновление без отдельного поручения.

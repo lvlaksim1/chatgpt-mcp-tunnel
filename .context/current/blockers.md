@@ -1,5 +1,10 @@
 # Current blockers and open risks
 
+## 2026-10-30 — open chat mode acceptance blocker
+- Local v0.2.29 code prevents Global MCP App from dispatching, but **cannot guarantee host-selected normal mode from a successful ui/message result**. The ChatGPT host does not always expose a conversation URL/mode: today's thread diagnostic had advertised `openai/message` but no `openai/deepLink`. Absent route requires one-time explicit user confirmation in the ordinary chat. Actual new chat Work-vs-Chat E2E unverified.
+- Candidate v0.2.29 is pre-release and not yet installed on DOMKAT. Do not claim problem fixed/accepted until an actual new dialog is visibly verified ordinary. Preserve four existing queued messages and do not test by replaying all at once.
+- Keep historical constraints: ordinary ChatGPT only, no Work/Codex/API, one tunnel, Happ active, Windows 10, local-only building and GitHub storage-only. No GitHub Actions.
+
 ## Актуальные ограничения 30.10.2026, 03:46 MSK
 - `v0.2.28` **выпущена и установлена**, не считать предыдущие «не выпущена/не установлена» блокером; прежние буквальные вопросительные знаки исправлены в исходниках и проверены локальными тестами. Окончательная проверка правильного отображения на установленном UI — открытая приёмка.
 - Поле `executor` — self-declared атрибуция конкретного MCP-вызова, а не подтверждённая host identity. При отсутствии поля всегда ChatGPT; модель персонализированного чата должна явно передавать свой идентификатор. Обновлённая схема инструмента в Host и визуальное отображение после установки могут потребовать проверки.

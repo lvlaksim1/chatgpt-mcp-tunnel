@@ -1,5 +1,11 @@
 # Manager intentions and commitments
 
+## 2026-10-30 04:14 MSK — active ordinary-chat routing commitment
+- **completed (code + packaging):** compare v0.2.18 and current routing, separate Global observer from ordinary dispatcher, block unsupported/unsafe host contexts, add explicit one-time confirmation when normal-chat route metadata is unavailable, run local Windows/MCP/Router Lite/Node regression, publish candidate `v0.2.29` directly to GitHub Releases (pre-release; no Actions).
+- **accepted/active (user-facing acceptance):** after user installs candidate, invoke `chat.bootstrap.open` **inside a visually verified ordinary ChatGPT conversation**, confirm mode when button appears, send one controlled local test message, inspect resulting conversation UI for ordinary Chat rather than Work, verify `chat.reply` returns a local reply. Acknowledgement of ui/message is insufficient.
+- **active constraints:** do not consume or erase the four existing pending local messages during diagnostics, do not silently submit them to Work. Do not install new build without owner instruction (owner previously said "сам установлю"). Do not switch to Work/Codex/API, do not enable GitHub Actions, do not disable Happ.
+- If real host cannot guarantee new ordinary conversation, keep blocker open and analyze with host lifecycle evidence rather than claiming solved.
+
 ## Статус обязательств 30.10.2026, 03:46 MSK
 - **completed/verified:** исправление Unicode `????` в исходниках, персонализированный исполнитель на уровне вызова, локальные сборки и регрессии `v0.2.28`, коммит `ad28e28`, GitHub Release `v0.2.28`. Установленная 0.2.28 на DOMKAT проверена; установку произвёл владелец. Старые «active: выпустить v0.2.28» ниже **завершены**, не запускать повторную публикацию или установку.
 - **accepted/active для приёмки:** проверить фактическое отображение «Исполнитель: Менеджер проекта», «Исполнитель: Супервизор», «Исполнитель: ChatGPT» на установленном агенте после того, как ChatGPT увидит обновлённую схему MCP-инструментов. Само наличие 0.2.28 и unit-тесты не эквивалентны пользовательской GUI-приёмке.

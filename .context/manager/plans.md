@@ -1,5 +1,11 @@
 # Manager plans
 
+## 2026-10-30 04:14 MSK — current routing plan
+1. Source baseline: DOMKAT `D:\Dev\ChatGPT-MCP-Tunnel`, `main`, commit `e80e3ea`; local candidate release `v0.2.29` is built, hashed, uploaded as GitHub pre-release, not installed on DOMKAT. No further CI/Actions.
+2. When owner has manually installed v0.2.29, refresh MCP tool schema if needed. Open existing **ordinary** `/c/` ChatGPT thread and invoke `chat.bootstrap.open`, never `chat.hub.open` for sending. If host has `openai/message` but no deep link (observed), click the one-time normal-chat confirmation in the embedded component.
+3. Use exactly one controlled local message for end-to-end acceptance, inspect actual ChatGPT thread/mode, ensure reply via `chat.reply`. Four existing pending messages must not be replayed blindly; preserve queue and coordinate safe test conditions. If candidate fails, leave queued messages intact and capture sanitized lifecycle diagnostics.
+4. Future improvements only after verified failure analysis; use local batch scripts with fail-fast and meaningful summaries, ~1s GUI mutations, no forced CLI delay. GitHub remains source/release storage only.
+
 ## План менеджера 30.10.2026, 03:46 MSK
 1. Не собирать/не переустанавливать `v0.2.28`: релиз опубликован, установленный на DOMKAT агент уже `0.2.28+ad28e28`; владелец устанавливает обновления самостоятельно, если отдельно не распорядится иначе.
 2. При следующей пользовательской приёмке запросить/вызвать инструменты со схемой `executor` и проверить на реальном DOMKAT отображение имён для manager/supervisor и дефолт ChatGPT; убедиться, что параллельные чаты не наследуют чужую роль. Не утверждать верификацию Host identity, поскольку параметр self-declared.

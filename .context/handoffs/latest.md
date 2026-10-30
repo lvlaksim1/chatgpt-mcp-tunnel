@@ -1,5 +1,14 @@
 # Latest handoff
 
+## LATEST HANDOFF — 2026-10-30 04:14 MSK — normal ChatGPT vs Work
+Persistent role `project-manager`, not supervisor. Owner instructed to restore automatic new dialogs in ordinary ChatGPT from local Tunnel; previous new threads were Work. Investigation compared v0.2.18, v0.2.28 and current ChatGPT host. Verified Global must never originate `ui/message`. Today a diagnostic Thread MCP App in this ordinary ChatGPT conversation reported `hasOpenAiMessage=true` and `hasDeepLink=false`: extension exists, host route metadata absent.
+
+Candidate `v0.2.29`, commit `e80e3ea`, locally built on DOMKAT, tests passed, full/update Inno files SHA256-checked and directly published as GitHub **pre-release**, without GitHub Actions. Global HTML has **no ui/message**; bootstrap in normal ChatGPT validates extension, route and offers **one-time manual confirmation if host hides /c URL**, revokes it on context change, keeps messages pending in uncertain Work/Global contexts. Local message queue had 4 pending old messages; they were not deliberately forwarded or deleted.
+
+Installed DOMKAT remains `v0.2.28` at last verification. **LIVE E2E ORDINARY THREAD IS NOT VERIFIED**, and successful app/host ack is not proof of no Work. Next after owner manual installation: single controlled local message from a visually ordinary /c ChatGPT bootstrap, inspect resulting UI and receive reply; avoid replaying four previous pending messages blindly. Keep one tunnel, no Work/Codex/API, system Happ, GitHub storage only, local development in `D:\Dev`. See `docs/ORDINARY-CHAT-ROUTING-2026-10-30.md`.
+
+Authority/provenance: direct owner request 30.10.2026, Git history, local tests/release, real ChatGPT lifecycle diagnostic, DOMKAT VersionInfo. Older handoff entries below are historical.
+
 ## ПОСЛЕДНЯЯ ПЕРЕДАЧА МЕНЕДЖЕРУ — 30.10.2026, 03:46 MSK
 **Чей контекст:** ровно существующий `manager_id=project-manager` (Project Manager 2.1.0). Владелец уточнил: вызван менеджер проекта ChatGPT MCP Tunnel, не супервизор; прежняя реплика ассистента про «капсулу супервизора» ошибочна. Никакого переключения identity не было. Владелец приказал **актуализировать капсулу менеджера**.
 

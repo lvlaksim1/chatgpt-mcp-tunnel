@@ -1,5 +1,12 @@
 # Current state
 
+## ACTUAL STATE — 2026-10-30 04:14 MSK — chat mode restoration
+- Owner asked to restore automatic opening of **ordinary ChatGPT** dialogs from local tunnel chat instead of Work/Codex. Work-regression root cause remains partially inferred from transport origin, and no new live dialog has yet been accepted as ordinary.
+- On DOMKAT source Git HEAD `e80e3ea13f6eeaaa7611d9a065201f4edaba28ca`; local suite passed: both .NET builds, Windows MCP/Router Lite, lifecycle resources, UIA, old ordinary bootstrap positive test, negative Work/extension-missing test, Global non-dispatch test and tray selftests. Pre-release v0.2.29 built via local Inno and uploaded directly with 4 assets; GitHub Actions not used.
+- Real ChatGPT thread diagnostic today reported `hasOpenAiMessage=true` but `hasDeepLink=false` (in contrast to a previous diagnostic). Candidate supports a **user-confirmed** bootstrap in an existing ordinary chat when host context link is absent; once confirmed, forwarding is automatic while context remains stable.
+- DOMKAT live installed agent version **0.2.28+ad28e28** at 04:13 MSK; v0.2.29 not installed automatically. Local message queue had **four pending** old messages, preserved untouched. Live visual test of newly created ChatGPT thread and reply path remains OPEN.
+- Details: `docs/ORDINARY-CHAT-ROUTING-2026-10-30.md`, GitHub pre-release `v0.2.29`. Older state describing 0.2.27 as installed is archival.
+
 ## ТЕКУЩЕЕ СОСТОЯНИЕ 30.10.2026, 03:46 MSK — сверено на DOMKAT
 - `manager_id=project-manager`, manager version `2.1.0` — постоянный менеджер проекта, **не супервизор**. В этом диалоге пользователь обращается к менеджеру; предыдущее заявление ассистента о «капсуле супервизора» признано ошибкой. Новую identity/capsule не создавать.
 - Основной путь `D:\Dev\ChatGPT-MCP-Tunnel`; Git `main`, HEAD `ad28e28218a404a645f0df805f8d4f205fd2e079`, чистое рабочее дерево на момент сверки. Рабочий установленный путь `D:\ChatGPTMCPAgent`; версия исполняемого файла `0.2.28+ad28e28218a404a645f0df805f8d4f205fd2e079`. Обновление v0.2.28 пользователь выполнил сам.
