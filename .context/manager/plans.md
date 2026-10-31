@@ -1,3 +1,8 @@
+## Post-release operational plan (31.10.2026 20:24 MSK)
+v0.2.65 source, installers and SHA256 published stable, installed locally. Monitor 3h scheduled free feed refresh; no pending feature build required. Rollback backup retained, Happ selected.
+
+---
+
 ## v0.2.65 release plan (31.10.2026 20:18 MSK)
 Local v0.2.65 installed and live accepted; archive reviewed source to GitHub without credentials, then publish official stable tagged installer if remote/main ancestry allows. Monitor scheduled refresh 3h; do not use prereleases.
 

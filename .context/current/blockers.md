@@ -1,3 +1,8 @@
+## Remaining scope after stable v0.2.65 (31.10.2026 20:24 MSK)
+No known blocker to requested VPN features. Free public nodes remain untrusted/unreliable third-party intermediaries; provider-side real outage of indefinite duration is not reproducible. Happ fallback plus encrypted standby rotation validated in isolation, not a guarantee of zero interruption.
+
+---
+
 ## Remaining scope after v0.2.65 — generation 72 (31.10.2026 20:18 MSK)
 Core VPN features accepted locally; real provider long-term reliability remains outside our control. Release only reviewed nonsecret sources/binaries; no private DPAPI, WebView2 backup or test artifacts to GitHub. GPU/TTS and Router Lite unchanged. Production public-node forced outage intentionally not induced; simulated controlled failover PASS.
 

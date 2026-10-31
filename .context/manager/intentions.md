@@ -1,3 +1,8 @@
+## VPN operation stable v0.2.65 (31.10.2026 20:24 MSK)
+Preserve one authenticated ChatGPT WebView2 profile on DOMKAT and one MCP tunnel-client. Rotate validated backups first, return to Happ only if none work, notify operator. GitHub is version storage; never upload DPAPI or browser backups.
+
+---
+
 ## v0.2.65 operator intent (31.10.2026 20:18 MSK)
 Use standby free nodes first after forced main-node failure; only fallback Happ if no verified backup. Notify via Windows Tray; keep one authorized profile, no global VPN changes, no extra MCP client, preserve connected Router Lite clients.
 

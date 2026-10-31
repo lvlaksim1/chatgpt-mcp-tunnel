@@ -1,3 +1,8 @@
+## Operational next after stable v0.2.65 (31.10.2026 20:24 MSK)
+1. Keep schedule refreshing free profiles every 3 hours and watch first 22:28 MSK cycle. 2. Maintain original authorized WebView2 and local rollback backup. 3. Future releases use local build + tests + DOMKAT install first, safe non-force merge into main, stable GitHub release with full/update installer; never prereleases.
+
+---
+
 ## Next after v0.2.65 — generation 72 (31.10.2026 20:18 MSK)
 1. Verify Git staging excludes keys/DPAPI/auth backups and binary outputs. 2. Publish accepted v0.2.65 source and stable release to GitHub without prerelease, only after local installation and SHA256 test. 3. Continue 3-hour automated node updates, optional scheduled monitoring; maintain Happ rollback. 4. Preserve one authorized WebView2 profile and one official DOMKAT tunnel-client.
 
