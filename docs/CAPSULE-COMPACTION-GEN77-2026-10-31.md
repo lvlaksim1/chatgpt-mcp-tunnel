@@ -25,3 +25,9 @@
 - Это исправляет размер и восстановимость контекста, не проверяет full product E2E, перенос MCP регистрации в другой ChatGPT аккаунт или Disaster Recovery инфраструктуры.
 - Исторические claims с устаревшими статусами в архиве остаются свидетельствами, а не новым авторитетным решением. При необходимости точной хронологии требуется выборочное чтение архива и исходного коммита.
 - Не удалять полные архивы, даже если работающая капсула значительно короче. Будущие разрастания обязательного BDI должны блокироваться регрессионным тестом до публикации.
+
+## Final closure: manager generation 78
+
+After publication of gen77 (commit f297240), the authoritative manager working state was reconciled: every current view and relevant BDI section explicitly marks RECOVER_DEFAULT_BUDGET CLOSED rather than suggesting that the completed task is still open. Seal advanced to generation 78. Repeated on main: pmctl validate PASS, pmctl ready PASS, pmctl recover without --max-chars PASS; output 130705 characters out of allowed 131072. The lossless eight-file ZIP SHA256 regression passes. All other product or account Disaster Recovery debts remain separate and open.
+
+This is context-recovery acceptance only; installed GUI/runtime, Windows VPN, Router Lite and user sessions were not modified.

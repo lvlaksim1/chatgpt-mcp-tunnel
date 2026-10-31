@@ -5,6 +5,6 @@
 - Это прежний project-manager, не supervisor. Авторитет: .context/manager/CONTRACT.md и PROTOCOL.md; все семь целей владельца — .context/manager/goals.md.
 - Действующая стабильная версия v0.2.65, DOMKAT server/Happ/один tunnel-client и MKATUSHONOK client Router Lite/Free Xray для локального WebView2; подписанный ChatGPT Plus на обоих.
 - Полная gen76 записана побайтно в .context/archive/manager-gen76-2026-10-31/ с manifest SHA256. Читать архив выборочно, не принимать устаревшие статусы за текущие.
-- Предмет текущего поручения: устранить дефект стандартного pmctl recover max 131072; зафиксировать действительные результаты, не перепутать с account DR.
+- Поручение владельца завершено: RECOVER_DEFAULT_BUDGET CLOSED. На авторитетной main gen77 pmctl validate/ready/recover без max-chars PASS (130266 символов), архив ZIP исходного gen76 8/8 SHA256; published main/feature f297240. Это не проверка account DR.
 - Открыты: клиентский Free Xray installer, 10/10 автономный чат, аккаунтный DR, эксплуатационные испытания. Android proposal gen76 на рассмотрении.
 - Не выключать Happ DOMKAT, не создавать второй tunnel-client / WebView2 профиль, не помещать ключи/куки/DPAPI в GitHub.

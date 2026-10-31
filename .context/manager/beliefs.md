@@ -16,5 +16,5 @@
 ## Проверка технического долга восстановления
 - source: D:/Dev/supervisor/.context/supervisor/tunnel-manager-authority-closure-2026-10-31.md; previous gen75, subsequent gen76, owner instruction to compact.
 - authority: supervisor technical report and owner-authorized archive action; не изменяет Contract.
-- gen75 validate/ready PASS, recover только с max-chars 262144 PASS; обычный 131072 FAIL. Цель gen77 — архив без потери истории и успешный обычный recover на авторитетной main, доказать тестом до закрытия.
+- GEN 77: технический долг RECOVER_DEFAULT_BUDGET ЗАКРЫТ. На авторитетной main pmctl validate PASS, ready PASS, recover без --max-chars PASS (130266 символов из допустимых 131072). Архив gen76 ZIP с исходными байтами 8/8 и SHA256 прошёл регрессию; обе ветки main/feature опубликованы на f297240. Проверка относится к восстановлению контекста, а не к Disaster Recovery ChatGPT-аккаунта.
 - Android/APK предложение от 31.10.2026 имеет статус PROPOSED, не разрешение на разработку. Источник: .context/proposals/2026-10-31-android-research-tunnel.md.

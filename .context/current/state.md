@@ -6,4 +6,4 @@
 - MKATUSHONOK: v0.2.65, Router Lite --agent, WebView2 авторизован ChatGPT Plus через локальный бесплатный Xray 11821; без Happ. При переносе прежний клиентский UDF сохранён.
 - Client-only Xray supervisor/3h refresh установлены в Windows, не воспроизводятся пока официальным инсталлятором. Защищённые DPAPI/cookies не загружать в Git.
 - Chat 10/10, независимый другой ChatGPT-аккаунт DR и длительное внешнее VPN outage — не тестировались в полном необходимом объёме.
-- Исторические подробности и сведения о прежних ошибках см. архив gen76 и соответствующие docs/ проекта.
+- RECOVER_DEFAULT_BUDGET устранён (gen77): авторитетная main восстанавливается стандартным pmctl recover 131072, archive ZIP SHA256 8/8. Исходные сведения в архиве gen76 и docs/CAPSULE-COMPACTION-GEN77-2026-10-31.md.
