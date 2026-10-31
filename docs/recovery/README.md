@@ -1,10 +1,10 @@
 # ChatGPT MCP Tunnel — Recovery Kit and client source audit
 
-**Permanent release sidecar:** see `docs/recovery/SIDECAR.md`. Every future
-`Build-LocalRelease.ps1 -Version X.Y.Z` now generates, verifies and publishes
-an immutable versioned RecoveryKit beside the installed program; a failed kit
-prevents `LOCAL_RELEASE_BUILD_OK`. The compiler requires an explicit version
-and a clean, committed source tree.
+**Server-only RecoveryKit:** see `docs/recovery/SIDECAR.md`. Every future
+`Build-LocalRelease.ps1 -Version X.Y.Z` generates and verifies the immutable
+companion RecoveryKit, but does not install it. Only an authorized main SERVER
+Setup/Update install may place the kit beside the program; CLIENT installs
+never contain or install it. A failed kit prevents LOCAL_RELEASE_BUILD_OK.
 
 
 ## What is recoverable

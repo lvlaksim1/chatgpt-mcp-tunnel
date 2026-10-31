@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.IO.Pipes;
+using System.IO.Compression;
 using System.Text.Json;
 
 namespace ChatGptMcpAgent;
@@ -44,6 +45,103 @@ internal static class AgentUpdates
             return (version, address);
         }
         return (null, null);
+    }
+
+    // The RecoveryKit is distributed as a separate companion asset, never
+    // within its own Setup/Update executable. Only a SERVER downloads it.
+    internal static Uri ServerRecoveryKitUrl(Uri installerUrl)
+    {
+        if (!IsAllowedInstaller(installerUrl))
+            throw new InvalidDataException("Untrusted update source.");
+        var fileName = Path.GetFileName(installerUrl.AbsolutePath);
+        var match = System.Text.RegularExpressions.Regex.Match(fileName,
+            @"^ChatGPT_MCP_Tunnel_Update_v(?<v>[0-9]+\.[0-9]+\.[0-9]+)\.exe$",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        if (!match.Success)
+            throw new InvalidDataException("Update name does not contain a version.");
+        var version = match.Groups["v"].Value;
+        if (!installerUrl.AbsolutePath.Contains("/releases/download/v" + version + "/",
+            StringComparison.OrdinalIgnoreCase))
+            throw new InvalidDataException("Update tag and file version differ.");
+        return new Uri(installerUrl, "RecoveryKit_v" + version + ".zip");
+    }
+
+    internal static async Task StageServerRecoveryKitAsync(Uri installerUrl,
+        string installerPath, Action<int> progress)
+    {
+        if (AgentStorage.SelectedRole != "server") return;
+        var recoveryUrl = ServerRecoveryKitUrl(installerUrl);
+        var version = recoveryUrl.Segments.Last().Replace("RecoveryKit_v", "")
+            .Replace(".zip", "");
+        var stageDir = Path.GetDirectoryName(installerPath)
+            ?? throw new InvalidDataException("Invalid update staging directory.");
+        Directory.CreateDirectory(stageDir);
+        var archive = Path.Combine(stageDir, "RecoveryKit_v" + version + ".zip");
+        var partialArchive = archive + ".partial";
+        var target = Path.Combine(stageDir, "RecoveryKit");
+        var extraction = target + ".partial";
+        if (Directory.Exists(target) || Directory.Exists(extraction))
+            throw new IOException("RecoveryKit staging already exists. Clear the abandoned update staging.");
+        const long maxBytes = 900L * 1024 * 1024;
+        try
+        {
+            using (var response = await Client.GetAsync(recoveryUrl, HttpCompletionOption.ResponseHeadersRead))
+            {
+                response.EnsureSuccessStatusCode();
+                if (response.Content.Headers.ContentLength is > maxBytes)
+                    throw new InvalidDataException("RecoveryKit ZIP exceeds the limit.");
+                await using var input = await response.Content.ReadAsStreamAsync();
+                await using var output = new FileStream(partialArchive, FileMode.CreateNew,
+                    FileAccess.Write, FileShare.None, 65536, true);
+                byte[] buffer = new byte[65536];
+                long downloaded = 0;
+                int count;
+                while ((count = await input.ReadAsync(buffer.AsMemory())) > 0)
+                {
+                    downloaded += count;
+                    if (downloaded > maxBytes)
+                        throw new InvalidDataException("RecoveryKit ZIP exceeds the limit.");
+                    await output.WriteAsync(buffer.AsMemory(0, count));
+                    if (response.Content.Headers.ContentLength is > 0)
+                        progress((int)Math.Min(100, downloaded * 100 /
+                            response.Content.Headers.ContentLength.Value));
+                }
+                await output.FlushAsync();
+                if (response.Content.Headers.ContentLength is > 0 &&
+                    downloaded != response.Content.Headers.ContentLength.Value)
+                    throw new InvalidDataException("Incomplete RecoveryKit download.");
+            }
+            File.Move(partialArchive, archive);
+            ZipFile.ExtractToDirectory(archive, extraction, overwriteFiles: false);
+            var verifier = Path.Combine(extraction, "Verify-RecoveryKit.ps1");
+            if (!File.Exists(verifier))
+                throw new InvalidDataException("RecoveryKit verifier missing.");
+            var command = new ProcessStartInfo("powershell.exe")
+            {
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            foreach (var arg in new[] {
+                "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
+                "-File", verifier, "-Kit", extraction, "-ExpectedVersion", version
+            })
+                command.ArgumentList.Add(arg);
+            using var process = Process.Start(command)
+                ?? throw new IOException("Could not start RecoveryKit verification.");
+            using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+            await process.WaitForExitAsync(timeout.Token);
+            if (process.ExitCode != 0)
+                throw new InvalidDataException("RecoveryKit companion failed checksum validation.");
+            Directory.Move(extraction, target);
+        }
+        finally
+        {
+            if (File.Exists(partialArchive)) File.Delete(partialArchive);
+            if (File.Exists(archive)) File.Delete(archive);
+            if (Directory.Exists(extraction)) Directory.Delete(extraction, recursive: true);
+        }
     }
 
     internal static async Task RunUpdateAsync(int parentPid, Uri installerUrl, string pipeName)
@@ -182,12 +280,25 @@ internal sealed class UpdateWindow : Form
     {
         try
         {
-            var output = Path.Combine(AgentStorage.UpdatesFolder, "ChatGPT_MCP_Agent_Update_Staged.exe");
+            var version = Path.GetFileName(_source.AbsolutePath)
+                .Replace("ChatGPT_MCP_Tunnel_Update_v", "", StringComparison.OrdinalIgnoreCase)
+                .Replace(".exe", "", StringComparison.OrdinalIgnoreCase);
+            // Separate, versioned staging avoids mixing with an older recovery bundle.
+            var output = Path.Combine(AgentStorage.UpdatesFolder, "v" + version,
+                "ChatGPT_MCP_Agent_Update_Staged.exe");
             _phase.Text = "Скачивание обновления…";
             await AgentUpdates.DownloadAsync(_source, output, percent =>
             {
                 if (!IsDisposed) _progress.Value = Math.Clamp(percent, 0, 100);
             });
+            if (AgentStorage.SelectedRole == "server")
+            {
+                _phase.Text = "Скачивание комплекта восстановления сервера…";
+                await AgentUpdates.StageServerRecoveryKitAsync(_source, output, percent =>
+                {
+                    if (!IsDisposed) _progress.Value = Math.Clamp(percent, 0, 100);
+                });
+            }
             _phase.Text = "Завершение текущей версии…";
             using (var pipe = new NamedPipeClientStream(".", _pipe, PipeDirection.Out, PipeOptions.Asynchronous))
             {

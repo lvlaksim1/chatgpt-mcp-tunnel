@@ -3,7 +3,6 @@
   [Parameter(Mandatory=$true)]
   [string]$Version,
   [string]$ClientSource = 'D:\ChatGPTMCPAgent\OpenAI',
-  [string]$RecoveryInstallDir = '',
   [switch]$SkipTests
 )
 $ErrorActionPreference = 'Stop'
@@ -134,7 +133,6 @@ try {
   # RecoveryKit is a mandatory sidecar, NOT packed into its own installer.
   # Publishing uses a copy-verify-promote sequence that retains older versions.
   $kitBuilder=Join-Path $repo 'scripts\Recovery\build_recovery_kit.py'
-  $sidecarPublisher=Join-Path $repo 'scripts\Recovery\publish_recovery_sidecar.py'
   $kit=Join-Path $dist 'RecoveryKit'
   Write-Output "RECOVERY_KIT_BUILD v$Version"
   & python $kitBuilder build --repo $repo --dist $dist --kit $kit --version $Version
@@ -143,20 +141,16 @@ try {
   if($LASTEXITCODE -ne 0){throw 'Release aborted: mandatory Recovery Kit verification failed'}
   & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $kit 'Verify-RecoveryKit.ps1') -Kit $kit
   if($LASTEXITCODE -ne 0){throw 'Release aborted: standalone Windows Recovery Kit verification failed'}
-  $actualInstallDir=$RecoveryInstallDir
-  if(-not $actualInstallDir){
-    $installed=Get-ItemProperty 'HKCU:\Software\ChatGPTMCPAgent' -ErrorAction SilentlyContinue
-    if($installed -and $installed.InstallDir){$actualInstallDir=[string]$installed.InstallDir}
-  }
-  if($actualInstallDir -and (Test-Path -LiteralPath (Join-Path $actualInstallDir 'ChatGptMcpAgent.exe') -PathType Leaf)){
-    Write-Output "RECOVERY_SIDECAR_PUBLISH v$Version"
-    & python $sidecarPublisher publish --kit $kit --install-dir $actualInstallDir
-    if($LASTEXITCODE -ne 0){throw 'Release aborted: sidecar publication failed'}
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $kit 'Verify-RecoveryKit.ps1') -InstallDir $actualInstallDir
-    if($LASTEXITCODE -ne 0){throw 'Release aborted: published sidecar integrity check failed'}
-  }else{
-    Write-Output 'RECOVERY_SIDECAR_DIST_ONLY: no installed app found; Kit bundled with dist'
-  }
+  # A release build ONLY prepares the server companion. It must never
+  # install a new kit on DOMKAT independently of installing the main program.
+  # Inno performs the server-only installation after verified Setup/Update.
+  Write-Output 'RECOVERY_KIT_COMPANION_ONLY: installer controls server installation'
+  $zip=Join-Path $dist "RecoveryKit_v$Version.zip"
+  if(Test-Path $zip){throw 'Existing RecoveryKit release ZIP: refuse overwrite'}
+  & python -c "from pathlib import Path; import sys,zipfile; src=Path(sys.argv[1]); target=Path(sys.argv[2]); z=zipfile.ZipFile(target,'x',compression=zipfile.ZIP_STORED); [z.write(f,f.name) for f in sorted(src.iterdir()) if f.is_file()]; z.close()" $kit $zip
+  if($LASTEXITCODE -ne 0){throw 'Release aborted: server companion ZIP creation failed'}
+  Write-Output ('RECOVERY_KIT_RELEASE_ZIP_SHA256='+((Get-FileHash $zip -Algorithm SHA256).Hash))
+  Write-Output 'RECOVERY_KIT_SERVER_ONLY_DOWNLOAD'
   Write-Output "RELEASE_SOURCE_COMMIT=$head"
   Write-Output 'RECOVERY_KIT_BUILD_OK'
   Write-Output 'LOCAL_RELEASE_BUILD_OK'

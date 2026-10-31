@@ -51,6 +51,7 @@ Type: files; Name: "{app}\OpenAI\LICENSE.node.txt"
 [Files]
 Source: "{#PublishDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "ServerStart.ps1"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\scripts\Recovery\Install-RecoveryKit.ps1"; Flags: dontcopy
 Source: "..\scripts\Recovery\Client-FreeXraySupervisor.ps1"; DestDir: "{app}\Recovery"; Flags: ignoreversion
 Source: "..\scripts\Recovery\Install-ClientFreeVpnTasks.ps1"; DestDir: "{app}\Recovery"; Flags: ignoreversion
 Source: "..\scripts\Vpn\free_reality_updater.py"; DestDir: "{app}\Recovery\scripts\Vpn"; Flags: ignoreversion
@@ -116,8 +117,24 @@ end;
 procedure CurStepChanged(CurStep: TSetupStep);
 var
   RecoveryExitCode: Integer;
+  KitExitCode: Integer;
+  Role: String;
 begin
   if CurStep <> ssPostInstall then exit;
+  Role := '';
+  RegQueryStringValue(HKCU, 'Software\ChatGPTMCPAgent', 'Role', Role);
+  if Role = 'server' then
+  begin
+    ExtractTemporaryFile('Install-RecoveryKit.ps1');
+    if not Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'),
+      '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "' +
+      ExpandConstant('{tmp}\Install-RecoveryKit.ps1') + '" -Kit "' +
+      ExpandConstant('{src}\RecoveryKit') + '" -InstallDir "' +
+      ExpandConstant('{app}') + '" -Version "{#AppVersion}"',
+      '', SW_HIDE, ewWaitUntilTerminated, KitExitCode) or (KitExitCode <> 0) then
+      RaiseException('Server RecoveryKit could not be installed');
+  end;
+
   if Exec(ExpandConstant('{app}\{#AppExeName}'), '--watchdog-register',
      ExpandConstant('{app}'), SW_HIDE, ewWaitUntilTerminated, RecoveryExitCode) then
     Log('Update watchdog registration exit=' + IntToStr(RecoveryExitCode))
@@ -137,6 +154,7 @@ var
   ExitCode: Integer;
   InstalledExe: String;
   ParamLine: String;
+  Role: String;
 begin
   Result := '';
   if not WizardSilent and AdminPage.Values[0] and not IsAdminLoggedOn then
@@ -149,6 +167,25 @@ begin
     else
       Result := 'Запущен установщик с правами администратора. Закройте это окно.';
     exit;
+  end;
+  Role := '';
+  RegQueryStringValue(HKCU, 'Software\ChatGPTMCPAgent', 'Role', Role);
+  if Role = 'server' then
+  begin
+    if not FileExists(ExpandConstant('{src}\RecoveryKit\Verify-RecoveryKit.ps1')) then
+    begin
+      Result := 'Для серверного обновления необходим RecoveryKit рядом с Update.';
+      exit;
+    end;
+    if not Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'),
+       '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "' +
+       ExpandConstant('{src}\RecoveryKit\Verify-RecoveryKit.ps1') + '" -Kit "' +
+       ExpandConstant('{src}\RecoveryKit') + '" -ExpectedVersion "{#AppVersion}"',
+       '', SW_HIDE, ewWaitUntilTerminated, ExitCode) or (ExitCode <> 0) then
+    begin
+      Result := 'Серверный RecoveryKit повреждён или имеет другую версию.';
+      exit;
+    end;
   end;
   // Solve Inno Setup's endless wait for a running Tunnel:
   // stop the agent by its IPC event, wait for mutex release, then install.

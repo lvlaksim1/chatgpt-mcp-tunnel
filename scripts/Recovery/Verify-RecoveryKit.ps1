@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
     [string]$Kit = $PSScriptRoot,
-    [string]$InstallDir = ''
+    [string]$InstallDir = '',
+    [string]$ExpectedVersion = ''
 )
 # Offline integrity check. Uses stock Windows PowerShell 5.1; no Python,
 # network, cookies, DPAPI or other credentials are required.
@@ -27,6 +28,7 @@ $m=Get-Content -LiteralPath $manifestFile -Raw -Encoding UTF8 |ConvertFrom-Json
 Require ($m.schema -eq 'chatgpt-mcp-tunnel-recovery-kit-v1') 'Unknown recovery manifest schema'
 Require ($m.containsSecrets -eq $false) 'Credential-free manifest expected'
 Require ($m.version -match '^(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)$') 'Invalid recovery version'
+if($ExpectedVersion){Require ($m.version -eq $ExpectedVersion) 'RecoveryKit does not match installer version'}
 Require (@($m.artifacts).Count -ge 3) 'Incomplete artifact list'
 $names=@{}
 foreach($file in $m.artifacts){
@@ -70,6 +72,9 @@ try{
         'scripts/Recovery/Verify-RecoveryKit.ps1'
     )){
         Require ($entries.ContainsKey($src)) ('Missing source: '+$src)
+    }
+    if($m.PSObject.Properties['sidecarVersion'] -and [int]$m.sidecarVersion -ge 2){
+        Require ($entries.ContainsKey('scripts/Recovery/Install-RecoveryKit.ps1')) 'Missing server installer source'
     }
 }finally{$archive.Dispose()}
 if($InstallDir){

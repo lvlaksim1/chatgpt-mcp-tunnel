@@ -53,6 +53,7 @@ Type: files; Name: "{app}\OpenAI\LICENSE.node.txt"
 [Files]
 Source: "{#PublishDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "ServerStart.ps1"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\scripts\Recovery\Install-RecoveryKit.ps1"; Flags: dontcopy
 Source: "..\scripts\Recovery\Client-FreeXraySupervisor.ps1"; DestDir: "{app}\Recovery"; Flags: ignoreversion
 Source: "..\scripts\Recovery\Install-ClientFreeVpnTasks.ps1"; DestDir: "{app}\Recovery"; Flags: ignoreversion
 Source: "..\scripts\Vpn\free_reality_updater.py"; DestDir: "{app}\Recovery\scripts\Vpn"; Flags: ignoreversion
@@ -160,6 +161,7 @@ procedure CurStepChanged(CurStep: TSetupStep);
 var
   Name: String;
   RecoveryExitCode: Integer;
+  KitExitCode: Integer;
 begin
   if CurStep <> ssPostInstall then exit;
   Name := 'client';
@@ -167,6 +169,19 @@ begin
   RegWriteStringValue(HKCU, 'Software\ChatGPTMCPAgent', 'Role', Name);
   RegWriteStringValue(HKCU, 'Software\ChatGPTMCPAgent',
     'InstallDir', ExpandConstant('{app}'));
+
+  // RecoveryKit installs only with the main SERVER role (never on client).
+  if Name = 'server' then
+  begin
+    ExtractTemporaryFile('Install-RecoveryKit.ps1');
+    if not Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'),
+      '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "' +
+      ExpandConstant('{tmp}\Install-RecoveryKit.ps1') + '" -Kit "' +
+      ExpandConstant('{src}\RecoveryKit') + '" -InstallDir "' +
+      ExpandConstant('{app}') + '" -Version "{#AppVersion}"',
+      '', SW_HIDE, ewWaitUntilTerminated, KitExitCode) or (KitExitCode <> 0) then
+      RaiseException('Server RecoveryKit could not be installed');
+  end;
 
   if WizardIsTaskSelected('autostart') then
     RegWriteStringValue(HKCU,
@@ -210,6 +225,24 @@ begin
     else
       Result := 'Запущен установщик с правами администратора. Закройте это окно.';
     exit;
+  end;
+  // Verify matching companion before touching the existing installation.
+  if RolePage.Values[0] then
+  begin
+    if not FileExists(ExpandConstant('{src}\RecoveryKit\Verify-RecoveryKit.ps1')) then
+    begin
+      Result := 'Для серверной установки необходим RecoveryKit рядом с Setup.';
+      exit;
+    end;
+    if not Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'),
+       '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "' +
+       ExpandConstant('{src}\RecoveryKit\Verify-RecoveryKit.ps1') + '" -Kit "' +
+       ExpandConstant('{src}\RecoveryKit') + '" -ExpectedVersion "{#AppVersion}"',
+       '', SW_HIDE, ewWaitUntilTerminated, ExitCode) or (ExitCode <> 0) then
+    begin
+      Result := 'Серверный RecoveryKit повреждён или имеет другую версию.';
+      exit;
+    end;
   end;
   // Solve Inno Setup's endless wait for a running Tunnel:
   // stop the agent by its IPC event, wait for mutex release, then install.

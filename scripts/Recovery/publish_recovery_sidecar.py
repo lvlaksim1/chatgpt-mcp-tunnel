@@ -96,6 +96,16 @@ def describe(install_dir: Path) -> dict:
 
 
 def publish(kit: Path, install_dir: Path) -> dict:
+    # Manual publisher is server-only as well; clients never receive this kit.
+    if os.name == "nt":
+        import winreg
+        try:
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\ChatGPTMCPAgent") as key:
+                role = str(winreg.QueryValueEx(key, "Role")[0]).lower()
+        except OSError as exc:
+            raise ValueError("Server role must be configured before sidecar publication") from exc
+        if role != "server":
+            raise ValueError("RecoveryKit may only be installed on a server")
     kit = kit.resolve(strict=True)
     manifest = verify_kit(kit)
     version = manifest["version"]

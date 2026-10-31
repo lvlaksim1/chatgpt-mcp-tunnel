@@ -17,10 +17,11 @@ The standard release script, scripts/Build-LocalRelease.ps1, now:
 4. Saves a distributable sidecar under
    .tools/local-release/vVERSION/dist/RecoveryKit.
 5. Verifies all files in Python **and** Windows PowerShell.
-6. Locates the installed program using HKCU/Software/ChatGPTMCPAgent/InstallDir
-   (or the explicit -RecoveryInstallDir), and publishes the kit beside
-   the application without running/updating the application.
+6. Creates a separate RecoveryKit_vVERSION.zip asset for server-only
+   distribution; the build itself NEVER installs the sidecar on any computer.
 7. Refuses to report LOCAL_RELEASE_BUILD_OK if any mandatory step fails.
+8. Full/Update installer verifies and installs the matching companion only
+   when role=server. Client installation does not install RecoveryKit.
 
 Canonical example on DOMKAT:
 
@@ -31,13 +32,14 @@ Canonical example on DOMKAT:
 - Portable distributed copy: D:/Dev/ChatGPT-MCP-Tunnel/.tools/
   local-release/vVERSION/dist/RecoveryKit
 
-The latest.json version represents the most recently **built and verified**
-release, NOT necessarily the installed/running binary version. A successful
-new build does not auto-install the new program or restart services.
+The latest.json version represents the last installed **server** RecoveryKit
+release. Building the next version by itself does not modify this index;
+only the server Setup/Update changes it after installing the main program.
 
-If the build machine has no installed program, the mandatory kit still
-appears in the dist folder; the log says RECOVERY_SIDECAR_DIST_ONLY.
-That does not constitute a deployment of the sidecar to another computer.
+Each build prepares dist/RecoveryKit and dist/RecoveryKit_vVERSION.zip, but
+does not install either. Server Setup/Update expects a sibling RecoveryKit
+folder; the application update downloader retrieves and verifies the ZIP asset
+before stopping the current server. Clients never download or deploy the kit.
 
 ## Atomic publication, rollback and security
 
@@ -73,10 +75,18 @@ The publisher never switches running binaries or performs rollback.
 
 ## Limitations / acceptance gates
 
-- Copy or distribute the separate RecoveryKit folder together with the
-  Setup/Update if another computer is being installed. A standalone
-  downloaded EXE cannot contain its own full kit, and there is no
-  transparent separate sidecar download on client upgrades yet.
+- The kit is installed only as part of installing/updating the main SERVER
+  program. A CLIENT gets the ordinary application package only. RecoveryKit
+  is never installed on client machines. For server-side manual installations,
+  place the verified dist/RecoveryKit folder beside Setup/Update EXE.
+- For server auto-updates, publish RecoveryKit_vVERSION.zip as an official
+  stable release asset alongside the corresponding Update EXE; without it
+  the server updater correctly fails before stopping the running version.
+- **First migration from v0.2.65:** its existing updater downloads only the
+  Update EXE. Install the first server-sidecar-aware stable version using the
+  local Setup/Update EXE with its sibling RecoveryKit folder. Subsequent
+  updates download the ZIP companion automatically on the server. Client
+  machines require no migration and never receive the kit.
 - Registration of the hosted MCP plugin in another ChatGPT account
   remains an independent test postponed until the owner has another
   account; it is not a release blocker.
