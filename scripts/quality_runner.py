@@ -18,7 +18,7 @@ from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 CONFIG = PROJECT_ROOT / "quality" / "standard.json"
-ACCEPTED_KINDS = {"offline", "build", "sandbox", "mock"}
+ACCEPTED_KINDS = {"offline", "build", "sandbox", "mock", "static"}
 ALLOWED_PROGRAMS = {"dotnet", "python", "node"}
 MAX_CAPTURE = 12000
 

@@ -17,13 +17,13 @@ unclebob/ub-mode to **this project's offline quality assurance**.
 ## Commands on DOMKAT
 
 ```powershell
-cd D:\Dev\ChatGPT-MCP-Tunnel-Quality-Pilot
+cd D:\Dev\ChatGPT-MCP-Tunnel
 python scripts\quality_runner.py --plan
 python scripts\quality_runner.py --profile quick
 python scripts\quality_runner.py --profile full
 ```
 
-Run only in a verified isolated worktree; builds write their normal bin/obj folders.
+Run on a verified local project checkout; builds write their normal bin/obj folders.
 Reports remain local (excluded by gitignore). This pilot's source branch was based
 on the authoritative product `main` baseline; it must not replace unfinished
 WebView2/voice development. Merge/cherry-pick only after reconciling it with the
@@ -87,3 +87,7 @@ made safe, retain the pilot commit locally rather than automatically push.
 (non-authoritative inspection) reports incomplete provenance in belief/memory
 entries even on the `main` baseline. No changes were made to the active
 capsule or manager authority. Repair should be a separate, guarded task.
+
+## Integration update — 2026-10-31
+
+The separate pilot worktree was removed after SHA-256 verified transfer to the primary project. Changes were committed as `df2d611` on `feature/webview2-primary-ui-v0248`, staging only the four pilot files and preserving all concurrent voice/WebView2 changes. The current full profile additionally checks project-level .NET dependency cycles; report evidence is local and excluded from Git. The standalone architecture map lives at `quality/reports/architecture.html`. Real host E2E and installed application acceptance are still pending.

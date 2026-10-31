@@ -99,6 +99,16 @@
         "tests/test_chat_attachments.py"
       ],
       "timeout_sec": 100
+    },
+    {
+      "id": "architecture_no_cycles",
+      "kind": "static",
+      "command": [
+        "python",
+        "scripts/architecture_explorer.py",
+        "--check"
+      ],
+      "timeout_sec": 40
     }
   ]
 }
