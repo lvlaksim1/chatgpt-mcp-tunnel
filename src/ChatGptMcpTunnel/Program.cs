@@ -16,6 +16,11 @@ if (args.Length == 2 && args[0] == "--elevated-shell")
     Environment.ExitCode = await ElevatedShell.RunHelperAsync(args[1]);
     return;
 }
+if (args.Length == 1 && args[0] == "--test-admin-broker-client")
+{
+    Environment.ExitCode = AdminBrokerClient.SelfTest() ? 0 : 97;
+    return;
+}
 if (args.Length == 1 && args[0] == "--test-uac-shell")
 {
     Environment.ExitCode = await ElevatedShell.SelfTestAsync() ? 0 : 96;

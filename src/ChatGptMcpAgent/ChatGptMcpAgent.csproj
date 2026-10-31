@@ -9,12 +9,22 @@
     <Nullable>enable</Nullable>
     <AssemblyName>ChatGptMcpAgent</AssemblyName>
     <RootNamespace>ChatGptMcpAgent</RootNamespace>
-    <Version>0.2.49</Version>
+    <Version>0.2.52</Version>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../Shared/ControlState.cs" Link="ControlState.cs" />
     <Compile Include="../Shared/ControlExecutor.cs" Link="ControlExecutor.cs" />
     <Compile Include="../Shared/ControlActivityLabels.cs" Link="ControlActivityLabels.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Historic text-only chat remains in Git for migration/rollback, but does
+         not ship in the executable. Only ChatGptMainForm displays chatgpt.com. -->
+    <Compile Remove="ChatWindow.cs" />
+    <Compile Remove="ChatSessionStore.cs" />
+    <Compile Remove="ChatCloudImportDialog.cs" />
+    <Compile Remove="BrowserChatWorker.cs" />
+    <Compile Remove="WebViewChatHost.cs" />
+    <Compile Remove="ChatGptWebViewAuthForm.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />

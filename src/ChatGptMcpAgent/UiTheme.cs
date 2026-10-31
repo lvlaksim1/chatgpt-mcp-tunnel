@@ -34,6 +34,8 @@ internal sealed class UiPreferences
             new JsonSerializerOptions { WriteIndented = true }), new UTF8Encoding(false));
         File.Move(target, FilePath, overwrite: true);
         AppTheme.ApplyAll();
+        foreach (var main in Application.OpenForms.OfType<ChatGptMainForm>())
+            main.ApplyBrowserAppearance();
     }
 }
 
@@ -43,15 +45,20 @@ internal static class AppTheme
 {
     [DllImport("dwmapi.dll", PreserveSig = true)]
     private static extern int DwmSetWindowAttribute(IntPtr hWnd, int attribute, ref int value, int size);
+    [DllImport("dwmapi.dll", PreserveSig = true)]
+    private static extern int DwmFlush();
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool SetWindowPos(IntPtr hwnd, IntPtr after, int x, int y,
+        int width, int height, uint flags);
     [DllImport("uxtheme.dll", CharSet = CharSet.Unicode, PreserveSig = true)]
     private static extern int SetWindowTheme(IntPtr hWnd, string? subAppName, string? subIdList);
 
     internal static bool Dark => UiPreferences.Load().Theme != "light";
     internal static Color Background => Dark ? Color.FromArgb(33, 33, 33) : Color.FromArgb(250, 250, 250);
-    internal static Color Sidebar => Dark ? Color.FromArgb(30, 30, 30) : Color.FromArgb(241, 241, 241);
-    internal static Color Surface => Dark ? Color.FromArgb(45, 45, 45) : Color.White;
+    internal static Color Sidebar => Dark ? Color.FromArgb(38, 38, 38) : Color.FromArgb(241, 241, 241);
+    internal static Color Surface => Dark ? Color.FromArgb(47, 47, 47) : Color.White;
     internal static Color Hover => Dark ? Color.FromArgb(56, 56, 56) : Color.FromArgb(230, 230, 230);
-    internal static Color Selected => Dark ? Color.FromArgb(61, 61, 61) : Color.FromArgb(223, 229, 238);
+    internal static Color Selected => Dark ? Color.FromArgb(59, 59, 59) : Color.FromArgb(223, 229, 238);
     internal static Color Text => Dark ? Color.FromArgb(235, 235, 235) : Color.FromArgb(31, 31, 31);
     internal static Color Secondary => Dark ? Color.FromArgb(172, 172, 172) : Color.FromArgb(98, 98, 98);
     internal static Color Accent => Dark ? Color.FromArgb(201, 213, 239) : Color.FromArgb(36, 95, 148);
@@ -82,6 +89,14 @@ internal static class AppTheme
         {
             if (DwmSetWindowAttribute(form.Handle, 20, ref enable, sizeof(int)) != 0)
                 DwmSetWindowAttribute(form.Handle, 19, ref enable, sizeof(int));
+        }
+        catch (DllNotFoundException) { }
+        // Redraw DWM-managed title bars immediately after the theme switch.
+        // Win10 otherwise often waits until the user clicks the caption.
+        try
+        {
+            SetWindowPos(form.Handle, IntPtr.Zero, 0, 0, 0, 0, 0x0027);
+            DwmFlush();
         }
         catch (DllNotFoundException) { }
     }

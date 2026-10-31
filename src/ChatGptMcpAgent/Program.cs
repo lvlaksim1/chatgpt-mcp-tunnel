@@ -13,6 +13,31 @@ internal static class Program
     [STAThread]
     private static void Main(string[] args)
     {
+        if (args.Length == 1 && args[0] == "--admin-service")
+        {
+            Environment.ExitCode = AdminService.RunAsService();
+            return;
+        }
+        if (args.Length == 2 && args[0] == "--admin-install")
+        {
+            Environment.ExitCode = AdminService.InstallElevated(args[1]);
+            return;
+        }
+        if (args.Length == 1 && args[0] == "--admin-uninstall")
+        {
+            Environment.ExitCode = AdminService.UninstallElevated();
+            return;
+        }
+        if (args.Length == 1 && args[0] == "--test-admin-pipe-exec")
+        {
+            Environment.ExitCode = AdminService.SelfTestCommandAsync().GetAwaiter().GetResult() ? 0 : 105;
+            return;
+        }
+        if (args.Length == 1 && args[0] == "--test-admin-service")
+        {
+            Environment.ExitCode = AdminService.SelfTestAsync().GetAwaiter().GetResult() ? 0 : 104;
+            return;
+        }
         if (args.Length == 2 && args[0] == "--configure-wan-firewall")
         {
             Environment.ExitCode = LanFirewall.ConfigureElevatedWan(args[1]);
@@ -85,76 +110,6 @@ internal static class Program
                 .IsInRole(WindowsBuiltInRole.Administrator) ? 0 : 5;
             return;
         }
-        if (args.Length == 1 && args[0] == "--test-webview-network-live")
-        {
-            var previous = Environment.GetEnvironmentVariable("CHATGPT_MCP_CHAT_TEST_ROOT");
-            var scratch = Path.Combine(Path.GetTempPath(), "WebViewMcpProxyTest-" + Guid.NewGuid().ToString("N"));
-            Environment.SetEnvironmentVariable("CHATGPT_MCP_CHAT_TEST_ROOT", scratch);
-            try
-            {
-                ApplicationConfiguration.Initialize();
-                using var loop = new ApplicationContext();
-                using var timer = new System.Windows.Forms.Timer { Interval = 18000 };
-                timer.Tick += (_, _) =>
-                {
-                    timer.Stop();
-                    Environment.ExitCode = 99;
-                    var navPath = Path.Combine(scratch, "webview-bridge", "navigation.json");
-                    try
-                    {
-                        if (File.Exists(navPath))
-                        {
-                            using var nav = System.Text.Json.JsonDocument.Parse(File.ReadAllText(navPath));
-                            if (nav.RootElement.GetProperty("success").GetBoolean())
-                                Environment.ExitCode = 0;
-                        }
-                    }
-                    catch (Exception ex) when (ex is IOException or System.Text.Json.JsonException)
-                    { Environment.ExitCode = 100; }
-                    AgentStorage.Log("WebView2 proxy navigation test exit=" + Environment.ExitCode);
-                    WebViewChatHost.Shutdown();
-                    loop.ExitThread();
-                };
-                WebViewChatHost.Start();
-                timer.Start();
-                Application.Run(loop);
-            }
-            finally
-            {
-                Environment.SetEnvironmentVariable("CHATGPT_MCP_CHAT_TEST_ROOT", previous);
-                try { if (Directory.Exists(scratch)) Directory.Delete(scratch, true); }
-                catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
-            }
-            return;
-        }
-        if (args.Length == 1 && args[0] == "--test-webview-startup")
-        {
-            var prior = Environment.GetEnvironmentVariable("CHATGPT_MCP_CHAT_TEST_ROOT");
-            var temp = Path.Combine(Path.GetTempPath(), "ChatGPT-MCP-WebView-Live-" + Guid.NewGuid().ToString("N"));
-            Environment.SetEnvironmentVariable("CHATGPT_MCP_CHAT_TEST_ROOT", temp);
-            try
-            {
-                ApplicationConfiguration.Initialize();
-                using var previewContext = new ApplicationContext();
-                using var timeout = new System.Windows.Forms.Timer { Interval = 14000 };
-                timeout.Tick += (_, _) =>
-                {
-                    timeout.Stop();
-                    Environment.ExitCode = WebViewChatHost.Status == "starting" ? 91 : 0;
-                    WebViewChatHost.Shutdown();
-                    previewContext.ExitThread();
-                };
-                WebViewChatHost.Start();
-                timeout.Start();
-                Application.Run(previewContext);
-            }
-            finally
-            {
-                Environment.SetEnvironmentVariable("CHATGPT_MCP_CHAT_TEST_ROOT", prior);
-                try { if (Directory.Exists(temp)) Directory.Delete(temp, true); } catch (IOException) { }
-            }
-            return;
-        }
         if (args.Length == 1 && args[0] == "--test-settings-hub")
         {
             ApplicationConfiguration.Initialize();
@@ -163,38 +118,78 @@ internal static class Program
             Environment.ExitCode = dialog.Controls.OfType<TabControl>().Any(t => t.TabPages.Count >= 6) ? 0 : 92;
             return;
         }
+        if (args.Length == 1 && args[0] == "--test-main-chat-ui")
+        {
+            ApplicationConfiguration.Initialize();
+            using var main = new ChatGptMainForm();
+            Environment.ExitCode = main.Controls.OfType<Microsoft.Web.WebView2.WinForms.WebView2>().Count() == 1 &&
+                !main.Controls.OfType<RichTextBox>().Any() &&
+                main.Text.Contains("ChatGPT MCP Tunnel v", StringComparison.Ordinal) ? 0 : 102;
+            return;
+        }
+        if (args.Length == 1 && args[0] == "--test-main-chat-live")
+        {
+            // Isolated browser profile: no user cookies, no cloud messages.
+            ApplicationConfiguration.Initialize();
+            var isolated = Path.Combine(Path.GetTempPath(), "McpWebViewMain-" + Guid.NewGuid().ToString("N"));
+            var old = Environment.GetEnvironmentVariable("CHATGPT_MCP_WEBVIEW_TEST_PROFILE");
+            Environment.SetEnvironmentVariable("CHATGPT_MCP_WEBVIEW_TEST_PROFILE", isolated);
+            try
+            {
+                using var main = new ChatGptMainForm();
+                using var timer = new System.Windows.Forms.Timer { Interval = 18000 };
+                timer.Tick += async (_, _) =>
+                {
+                    timer.Stop();
+                    var navigationOk = main.BrowserInitialized && main.LastNavigationSucceeded &&
+                        main.CurrentPage?.StartsWith("https://chatgpt.com/", StringComparison.Ordinal) == true;
+                    Environment.ExitCode = navigationOk && await main.PaletteAppliedAsync() ? 0 : 103;
+                    if (Environment.GetEnvironmentVariable("CHATGPT_MCP_PALETTE_PROBE") == "1" &&
+                        main.BrowserControl.CoreWebView2 is { } browser)
+                    {
+                        var probe = await browser.ExecuteScriptAsync("""
+                            (() => {
+                                const points=[[.2,.5],[.5,.5],[.75,.35],[.05,.25]];
+                                const result=points.map(([x,y])=>{
+                                    let el=document.elementFromPoint(Math.floor(innerWidth*x),Math.floor(innerHeight*y));
+                                    const parents=[];
+                                    for(let i=0;el&&i<9;i++,el=el.parentElement){
+                                        const css=getComputedStyle(el);
+                                        parents.push({tag:el.tagName,cls:typeof el.className==='string'?el.className.slice(0,160):'',
+                                            id:el.id,bg:css.backgroundColor});
+                                    }
+                                    return {x,y,parents};
+                                });
+                                return {points:result,body:getComputedStyle(document.body).backgroundColor,
+                                vars:['--main-surface-primary','--sidebar-surface-primary','--main-surface-secondary']
+                                    .map(k=>({key:k,value:getComputedStyle(document.documentElement).getPropertyValue(k)}))};
+                            })()
+                            """);
+                        File.WriteAllText(Path.Combine(Path.GetTempPath(), "ChatGptMcpPaletteProbe.json"), probe);
+                    }
+                    main.ExitApplication();
+                };
+                timer.Start();
+                Application.Run(main);
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("CHATGPT_MCP_WEBVIEW_TEST_PROFILE", old);
+                // Chromium may retain handles momentarily. Never delete the real profile.
+                try { if (Directory.Exists(isolated)) Directory.Delete(isolated, true); }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
+            }
+            return;
+        }
         if (args.Length == 1 && args[0] == "--test-webview-network")
         {
             Environment.ExitCode = WebViewNetworkProxy.SelfTest() ? 0 : 98;
-            return;
-        }
-        if (args.Length == 1 && args[0] == "--test-webview-transport")
-        {
-            Environment.ExitCode = WebViewChatHost.SelfTestConfig() ? 0 : 96;
             return;
         }
         if (args.Length == 1 && args[0] == "--test-theme")
         {
             ApplicationConfiguration.Initialize();
             Environment.ExitCode = AppTheme.SelfTest() ? 0 : 97;
-            return;
-        }
-        if (args.Length == 1 && args[0] == "--test-webview-auth")
-        {
-            Environment.ExitCode=ChatGptWebViewAuthForm.TestConfiguration() ? 0 : 86;
-            return;
-        }
-        if (args.Length == 1 && args[0] == "--preview-webview-auth")
-        {
-            ApplicationConfiguration.Initialize();
-            ChatGptWebViewAuthForm.RunPreview();
-            return;
-        }
-        if (args.Length == 1 && args[0] == "--preview-chat-window")
-        {
-            ApplicationConfiguration.Initialize();
-            using var preview = new ChatWindow();
-            Application.Run(preview);
             return;
         }
         if (args.Length == 1 && args[0] == "--test-overlay-tray")
@@ -220,27 +215,6 @@ internal static class Program
         if (args.Length == 1 && args[0] == "--test-host-activator")
         {
             Environment.ExitCode = ChatHostActivator.SelfTest();
-            return;
-        }
-        if (args.Length == 1 && args[0] == "--test-chat-sessions")
-        {
-            Application.EnableVisualStyles();
-            Environment.ExitCode = ChatWindow.SelfTestSessions();
-            return;
-        }
-        if (args.Length == 1 && args[0] == "--test-chat-attachments")
-        {
-            Application.EnableVisualStyles();
-            Environment.ExitCode = ChatWindow.SelfTestAttachments();
-            return;
-        }
-        if (args.Length == 1 && args[0] == "--test-chat-window")
-        {
-            Application.EnableVisualStyles();
-            using var chat = new ChatWindow();
-            if (chat.Handle == IntPtr.Zero ||
-                !chat.Controls.OfType<Label>().Any(l => l.Text.Contains("ChatGPT")))
-                Environment.ExitCode = 31;
             return;
         }
         if (args.Length == 1 && args[0] == "--test-transfer-window")
@@ -515,7 +489,8 @@ internal sealed class TrayContext : ApplicationContext
     private void OnIdle(object? sender, EventArgs e)
     {
         Application.Idle -= OnIdle;
-        WebViewChatHost.Start();
+        // One visible WebView2 renders the original ChatGPT UI.
+        // The text-only relay host is no longer started.
         ShowChat();
         if (!File.Exists(AgentStorage.SettingsPath) || !AgentStorage.HasCredential() ||
             (AgentStorage.SelectedRole == "server" && !AgentStorage.HasServerApiKey()))
@@ -535,9 +510,9 @@ internal sealed class TrayContext : ApplicationContext
             EnsureSettingsWindowVisible(existing);
             return;
         }
-        var chat = new ChatWindow();
-        AppTheme.Apply(chat);
+        var chat = new ChatGptMainForm();
         _chatWindow = chat;
+        AppTheme.Apply(chat);
         chat.FormClosed += (_, _) =>
         {
             if (ReferenceEquals(_chatWindow, chat)) _chatWindow = null;
@@ -841,8 +816,7 @@ internal sealed class TrayContext : ApplicationContext
         if (_stopping) return;
         _stopping = true;
         _timer.Stop();
-        WebViewChatHost.Shutdown();
-        if (_chatWindow is ChatWindow chat) chat.CloseForExit();
+        if (_chatWindow is ChatGptMainForm chat) chat.ExitApplication();
         if (_settingsWindow is { IsDisposed: false } window)
             window.Close();
         if (_transferWindow is { IsDisposed: false } transfers) transfers.Close();

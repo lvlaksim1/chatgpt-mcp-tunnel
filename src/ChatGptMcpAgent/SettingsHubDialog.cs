@@ -54,10 +54,21 @@ internal sealed class SettingsHubDialog : Form
         }));
 
         var system = Page("Система");
-        system.Controls.Add(Note("Операции с повышенными правами требуют подтверждения UAC."));
-        system.Controls.Add(ActionButton("Разрешить административные права", async () => await TestUacAsync()));
-        system.Controls.Add(Note("Разрешение UAC относится к одной операции. Постоянно запускать весь Tunnel от администратора не требуется."));
+        var adminState = Note("Проверка защищённой административной службы...");
+        system.Controls.Add(adminState);
+        var enableAdmin = ActionButton("Разрешить административные операции", async () =>
+        {
+            await SetupAdminAsync(adminState);
+        });
+        system.Controls.Add(enableAdmin);
+        system.Controls.Add(ActionButton("Отозвать административный доступ", async () =>
+        {
+            await RevokeAdminAsync(adminState);
+        }));
+        system.Controls.Add(Note(
+            "Одно подтверждение UAC при установке службы. Далее административные операции выполняются службой без повторных запросов; основной Tunnel остаётся без повышения прав."));
         system.Controls.Add(ActionButton("Открыть индикатор управления", _overlay));
+        Shown += async (_, _) => adminState.Text = await DescribeAdminAsync();
 
         var notifications = Page("Уведомления");
         notifications.Controls.Add(_notifications);
@@ -144,34 +155,79 @@ internal sealed class SettingsHubDialog : Form
         if (dialog.ShowDialog(this) == DialogResult.OK) _reconnect();
     }
 
-    private async Task TestUacAsync()
+    private static async Task<string> DescribeAdminAsync()
     {
+        if (!AdminService.Installed())
+            return "Административный доступ не предоставлен.";
+        return await AdminService.HealthyAsync()
+            ? "Административный доступ предоставлен. Служба MCP Admin работает."
+            : "Служба установлена, но не отвечает. Проверьте состояние службы Windows.";
+    }
+
+    private async Task SetupAdminAsync(Label state)
+    {
+        if (await AdminService.HealthyAsync())
+        {
+            state.Text = "Административный доступ уже предоставлен.";
+            return;
+        }
         try
         {
+            var sid = WindowsIdentity.GetCurrent().User?.Value
+                ?? throw new InvalidOperationException("Не определена учётная запись Windows.");
             var info = new ProcessStartInfo(Application.ExecutablePath)
             {
                 UseShellExecute = true,
                 Verb = "runas",
-                Arguments = "--uac-elevated-check"
+                Arguments = "--admin-install " + sid
             };
-            using var child = Process.Start(info) ??
-                throw new InvalidOperationException("Запуск с UAC не состоялся");
+            using var child = Process.Start(info)
+                ?? throw new InvalidOperationException("Не удалось запустить установку службы.");
             await child.WaitForExitAsync();
-            MessageBox.Show(this,
-                child.ExitCode == 0
-                    ? "Подтверждение UAC прошло успешно. Для последующих административных операций Windows запросит разрешение отдельно."
-                    : "Не удалось подтвердить административные права.",
-                "Административные права", MessageBoxButtons.OK,
-                child.ExitCode == 0 ? MessageBoxIcon.Information : MessageBoxIcon.Warning);
+            if (child.ExitCode != 0)
+                throw new InvalidOperationException("Установка службы завершилась с кодом " + child.ExitCode);
+            // SCM starts the service asynchronously.
+            for (var i = 0; i < 10 && !await AdminService.HealthyAsync(); i++)
+                await Task.Delay(500);
+            state.Text = await DescribeAdminAsync();
+            if (!await AdminService.HealthyAsync())
+                MessageBox.Show(this, "Служба установлена, но не отвечает. " +
+                    "Проверьте её состояние в Windows.", "Административные права",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
         catch (Win32Exception e) when (e.NativeErrorCode == 1223)
         {
-            MessageBox.Show(this, "Подтверждение UAC отменено.");
+            state.Text = "Установка службы отменена — права не предоставлены.";
         }
         catch (Exception e)
         {
-            MessageBox.Show(this, "Ошибка UAC: " + e.GetType().Name,
-                "Административные права", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            state.Text = "Ошибка настройки службы: " + e.Message;
         }
+    }
+
+    private async Task RevokeAdminAsync(Label state)
+    {
+        if (!AdminService.Installed())
+        {
+            state.Text = "Административный доступ не предоставлен.";
+            return;
+        }
+        if (MessageBox.Show(this,
+                "Отозвать постоянные административные полномочия MCP Tunnel?",
+                "Подтверждение", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+            return;
+        try
+        {
+            using var child = Process.Start(new ProcessStartInfo(Application.ExecutablePath) {
+                UseShellExecute = true, Verb = "runas", Arguments = "--admin-uninstall"
+            }) ?? throw new InvalidOperationException("Не удалось запустить удаление службы.");
+            await child.WaitForExitAsync();
+            state.Text = await DescribeAdminAsync();
+        }
+        catch (Win32Exception e) when (e.NativeErrorCode == 1223)
+        {
+            state.Text = "Отзыв прав отменён.";
+        }
+        catch (Exception e) { state.Text = "Ошибка отзыва прав: " + e.Message; }
     }
 }

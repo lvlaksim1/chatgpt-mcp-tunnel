@@ -69,7 +69,7 @@ Type: files; Name: "{userdesktop}\ChatGPT MCP Agent.lnk"
 
 [Run]
 ; Integrated recovery registration is performed in ssPostInstall after installation completes.
-Filename: "{app}\{#AppExeName}"; Flags: nowait runhidden
+Filename: "{app}\{#AppExeName}"; Flags: nowait
 
 [Code]
 var

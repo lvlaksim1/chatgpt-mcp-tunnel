@@ -44,15 +44,17 @@ try {
     Write-Output 'SELFTEST --test-uac-shell (no elevation requested)'
     $uacTest=Start-Process -FilePath $runtimeExe -ArgumentList '--test-uac-shell' -Wait -PassThru
     if($uacTest.ExitCode -ne 0){throw "UAC shell local IPC selftest failed: $($uacTest.ExitCode)"}
+    $brokerClientTest=Start-Process -FilePath $runtimeExe -ArgumentList '--test-admin-broker-client' -Wait -PassThru
+    if($brokerClientTest.ExitCode -ne 0){throw "Broker client test failed code $($brokerClientTest.ExitCode)"}
     $app=Join-Path $publish 'ChatGptMcpAgent.exe'
-    foreach($flag in @('--selftest','--test-control','--test-overlay-auto','--test-overlay-tray','--test-chat-window','--test-chat-sessions','--test-chat-attachments','--test-transfer-window','--test-icons','--test-chat-thread-activator','--test-webview-auth','--test-webview-transport','--test-webview-network','--test-theme')){
+    foreach($flag in @('--selftest','--test-control','--test-overlay-auto','--test-overlay-tray','--test-transfer-window','--test-icons','--test-chat-thread-activator','--test-main-chat-ui','--test-main-chat-live','--test-admin-service','--test-admin-pipe-exec','--test-webview-network','--test-theme')){
       Write-Output "SELFTEST $flag"
       $process=Start-Process -FilePath $app -ArgumentList $flag -Wait -PassThru
       if($process.ExitCode -ne 0){throw "Packaged selftest $flag failed code $($process.ExitCode)"}
     }
     $env:CHATGPT_MCP_TEST_DLL=Join-Path $runtime 'ChatGptMcpTunnel.dll'
     try{
-      foreach($test in @('test_mcp_stdio.py','test_windows_tools.py','test_lifecycle_entrypoints.py','test_uia_worker_persistent.py','test_chat_ui_mcp.py','test_multichat_routing.py','test_webview_auth_only.py','test_utf8_filesystem.py','test_v0218_stable_relay.py')){
+      foreach($test in @('test_mcp_stdio.py','test_windows_tools.py','test_lifecycle_entrypoints.py','test_uia_worker_persistent.py','test_chat_ui_mcp.py','test_multichat_routing.py','test_primary_webview_ui.py','test_utf8_filesystem.py','test_v0218_stable_relay.py')){
         Write-Output "TEST $test"
         & python (Join-Path $repo "tests\$test")
         if($LASTEXITCODE -ne 0){throw "MCP test failed: $test"}
