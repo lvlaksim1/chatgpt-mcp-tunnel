@@ -56,7 +56,7 @@ def check_relative(name: str) -> str:
     p = Path(name.replace("\\", "/"))
     if (p.is_absolute() or ".." in p.parts or name.startswith(("/", "\\")) or ":" in name):
         raise ValueError("Unsafe artifact path")
-    if p.suffix.lower() in FORBIDDEN_SUFFIXES or p.name.lower() in FORBIDDEN_NAMES:
+    if p.suffix.lower() in FORBIDDEN_SUFFIXES or (p.name.lower() in FORBIDDEN_NAMES and not name.endswith("/")):
         raise ValueError("Sensitive artifact filename rejected")
     return p.as_posix()
 
