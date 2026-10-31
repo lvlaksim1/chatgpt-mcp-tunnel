@@ -31,6 +31,9 @@ REQUIRED_SOURCE = [
     "src/ChatGptMcpVoice/ChatGptMcpVoice.csproj",
     "scripts/Recovery/Client-FreeXraySupervisor.ps1",
     "scripts/Recovery/Install-ClientFreeVpnTasks.ps1",
+    "scripts/Recovery/publish_recovery_sidecar.py",
+    "scripts/Recovery/Verify-RecoveryKit.ps1",
+    "scripts/Recovery/build_recovery_kit.py",
     "scripts/Vpn/free_reality_updater.py",
     "installer/agent-full.iss",
     "installer/agent-update.iss",
@@ -122,7 +125,12 @@ def build(repo: Path, dist: Path, out: Path, version: str) -> dict:
                 raise ValueError("Source commit missing required plugin/client source files")
             for name in names:
                 check_relative(name)
-        files = [archive]
+        verifier_source = repo / "scripts" / "Recovery" / "Verify-RecoveryKit.ps1"
+        if not verifier_source.is_file():
+            raise ValueError("Standalone PowerShell integrity verifier missing")
+        standalone_verifier = stage / "Verify-RecoveryKit.ps1"
+        shutil.copy2(verifier_source, standalone_verifier)
+        files = [archive, standalone_verifier]
         for src in setups:
             dest = stage / src.name
             shutil.copy2(src, dest)
@@ -146,7 +154,7 @@ def build(repo: Path, dist: Path, out: Path, version: str) -> dict:
         readme = (
             "ChatGPT MCP Tunnel Recovery Kit v" + version + "\n"
             "This folder contains NO credentials, cookies, DPAPI profiles, private keys or cloud registrations.\n"
-            "1. Verify: python build_recovery_kit.py verify --kit <folder>\n"
+            "1. Verify without Python: powershell -NoProfile -File Verify-RecoveryKit.ps1 -Kit <folder>\n"
             "2. Install the Setup on a clean authorized Windows 10/11 host, choose SERVER or CLIENT.\n"
             "3. Sign in to ChatGPT WebView2 normally; configure required local VPN separately.\n"
             "4. On server obtain the owner-authorized tunnel_id and runtime key from OpenAI Platform;\n"

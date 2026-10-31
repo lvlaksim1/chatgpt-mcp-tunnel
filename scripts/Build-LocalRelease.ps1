@@ -1,12 +1,19 @@
 ﻿param(
   [ValidatePattern('^\d+\.\d+\.\d+$')]
-  [string]$Version = '0.2.27',
+  [Parameter(Mandatory=$true)]
+  [string]$Version,
   [string]$ClientSource = 'D:\ChatGPTMCPAgent\OpenAI',
+  [string]$RecoveryInstallDir = '',
   [switch]$SkipTests
 )
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $repo = Split-Path -Parent $PSScriptRoot
+# Mandatory fail-closed RecoveryKit release gate: exact committed source.
+$clean = & git -C $repo status --porcelain
+if($LASTEXITCODE -ne 0 -or $clean) { throw 'Commit source changes before release build: Recovery Kit requires immutable HEAD' }
+$head = (& git -C $repo rev-parse HEAD).Trim()
+if($LASTEXITCODE -ne 0 -or $head -notmatch '^[0-9a-f]{40}$') { throw 'Cannot establish source commit' }
 $out = Join-Path $repo ".tools\local-release\v$Version"
 $publish = Join-Path $out 'publish'
 $runtime = Join-Path $publish 'Runtime'
@@ -124,6 +131,34 @@ try {
   Copy-Item $update $legacy
   $manifest=@($full,$update,$legacy)|ForEach-Object{ $x=Get-Item $_;[pscustomobject]@{Name=$x.Name;Length=$x.Length;SHA256=(Get-FileHash $_ -Algorithm SHA256).Hash.ToLowerInvariant()}}
   $manifest|ConvertTo-Json -Depth 4|Set-Content (Join-Path $dist "SHA256-v$Version.json") -Encoding UTF8
+  # RecoveryKit is a mandatory sidecar, NOT packed into its own installer.
+  # Publishing uses a copy-verify-promote sequence that retains older versions.
+  $kitBuilder=Join-Path $repo 'scripts\Recovery\build_recovery_kit.py'
+  $sidecarPublisher=Join-Path $repo 'scripts\Recovery\publish_recovery_sidecar.py'
+  $kit=Join-Path $dist 'RecoveryKit'
+  Write-Output "RECOVERY_KIT_BUILD v$Version"
+  & python $kitBuilder build --repo $repo --dist $dist --kit $kit --version $Version
+  if($LASTEXITCODE -ne 0){throw 'Release aborted: mandatory Recovery Kit generation failed'}
+  & python $kitBuilder verify --kit $kit
+  if($LASTEXITCODE -ne 0){throw 'Release aborted: mandatory Recovery Kit verification failed'}
+  & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $kit 'Verify-RecoveryKit.ps1') -Kit $kit
+  if($LASTEXITCODE -ne 0){throw 'Release aborted: standalone Windows Recovery Kit verification failed'}
+  $actualInstallDir=$RecoveryInstallDir
+  if(-not $actualInstallDir){
+    $installed=Get-ItemProperty 'HKCU:\Software\ChatGPTMCPAgent' -ErrorAction SilentlyContinue
+    if($installed -and $installed.InstallDir){$actualInstallDir=[string]$installed.InstallDir}
+  }
+  if($actualInstallDir -and (Test-Path -LiteralPath (Join-Path $actualInstallDir 'ChatGptMcpAgent.exe') -PathType Leaf)){
+    Write-Output "RECOVERY_SIDECAR_PUBLISH v$Version"
+    & python $sidecarPublisher publish --kit $kit --install-dir $actualInstallDir
+    if($LASTEXITCODE -ne 0){throw 'Release aborted: sidecar publication failed'}
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $kit 'Verify-RecoveryKit.ps1') -InstallDir $actualInstallDir
+    if($LASTEXITCODE -ne 0){throw 'Release aborted: published sidecar integrity check failed'}
+  }else{
+    Write-Output 'RECOVERY_SIDECAR_DIST_ONLY: no installed app found; Kit bundled with dist'
+  }
+  Write-Output "RELEASE_SOURCE_COMMIT=$head"
+  Write-Output 'RECOVERY_KIT_BUILD_OK'
   Write-Output 'LOCAL_RELEASE_BUILD_OK'
   Write-Output "DIST=$dist"
   $manifest|Format-Table -AutoSize|Out-String|Write-Output

@@ -1,5 +1,12 @@
 # ChatGPT MCP Tunnel — Recovery Kit and client source audit
 
+**Permanent release sidecar:** see `docs/recovery/SIDECAR.md`. Every future
+`Build-LocalRelease.ps1 -Version X.Y.Z` now generates, verifies and publishes
+an immutable versioned RecoveryKit beside the installed program; a failed kit
+prevents `LOCAL_RELEASE_BUILD_OK`. The compiler requires an explicit version
+and a clean, committed source tree.
+
+
 ## What is recoverable
 
 The repository owns the C# source of the MCP plugin/server and MCP Apps,
