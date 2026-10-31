@@ -1,16 +1,7 @@
-## Дополнение GEN 74 — целевое поведение клиентского узла (31.10.2026 21:27 МСК)
-В многокомпьютерной экосистеме различать сервер DOMKAT и клиент MKATUSHONOK. Сервер поддерживает один официальный MCP транспорт через переключаемую маршрутизацию Happ/Free. Клиент Router Lite подключается к серверу без собственного tunnel-client; для собственного встроенного ChatGPT на MKATUSHONOK применять локальный бесплатный Xray без Happ и без отдельного браузерного профиля. Единый авторизованный WebView2-профиль и сохранение настроек клиента обязательны. Остальные стратегические цели неизменны.
+## Generation 77 compact working state — 31.10.2026 22:29 MSK
+Полная неизменённая история gen76 хранится в .context/archive/manager-gen76-2026-10-31/README.md. Исторические статусы не считаются действующими без повторной проверки. Приоритет: явные решения владельца, менеджерский Contract и проверяемые факты.
 
----
-
-# Manager goals
-
-## Актуально 30.10.2026 — подтверждённый E2E и блокер повторного сообщения
-Immediate acceptance clarification: ten sequential sends require ten actual chat.reply answers, not ten ui/message ACKs. Technical chat_id and message_id routing instructions must be invisible to users. Development-time Refresh for plugin tool schema is not an acceptable per-message user action. Original seven strategic objectives remain unchanged.
-
-## Приоритетное обновление — 30.10.2026, поколение 58
-Current P0 acceptance clarification: one-time new ordinary ChatGPT thread test is allowed as DIAGNOSTIC for metadata refresh, but permanently requiring users to open/reconnect a chat or press a button per message is NOT an acceptable product design. Never move to Work or a separate API. Thread relay must be host-activated without per-message manual intervention.
-
+# Действующий мандат владельца
 
 ## ПРИОРИТЕТНЫЙ СТРАТЕГИЧЕСКИЙ МАНДАТ — 30.10.2026: цели всего MCP Tunnel
 Подтверждено владельцем в текущей беседе. ChatGPT MCP Tunnel — НЕ просто инструмент управления Windows и НЕ только чат. Это единая автономная инфраструктура взаимодействия человека, ИИ и всех его компьютеров. ChatGPT — один из участников системы, а не единственный интеллект или фундамент архитектуры.
@@ -32,30 +23,8 @@ Current P0 acceptance clarification: one-time new ordinary ChatGPT thread test i
 - Локальная разработка/сборка/испытания на DOMKAT; GitHub только исходники и готовые Releases, Actions не запускать.
 - Разделять завершённые возможности, частичные прототипы и планы; проверять на практике вместо поспешных выводов о невозможности. Текущий приоритет P0 — надёжный автономный MCP-чат, но он не заменяет перечисленных семи целей.
 
-
-## ГЛАВНАЯ ЦЕЛЬ — полностью автоматический MCP-чат, 30.10.2026
-- Локальное окно должно работать как мессенджер: пользователь только пишет и получает ответы, не запускает chat.ui.open, не нажимает «Начать передачу», не ищет и не поддерживает MCP Apps.
-- «+ Новый чат» — новый диалог в обычном ChatGPT; прежний локальный чат продолжает точно соответствующий ему облачный диалог без потери контекста и дублей.
-- Обязательная приёмка: 10 последовательных сообщений и 10 правильных ответов в одном локальном чате; затем существующий/новый чат, перезапуск, разрыв и несколько компьютеров.
-- Только MCP-обмен сообщениями и chat.reply, WebView2 только авторизация. Исключить DOM-ввод, браузерные клики и чтение ответов, Node/CDP, отдельный API, Work/Codex.
-- Сохранить Windows 10, VPN Happ, один туннель, Router Lite, безопасную очередь и локальный STOP. GitHub только код и готовые Releases, Actions не использовать.
-
-
-## 30 Oct 2026 continuity
-Keep existing-chat target:active and explicit-new-chat target:new as independent acceptance criteria. Do not claim success from isolated tests alone. Preserve current connections until controlled install.
-
-
-## Актуальные цели — 30.10.2026
-- Стабильный один MCP Tunnel для управления Windows и локального чата через **обычный ChatGPT** (не Work/Codex/API), с Router Lite и сохранением VPN Happ.
-- Быстрая работа: вначале цельный план, затем один локальный сценарий правок, сборки, проверок и краткий результат, вместо десятков микрозапросов.
-- Безопасное управление: локальный STOP, содержательные уведомления без секретов, ~1 сек между изменениями GUI, без искусственных задержек CLI; различение выполнения/ожидания модели/достоверного завершения.
-- Только локальная разработка и тестирование на `D:\Dev`; GitHub — место хранения исходников и готовых релизов, **Actions отключены**.
-- Authority: owner-directive 30.10.2026. Старые блоки ниже — история.
-
-1. Maintain reliable independent ChatGPT MCP Tunnel on Windows, with functional backward compatibility for DOMKAT.
-2. Deliver the owner-approved Router Lite: one OpenAI tunnel, one plugin, several named Windows computers.
-3. Keep the implementation small: one binary with router/agent modes, no central database, lightweight connections; GitHub tools remain tied to the main host.
-4. Test each implementation step before publication or affecting the live runtime.
-5. Preserve context, reproducible builds, protected credentials and Russian-language reports with conservative evidence claims.
-
-Source: Owner instructions and `.context/project/goals.md`. Authority: owner-directive.
+## Непосредственные требования приёмки
+- Реальный локальный MCP-чат: 10 последовательных сообщений → 10 ответов модели, новые/старые облачные беседы, restart, несколько ПК, без ручных нажатий перед каждым сообщением. ACK не считать ответом. Не Work/Codex/отдельный API, WebView2 лишь авторизация.
+- Равноправие и автономность всех узлов — целевое развитие, не текущая доказанная возможность.
+- Сервер DOMKAT использует один туннель; клиент MKATUSHONOK — бесплатный Xray для собственного WebView2, без Happ. Не создавать второй браузерный профиль.
+- Капсула менеджера должна проходить обычный recover 131072 и сохранять доступ к полной истории, не ослабляя Contract/Protocol.

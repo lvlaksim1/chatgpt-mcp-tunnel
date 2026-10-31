@@ -1,0 +1,55 @@
+{
+  "original_generation": 76,
+  "head": "9c645540d85f4069ccfe9f2d6d069a8311324aba",
+  "date": "31.10.2026 22:29 MSK",
+  "files": [
+    {
+      "original": ".context/manager/beliefs.md",
+      "archive": ".context/archive/manager-gen76-2026-10-31/.context/manager/beliefs.md",
+      "sha256": "85896a626fb03afe248bb6e9fd72c41ae57bd4abbca69882975d8c18a26a6f83",
+      "bytes": 93250
+    },
+    {
+      "original": ".context/manager/goals.md",
+      "archive": ".context/archive/manager-gen76-2026-10-31/.context/manager/goals.md",
+      "sha256": "779d9fd2cce09bc1bf22bd2094279d91d5f8b4391530536eb0c7b4d5ca106c39",
+      "bytes": 11582
+    },
+    {
+      "original": ".context/manager/intentions.md",
+      "archive": ".context/archive/manager-gen76-2026-10-31/.context/manager/intentions.md",
+      "sha256": "082b4a7fa8eb1198870d828192eb1e26c6f65d5a1d2d8542ddd665f9ee2d62ea",
+      "bytes": 38924
+    },
+    {
+      "original": ".context/manager/plans.md",
+      "archive": ".context/archive/manager-gen76-2026-10-31/.context/manager/plans.md",
+      "sha256": "d75f915eddfc597776b8fffc200b0a3827917ebb6e5a1cd2057774305decc23a",
+      "bytes": 51646
+    },
+    {
+      "original": ".context/current/state.md",
+      "archive": ".context/archive/manager-gen76-2026-10-31/.context/current/state.md",
+      "sha256": "b580dc946150736819383aa61d8c581771087b7dff57126ec51afaf8f4216e25",
+      "bytes": 87788
+    },
+    {
+      "original": ".context/current/blockers.md",
+      "archive": ".context/archive/manager-gen76-2026-10-31/.context/current/blockers.md",
+      "sha256": "90222383ec8def511a76ddceee96dfd52c7395335da67af7b61bad52102e5351",
+      "bytes": 37981
+    },
+    {
+      "original": ".context/current/next.md",
+      "archive": ".context/archive/manager-gen76-2026-10-31/.context/current/next.md",
+      "sha256": "391263361b2ee4b1c1cef13b33c45a1bd3713ae2994bb2cdfcd1bbb7981e0ab2",
+      "bytes": 49359
+    },
+    {
+      "original": ".context/handoffs/latest.md",
+      "archive": ".context/archive/manager-gen76-2026-10-31/.context/handoffs/latest.md",
+      "sha256": "e619d5c6e993410e9d597aad2990185abbb9270727b1685f743562740a6422d4",
+      "bytes": 86259
+    }
+  ]
+}
