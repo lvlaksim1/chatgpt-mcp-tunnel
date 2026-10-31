@@ -1,3 +1,8 @@
+## АКТУАЛЬНО 31.10.2026 — менеджер проекта, поколение 60
+Owner-accepted 31.10: полноценное автономное локальное голосовое общение Sherpa-ONNX поверх действующего ChatGPT WebView2. Подзадачи сборки, установки, офлайн ASR/TTS и mock DOM завершены/проверены. Оставшееся обязательство — реальные тесты физического микрофона, голосовой отправки, озвучивания ответа и устойчивости — **active, not completed**. Прежняя MCP Apps-only стратегия была **superseded** прямым указанием владельца; не возвращаться к ней. Хранить 7 стратегических целей и условия Windows 10, Happ включён, один туннель, без отдельных платных API.
+
+---
+
 ## Актуально 30.10.2026 — подтверждённый E2E и блокер повторного сообщения
 Investigate why a second ui/message target=active got an ACK without generation or chat.reply while the iframe kept running. Independently replace user-visible routing text with tested model-only MCP Apps context (candidate ui/update-model-context). Do not use DOM, Work, Codex, or a separate API. Do not resend ambiguous pending+forwarded messages. Refresh dev plugin metadata whenever tool definitions or resource URI changes, before starting a new diagnostic conversation.
 

@@ -1,5 +1,11 @@
 # Procedural memory
 
+## АКТУАЛЬНО 31.10.2026 — менеджер проекта, поколение 60
+**31.10.2026 — безопасное обновление GUI:** НЕ использовать ChatGptMcpAgent.exe --shutdown, если GUI усыновил tunnel-client: вызов привёл к потере доступа MCP. Нужен backup, закрытие только GUI по конкретному PID, проверка сохранения PID tunnel-client и MCP runtime, замена GUI+голосовых ресурсов, повторная проверка SHA/bridge_ping и возможность rollback. Runtime может независимо оставаться на v0.2.58 при GUI v0.2.60. Для CSS/JS сначала live-edit в работающем WebView2 без многократной переустановки. Не путать mock и настоящую голосовую приёмку.
+
+---
+
+
 ## 2026-10-30 — ordinary ChatGPT acceptance protocol
 - For new local chat threads, never call `chat.hub.open` or use `/mcp-app/...` Global as a message dispatcher. Open `chat.bootstrap.open` in an existing visually verified ordinary `/c/...` chat. If no deep link is exposed but `openai/message` is advertised, the user must manually confirm the normal chat once in the component; later sends auto-dispatch until context changes.
 - Pending local messages must be ACKed only after host acceptance; uncertain mode, missing extension, explicit Work/Global route and context changes stop the transport without draining the queue. Before live E2E, inspect queued messages' count (4 on 30.10.2026) and avoid blindly replaying old messages.

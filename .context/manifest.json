@@ -60,7 +60,9 @@
     ".context/decisions/operating-model-2026-10-30.md",
     ".context/decisions/executor-attribution-2026-10-30.md",
     ".context/decisions/owner-development-model-2026-10-30.md",
-    ".context/decisions/owner-possibility-first-2026-10-30.md"
+    ".context/decisions/owner-possibility-first-2026-10-30.md",
+    ".context/decisions/owner-live-webview-ui-2026-10-31.md",
+    ".context/decisions/owner-offline-voice-chat-2026-10-31.md"
   ],
   "dialogues": [],
   "history": [],
@@ -110,7 +112,7 @@
     "external_gate_reconciliation_required": true,
     "manager_state_coherence_required": true
   },
-  "updated_at": "2026-10-30",
+  "updated_at": "2026-10-31",
   "context_version": "2.1.0",
   "context_capsule_version": "1.3.1",
   "project_manager_version": "2.1.0"

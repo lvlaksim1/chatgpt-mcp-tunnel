@@ -1,3 +1,8 @@
+## АКТУАЛЬНО 31.10.2026 — менеджер проекта, поколение 60
+**Непосредственно далее:** (1) сохранить текущую feature-ветку с незакоммиченными реализациями; не сбрасывать изменения. (2) Проверить состояние USB2.0 MIC, доступность микрофона в NAudio и права Windows; выполнить живое распознавание. (3) Проверить физический TTS и связь с активным WebView2: PTT/continuous, 700 мс VAD, отправка только при правильной настройке, два последовательных обмена, затем 10/10; переключение вкладок, прерывание, отсутствие эха/дубликатов, перезапуск. (4) Провести регрессионный аудит вкладок/вложений/тёмной темы и запись результатов PASS/FAIL. (5) Коммит проверенного кода, сохранение в GitHub (без GitHub Actions). (6) При будущих обновлениях закрывать только GUI по PID; никогда не отключать работающие MCP runtime/tunnel-client через --shutdown. Пользовательская голосовая E2E-приёмка пока **активна**.
+
+---
+
 ## Актуально 30.10.2026 — подтверждённый E2E и блокер повторного сообщения
 Next: read origin/experiment/thread-relay-host-20261030 docs/MCP-THREAD-RELAY-HOST-EXPERIMENTS-2026-10-30.md and local logs. Reproduce second ui/message ACK/no reply with a NEW isolated canary, not the historical uncertain message. Confirm which ChatGPT conversation actually gets a second user turn; test separate model-only route via ui/update-model-context, never visible user text. After 2/2 then 10/10 and session recovery. Baseline runtime remains v0.2.37; refresh plugin metadata for each new experimental schema. Do not create more tunnels.
 

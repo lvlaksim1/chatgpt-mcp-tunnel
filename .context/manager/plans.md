@@ -1,5 +1,11 @@
 # Manager plans
 
+## АКТУАЛЬНО 31.10.2026 — менеджер проекта, поколение 60
+**Текущий план v0.2.60:** 1. Сохранить незакоммиченные реализации в Git. 2. Проверить аудиоустройства/USB2.0 MIC. 3. Выполнить настоящий PTT и непрерывный STT, VAD, TTS динамиков. 4. Полный ChatGPT WebView2 E2E в реальном диалоге, 2/2 затем 10/10, restart, смена вкладки, отсутствие дублей и эха, правильный STOP. 5. Аудит цветовой темы и штатных функций ChatGPT. 6. Не применять --shutdown к усыновлённому транспорту. Общее планирование независимых равноправных узлов и других LLM остаётся backlog. Исследования MCP Apps-only ниже — исторические планы, явным образом superseded.
+
+---
+
+
 ## Актуально 30.10.2026 — подтверждённый E2E и блокер повторного сообщения
 Plan after real first E2E: (1) start on stable DOMKAT v0.2.37, check both computers and logs; (2) using isolated experimental branch, trace repeated ui/message request, Host ACK, visible user turn and actual chat.reply, determine why second fails; (3) test official ui/update-model-context or other host-compatible invisible routing, verify actual ChatGPT UI; (4) repeat 2/2 then 10/10 sequential, teardown/reconnect and multi-computer; (5) only then merge/release. For development changed MCP tools/UI URI, use ChatGPT Plugins Manage Refresh; tools/list_changed did not update host snapshot in observed case.
 

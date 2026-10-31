@@ -1,3 +1,8 @@
+## АКТУАЛЬНО 31.10.2026 — менеджер проекта, поколение 60
+P0 **открыт:** реальный голосовой E2E: микрофон USB2.0 MIC Unknown, динамики, непрерывный режим, автоматическая доставка в верный облачный чат, echo, restart, 10/10. Нельзя называть функцию полноценно принятой до тестов на живом аудио. P1: исходники WebView2+голоса v0.2.60 остаются незакоммиченными в feature-ветке; необходимы сохранение и финальный regression pass. Снято: установка v0.2.60 завершена и MCP-транспорт восстановлен. Исторические MCP Apps P0 ниже не блокируют принятую WebView2 архитектуру.
+
+---
+
 ## Актуально 30.10.2026 — подтверждённый E2E и блокер повторного сообщения
 P0: repeat ui/message from same live Thread iframe got accepted+ui-forwarded but no reply, while heartbeat/poll continued. Unknown outcome must not be retried; message 52382de5d39f4f6ea2178de0781b260f still pending+forwarded. User-visible ChatGPT thread exposed MCP routing instruction despite audience assistant annotation. Automatic host iframe resurrection after teardown and 10/10 unproven. New tool registration requires Plugin Manage Refresh when schema/UI URI changes; follow-up verification of snapshot after downgrade not completed.
 

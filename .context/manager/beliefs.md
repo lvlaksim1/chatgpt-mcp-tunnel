@@ -1,5 +1,23 @@
 # Manager beliefs
 
+## АКТУАЛЬНО 31.10.2026 — менеджер проекта, поколение 60
+Источник: прямое поручение владельца 31.10.2026; проверка MCP bridge_ping, версии установленного GUI, PID, локальных моделей, журнала развёртывания, результат однократной автоматической задачи восстановления.
+
+**Подтверждено:** DOMKAT, GUI ChatGPT MCP Tunnel **v0.2.60.0**, PID 27916; MCP runtime оставлен **v0.2.58.0** намеренно; tunnel-client.exe PID 24884, ChatGptMcpTunnel.exe PID 28372, bridge_ping=OK. Журнал .tools/deploy-v0260-status.json: phase=verified, 31.10 06:37 MSK, GUI SHA-256 62B17A3DDBD0380219172797DEC68074DC1F5BE2F5B37E8CD8FA5F31BA1EF84D. Установщики v0.2.60 Setup/Update собраны локально, проверены SHA. Backup v0.2.59 сохранён в .tools/deployment-backups/pre-v0260-safe-20261031 и pre-v0260-v0259. Встроенный профиль WebView2 не изменялся. Задача автоматического мониторинга после успеха отключена.
+
+**Реализовано:** основной экран — настоящий ChatGPT внутри WebView2, вкладки/адресная строка/тёплая тёмная тема; никакого отдельного RichTextBox чата. MCP остаётся транспортом для Windows-инструментов. Голосовой worker ChatGptMcpVoice: локальный Sherpa-ONNX **1.13.8** (2.0 несовместим с данной Piper TTS), русская Zipformer ASR sherpa-onnx-zipformer-ru-2024-09-18, Silero VAD, русская Piper Irina TTS, NAudio. Микрофон: удержание кнопки и непрерывный режим; пауза 300–1500 мс, default 700; автоотправка по умолчанию OFF, автоозвучивание отдельно. Голос в штатный composer выбранной WebView2 вкладки; ответ для TTS через DOM текущей вкладки.
+
+**Доказанные проверки:** русский автономный TTS WAV затем ASR восстановил текст; изолированный WebView2 mock DOM проверил вставку текста без автоматической отправки и один ответ без дублирования; сборка и packaged selftests PASS; установленные модели --check-models Ready/Stt/Vad/Tts=true. **Не проверено и не принято:** живой голосовой E2E в обычной беседе, физический микрофон USB2.0 MIC (статус Windows Unknown), воспроизведение динамиками с участием пользователя, 2/2 и 10/10 диалогов, barge-in/эхо/смена вкладок/реальный restart для голоса. Тесты на синтетическом аудио не заменяют живую приёмку.
+
+**Исходники:** D:/Dev/ChatGPT-MCP-Tunnel, feature/webview2-primary-ui-v0248 HEAD 33d114b, все изменения WebView2+голоса v0.2.60 НЕ ЗАКОММИЧЕНЫ. Сохранять их без reset, затем прогнать регрессию и сохранить в GitHub. GitHub Actions не применять. Семь стратегических целей проекта остаются; равноправные узлы, другие LLM и автономность Happ — backlog.
+
+**Опасная процедура:** прежний вызов ChatGptMcpAgent.exe --shutdown при принятом собственном tunnel-client оборвал MCP. После этого безопасная установка закрывала только GUI по PID, оставив те же PID клиента и runtime. Для следующих обновлений запрещено использовать старый --shutdown пока он может останавливать транспорт; обязательны backup, PID check и rollback.
+
+**SUPERSEDED:** ниже исторические записи о текущей v0.2.37, WebView2 только для авторизации и MCP Apps как единственном пользовательском чате. Владелец выбрал настоящий ChatGPT WebView2, он единственный интерфейс переписки. Экспериментальные MCP Apps выводы 30 октября — архив, а не текущий план.
+
+---
+
+
 ## Актуально 30.10.2026 — подтверждённый E2E и блокер повторного сообщения
 2026-10-30, verified with real normal ChatGPT Host: A dev-mode plugin has separate frozen tool metadata. Its Settings -> Plugins -> ChatGPT MCP Tunnel -> Manage -> Обновить инструменты button refreshed tool list and UI resource; new chat then saw chat.thread.relay.probe and loaded thread-relay-probe-v0240, with automatic relay-poll and bound chat_id. Server notification tools/list_changed alone did not visibly refresh existing snapshot. One real MCP-only round-trip succeeded: message 0f62f2defcb04778a60437fc83157760 -> ui/message ACK -> chat.reply -> Status=answered, exact reply МАРШРУТ MCP РАБОТАЕТ. Second message 52382de5d39f4f6ea2178de0781b260f got ui-forwarded at 15:55:29 UTC but no chat.reply after minutes; it remains pending+forwarded, DO NOT RETRY. Relay heartbeat/poll continued. ChatGPT UIA showed technical routing metadata in visible user message despite audience assistant annotation. Never claim 10/10 or hidden metadata achieved.
 
