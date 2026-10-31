@@ -1,5 +1,10 @@
 # Procedural memory
 
+## 31.10.2026 — обязательный цикл разработки WebView2 UI
+- Перед изменениями оформления и поведения ChatGPT сперва применять CSS/JS/DOM к **текущему открытому WebView2** (в том числе через отслеживаемые файлы `Themes\ChatGPT-Warm-Dark.css`, `Themes\ChatGPT-Toolbar.js`), не пересобирать/не переустанавливать приложение ради каждой правки.
+- Проверять результат в настоящем открытом окне (внешний вид и клики, например меню `…` → «Поделиться»). После приёмки сохранять исходники/Git; только для изменений C#/WinForms/хоста рассматривать минимальный выпуск.
+- Источник: прямое решение владельца 31.10.2026; `.context/decisions/owner-live-webview-ui-2026-10-31.md`.
+
 ## 2026-10-30 — ordinary ChatGPT acceptance protocol
 - For new local chat threads, never call `chat.hub.open` or use `/mcp-app/...` Global as a message dispatcher. Open `chat.bootstrap.open` in an existing visually verified ordinary `/c/...` chat. If no deep link is exposed but `openai/message` is advertised, the user must manually confirm the normal chat once in the component; later sends auto-dispatch until context changes.
 - Pending local messages must be ACKed only after host acceptance; uncertain mode, missing extension, explicit Work/Global route and context changes stop the transport without draining the queue. Before live E2E, inspect queued messages' count (4 on 30.10.2026) and avoid blindly replaying old messages.
