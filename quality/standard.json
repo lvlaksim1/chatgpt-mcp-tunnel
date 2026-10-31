@@ -1,0 +1,104 @@
+{
+  "schema": "engineering-quality-pilot-v1",
+  "project": "lvlaksim1/chatgpt-mcp-tunnel",
+  "policy": {
+    "runtime_acceptance": "NOT_TESTED",
+    "release_on_pass": false,
+    "no_github_actions": true,
+    "work_on_installed_application": false,
+    "fail_fast": true
+  },
+  "quick": [
+    {
+      "id": "quality_runner_selftest",
+      "kind": "offline",
+      "command": [
+        "python",
+        "tests/test_quality_runner.py"
+      ],
+      "timeout_sec": 40
+    },
+    {
+      "id": "mcp_build",
+      "kind": "build",
+      "command": [
+        "dotnet",
+        "build",
+        "src/ChatGptMcpTunnel/ChatGptMcpTunnel.csproj",
+        "-c",
+        "Release",
+        "--nologo"
+      ],
+      "timeout_sec": 240
+    },
+    {
+      "id": "mcp_protocol_sandbox",
+      "kind": "sandbox",
+      "command": [
+        "python",
+        "tests/test_mcp_stdio.py"
+      ],
+      "timeout_sec": 150
+    },
+    {
+      "id": "chat_route_mock",
+      "kind": "mock",
+      "command": [
+        "node",
+        "tests/test_chat_route_modes.js"
+      ],
+      "timeout_sec": 45
+    },
+    {
+      "id": "host_guard_mock",
+      "kind": "mock",
+      "command": [
+        "node",
+        "tests/test_ordinary_chat_host_gate.js"
+      ],
+      "timeout_sec": 45
+    },
+    {
+      "id": "relay_resilience_mock",
+      "kind": "mock",
+      "command": [
+        "node",
+        "tests/test_chat_relay_resilience.js"
+      ],
+      "timeout_sec": 45
+    }
+  ],
+  "full_additional": [
+    {
+      "id": "windows_gui_build",
+      "kind": "build",
+      "command": [
+        "dotnet",
+        "build",
+        "src/ChatGptMcpAgent/ChatGptMcpAgent.csproj",
+        "-c",
+        "Release",
+        "--nologo"
+      ],
+      "timeout_sec": 240
+    },
+    {
+      "id": "multiple_chat_sandbox",
+      "kind": "sandbox",
+      "command": [
+        "python",
+        "tests/test_multichat_routing.py"
+      ],
+      "timeout_sec": 100
+    },
+    {
+      "id": "attachment_sandbox",
+      "kind": "sandbox",
+      "command": [
+        "python",
+        "tests/test_chat_attachments.py"
+      ],
+      "timeout_sec": 100
+    }
+  ]
+}
