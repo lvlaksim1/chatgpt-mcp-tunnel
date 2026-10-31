@@ -1,0 +1,103 @@
+# ARCHIVE ONLY. DO NOT EXECUTE. One-time migration script from MKATUSHONOK, 2026-10-31.
+# Path placeholders were substituted; this is NOT a reusable installer.
+# Verified source SHA-256: see audit manifest
+# Recovery uses a fresh ChatGPT sign-in by default; exporting WebView2 cookies requires separate explicit authorization.
+$ErrorActionPreference='Stop'
+$base='<CLIENT_USERPROFILE>\AppData\Local\Programs\ChatGPTMCPAgent'
+$local='<CLIENT_USERPROFILE>\AppData\Local\ChatGPTMCPAgent'
+$backup=Join-Path $local 'Backup\pre-v0265-client'
+$update=Join-Path $local 'Updates\v0.2.65\ChatGPT_MCP_Tunnel_Update_v0.2.65.exe'
+$report=Join-Path $local 'Updates\install-v0265-status.json'
+$installLog=Join-Path $local 'Updates\install-v0265-inno.log'
+$exe=Join-Path $base 'ChatGptMcpAgent.exe'
+$runtime=Join-Path $base 'Runtime\ChatGptMcpTunnel.exe'
+$hash='d4a29f594dbf813241dff40537ddcd9602f4c5c04c85edcd8fdf9de22214f27c'
+$started=(Get-Date)
+$installerStarted=$false
+function Mark([string]$phase,[string]$detail=''){
+  $record=@{
+    phase=$phase;detail=$detail;at=(Get-Date).ToString('o')
+    installerStarted=$installerStarted
+    activeGuiVersion=if(Test-Path $exe){(Get-Item $exe).VersionInfo.FileVersion}else{'missing'}
+    recoveryBase=$backup
+  }
+  $temp=$report+'.tmp';$record|ConvertTo-Json -Compress|Set-Content $temp -Encoding UTF8
+  Move-Item $temp $report -Force
+}
+function Require([bool]$assert,[string]$msg){if(-not $assert){throw $msg}}
+function Owned([string]$name,[string]$path){
+ return @(Get-CimInstance Win32_Process -Filter "Name='$name'" -ErrorAction SilentlyContinue |
+  Where-Object {$_.ExecutablePath -ieq $path})
+}
+function Restore {
+  Mark 'rolling-back' 'Installer did not satisfy acceptance criteria; restoring original client'
+  $gui=Owned 'ChatGptMcpAgent.exe' $exe
+  $agent=Owned 'ChatGptMcpTunnel.exe' $runtime
+  foreach($p in @($agent)+@($gui)){
+    if($p -and $p.ProcessId -and $p.ProcessId -ne $PID){
+      Stop-Process -Id $p.ProcessId -Force -ErrorAction SilentlyContinue
+    }
+  }
+  Start-Sleep -Seconds 2
+  & robocopy.exe (Join-Path $backup 'Application') $base /E /R:2 /W:1 /NFL /NDL /NJH /NJS /NP *> (Join-Path $backup 'restore.log')
+  Require ($LASTEXITCODE -le 7) 'Original files could not be restored'
+  $originalGui=Join-Path $backup 'Application\ChatGptMcpAgent.exe'
+  Require ((Get-FileHash $originalGui).Hash -eq (Get-FileHash $exe).Hash) 'Rollback SHA256 failed'
+  foreach($name in @('settings.json','credential.dpapi')){
+    $src=Join-Path $backup ('PrivateSettings\'+$name)
+    if((Test-Path $src) -and !(Test-Path (Join-Path $local $name))){
+      Copy-Item $src (Join-Path $local $name)
+    }
+  }
+  $rollbackGui=Start-Process $exe -ArgumentList '--minimized' -WorkingDirectory $base -PassThru
+  Mark 'rolled-back' "Restored v0.2.14, started PID $($rollbackGui.Id)"
+}
+try {
+ Mark 'preflight'
+ Require (Test-Path $backup) 'Backup missing'
+ Require ((Get-FileHash $update).Hash -ieq $hash) 'Installer SHA256 does not match official release'
+ $backupExe=Join-Path $backup 'Application\ChatGptMcpAgent.exe'
+ Require (Test-Path $backupExe) 'Old executable backup missing'
+ Require ((Get-Item $backupExe).VersionInfo.FileVersion -eq '0.2.14.0') 'Old backup version not v0.2.14'
+ Require (Test-Path (Join-Path $backup 'PrivateSettings\credential.dpapi')) 'DPAPI credential backup missing'
+ Require ((Get-ItemProperty 'HKCU:\Software\ChatGPTMCPAgent').Role -eq 'client') 'Computer is not a Router Lite client'
+ Require ((Get-Item $exe).VersionInfo.FileVersion -eq '0.2.14.0') 'Unexpected currently installed version'
+ Mark 'installing'
+ $installerStarted=$true
+ $psi=New-Object System.Diagnostics.ProcessStartInfo
+ $psi.FileName=$update
+ $psi.Arguments="/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS /LOG=$installLog"
+ $psi.WorkingDirectory=Split-Path $update
+ $psi.UseShellExecute=$false
+ $installer=[Diagnostics.Process]::Start($psi)
+ Require ($null -ne $installer) 'Could not start Inno Setup'
+ if(-not $installer.WaitForExit(210000)){throw 'Installer exceeded 210 seconds'}
+ Require ($installer.ExitCode -eq 0) "Installer exited $($installer.ExitCode)"
+ Mark 'checking-install'
+ Require ((Get-Item $exe).VersionInfo.FileVersion -eq '0.2.65.0') 'GUI did not update to v0.2.65'
+ Require ((Get-Item $runtime).VersionInfo.FileVersion -ne '0.2.14.0') 'Runtime not updated'
+ Require ((Get-ItemProperty 'HKCU:\Software\ChatGPTMCPAgent').Role -eq 'client') 'Router Lite client role was not preserved'
+ Require (Test-Path (Join-Path $local 'credential.dpapi')) 'Authorization credential lost'
+ Require (Test-Path (Join-Path $local 'settings.json')) 'Settings file lost'
+ $activeGui=@()
+ $activeAgent=@()
+ for($n=0;$n -lt 45;$n++){
+   $activeGui=Owned 'ChatGptMcpAgent.exe' $exe
+   $activeAgent=Owned 'ChatGptMcpTunnel.exe' $runtime
+   if($activeGui.Count -eq 1 -and $activeAgent.Count -eq 1 -and
+      $activeAgent[0].ParentProcessId -eq $activeGui[0].ProcessId) {break}
+   Start-Sleep -Seconds 2
+ }
+ Require ($activeGui.Count -eq 1 -and $activeAgent.Count -eq 1) 'Updated client GUI or Router Lite agent did not start'
+ Require ($activeAgent[0].ParentProcessId -eq $activeGui[0].ProcessId) 'Updated agent is not owned by updated GUI'
+ Require ($activeAgent[0].CommandLine -match '--agent') 'New client did not start in --agent mode'
+ Mark 'verified' "Updated GUI PID $($activeGui[0].ProcessId), Router Lite agent PID $($activeAgent[0].ProcessId); original settings and credentials retained"
+} catch {
+ $err=$_.Exception.Message
+ Mark 'failed' $err
+ if($installerStarted) {
+   try {Restore}
+   catch {Mark 'rollback-failed' ($err + '; recovery: ' + $_.Exception.Message)}
+ }
+ exit 1
+}

@@ -1,0 +1,36 @@
+# ARCHIVE ONLY. DO NOT EXECUTE. One-time migration script from MKATUSHONOK, 2026-10-31.
+# Path placeholders were substituted; this is NOT a reusable installer.
+# Verified source SHA-256: see audit manifest
+# Recovery uses a fresh ChatGPT sign-in by default; exporting WebView2 cookies requires separate explicit authorization.
+$ErrorActionPreference='Stop'
+$dir='<CLIENT_USERPROFILE>\AppData\Local\ChatGPTMCPAgent\Updates\v0.2.65'
+$exe=Join-Path $dir 'ChatGPT_MCP_Tunnel_Update_v0.2.65.exe'
+$tmp=$exe+'.partial'
+$status=Join-Path $dir 'stage-status.json'
+$log=Join-Path $dir 'download-stderr.txt'
+$expected='d4a29f594dbf813241dff40537ddcd9602f4c5c04c85edcd8fdf9de22214f27c'
+$url='https://github.com/lvlaksim1/chatgpt-mcp-tunnel/releases/download/v0.2.65/ChatGPT_MCP_Tunnel_Update_v0.2.65.exe'
+function Mark([string]$phase,[string]$detail='') {
+  $payload=@{phase=$phase;detail=$detail;timestamp=(Get-Date).ToString('o');downloadSize=if(Test-Path $tmp){(Get-Item $tmp).Length}else{0}}
+  $new=$status+'.tmp';$payload|ConvertTo-Json -Compress|Set-Content -LiteralPath $new -Encoding UTF8
+  Move-Item -LiteralPath $new -Destination $status -Force
+}
+try {
+  New-Item -ItemType Directory -Force -Path $dir | Out-Null
+  Mark 'downloading'
+  if(Test-Path $exe) {
+    if((Get-FileHash $exe -Algorithm SHA256).Hash -ieq $expected){Mark 'verified' 'Already downloaded with verified SHA256';exit 0}
+    throw 'Existing download has unexpected SHA256; refuse overwrite'
+  }
+  $args=@('--location','--fail','--retry','4','--retry-delay','4','--connect-timeout','20','--max-time','1200','--silent','--show-error','--output',$tmp,$url)
+  $curl=Start-Process -FilePath 'curl.exe' -ArgumentList $args -Wait -PassThru -NoNewWindow -RedirectStandardError $log
+  if($curl.ExitCode -ne 0){throw "curl exited $($curl.ExitCode)"}
+  if((Get-Item $tmp).Length -ne 285262012){throw 'Downloaded file length mismatch'}
+  if((Get-FileHash $tmp -Algorithm SHA256).Hash -ine $expected){throw 'Downloaded SHA256 mismatch'}
+  Move-Item -LiteralPath $tmp -Destination $exe
+  Mark 'verified' 'Official v0.2.65 client update verified by SHA256'
+}
+catch{
+  Mark 'failed' $_.Exception.Message
+  exit 1
+}

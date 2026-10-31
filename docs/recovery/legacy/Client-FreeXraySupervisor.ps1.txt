@@ -1,0 +1,136 @@
+# ARCHIVE ONLY. DO NOT EXECUTE. One-time migration script from MKATUSHONOK, 2026-10-31.
+# Path placeholders were substituted; this is NOT a reusable installer.
+# Verified source SHA-256: see audit manifest
+# Recovery uses a fresh ChatGPT sign-in by default; exporting WebView2 cookies requires separate explicit authorization.
+$ErrorActionPreference='Stop'
+Add-Type -AssemblyName System.Security
+$root=Join-Path $env:LOCALAPPDATA 'ChatGPTMCPAgent\Vpn'
+$profileDir=Join-Path $root 'profiles'
+$binary='<CLIENT_USERPROFILE>\AppData\Local\Programs\ChatGPTMCPAgent\Vpn\xray.exe'
+$hashFile='<CLIENT_USERPROFILE>\AppData\Local\Programs\ChatGPTMCPAgent\Vpn\xray.sha256'
+$runtime=Join-Path $root 'client-runtime'
+$state=Join-Path $root 'client-vpn-health.json'
+$port=11821
+$ownedPid=0
+$activeFingerprint=''
+$activeProfile=''
+$failures=0
+New-Item -ItemType Directory -Path $runtime -Force|Out-Null
+function Report([string]$phase,[string]$message='') {
+ $obj=@{phase=$phase;message=$message;updatedAt=(Get-Date).ToString('o');
+   selectedProfile=if($activeProfile){[IO.Path]::GetFileName($activeProfile)}else{''};
+   freeProxyPort=$port;ownedXrayPid=$ownedPid;neverUseHapp=$true;
+   failures=$failures}
+ $temp=$state+'.tmp';$obj|ConvertTo-Json -Compress|Set-Content $temp -Encoding UTF8
+ Move-Item $temp $state -Force
+}
+function PidOnPort([int]$localPort){
+ $listeners=@(Get-NetTCPConnection -State Listen -LocalAddress '127.0.0.1' -LocalPort $localPort -ErrorAction SilentlyContinue)
+ if($listeners.Count -gt 1){throw 'Multiple loopback Xray listeners'}
+ if($listeners.Count -eq 0){return 0}
+ $proc=Get-CimInstance Win32_Process -Filter "ProcessId=$($listeners[0].OwningProcess)"
+ if(!$proc -or $proc.ExecutablePath -ine $binary){throw 'Foreign process owns Xray proxy port'}
+ return [int]$proc.ProcessId
+}
+function Probe([int]$localPort){
+ $url='https://api.openai.com/v1/models'
+ $value=(& curl.exe --disable --proxy "http://127.0.0.1:$localPort" --silent --connect-timeout 6 --max-time 16 --output NUL --write-out '%{http_code}' $url 2>$null|Out-String).Trim()
+ return $LASTEXITCODE -eq 0 -and $value -in @('200','401','403')
+}
+function ConfigBytes([string]$file,[int]$localPort){
+ if(!(Test-Path $file)){throw 'Xray profile file missing'}
+ $raw=[Security.Cryptography.ProtectedData]::Unprotect([IO.File]::ReadAllBytes($file),$null,[Security.Cryptography.DataProtectionScope]::CurrentUser)
+ try{
+  $obj=[Text.Encoding]::UTF8.GetString($raw)|ConvertFrom-Json
+  if($obj.inbounds[0].listen -ne '127.0.0.1' -or $obj.inbounds[0].port -ne 11821 -or
+     $obj.outbounds[0].protocol -ne 'vless' -or $obj.outbounds[0].streamSettings.security -ne 'reality'){
+   throw 'Profile failed strict VLESS/REALITY validation'
+  }
+  $obj.inbounds[0].port=$localPort
+  return [Text.Encoding]::UTF8.GetBytes(($obj|ConvertTo-Json -Depth 25 -Compress))
+ }finally{[Array]::Clear($raw,0,$raw.Length)}
+}
+function Launch([string]$file,[int]$localPort){
+ if((PidOnPort $localPort) -ne 0){throw 'Proxy port already in use'}
+ $bytes=ConfigBytes $file $localPort
+ $tmp=Join-Path $runtime ([guid]::NewGuid().ToString('N')+'.json')
+ try{
+  [IO.File]::WriteAllBytes($tmp,$bytes)
+  $args=@('run','-config',$tmp)
+  $proc=Start-Process -FilePath $binary -ArgumentList $args -WorkingDirectory (Split-Path $binary) -WindowStyle Hidden -PassThru
+  for($n=0;$n -lt 55;$n++){
+   Start-Sleep -Milliseconds 150
+   if($proc.HasExited){break}
+   if((PidOnPort $localPort) -eq $proc.Id){return $proc}
+  }
+  if(!$proc.HasExited){Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue}
+  $proc.Dispose()
+  return $null
+ }finally{
+  [Array]::Clear($bytes,0,$bytes.Length)
+  if(Test-Path $tmp){Remove-Item $tmp -Force -ErrorAction SilentlyContinue}
+ }
+}
+function KillOwned([int]$id){
+ if($id -le 0){return}
+ $p=Get-CimInstance Win32_Process -Filter "ProcessId=$id" -ErrorAction SilentlyContinue
+ if($p -and $p.ExecutablePath -ieq $binary){Stop-Process -Id $id -Force -ErrorAction SilentlyContinue}
+}
+function SelectWorkingProfile() {
+ foreach($name in @('Free-Reality-Auto','Free-Reality-Standby-1','Free-Reality-Standby-2')){
+  $file=Join-Path $profileDir ($name+'.dpapi')
+  if(!(Test-Path $file)){continue}
+  try{
+   $p=Launch $file $port
+   if($p -and (Probe $port)){
+    $script:ownedPid=[int]$p.Id
+    $script:activeProfile=$file
+    $script:activeFingerprint=(Get-FileHash $file -Algorithm SHA256).Hash
+    $script:failures=0
+    Report 'ready' 'Verified Free Xray HTTPS'
+    return $true
+   }
+   if($p){KillOwned $p.Id}
+  }catch{
+   Report 'node-failed' $_.Exception.GetType().Name
+  }
+ }
+ return $false
+}
+try {
+ if(!(Test-Path $binary) -or !(Test-Path $hashFile) -or
+   (Get-FileHash $binary -Algorithm SHA256).Hash -ine (Get-Content $hashFile -Raw).Trim()){
+  throw 'Installed Xray binary hash mismatch'
+ }
+ $occupied=PidOnPort $port
+ if($occupied){throw 'Proxy already running: refusing to start a second supervisor'}
+ Report 'starting'
+ while($true){
+  try {
+   $active=PidOnPort $port
+   if(!$active -or ($ownedPid -and $active -ne $ownedPid)){
+    $ownedPid=0
+    if(-not (SelectWorkingProfile)){
+     Report 'no-working-free-node' 'All Free Xray profiles unavailable; no Happ or direct bypass'
+     Start-Sleep -Seconds 30
+     continue
+    }
+   }
+   Start-Sleep -Seconds 20
+   if(!(Probe $port)){
+    $failures++
+    if($failures -ge 3){
+      KillOwned $ownedPid
+      $ownedPid=0
+      Report 'rotating-free-node' 'Free node failed; attempting other Free nodes'
+    }
+   }else{$failures=0;Report 'ready' 'Free Xray HTTPS OK'}
+  }catch{
+   Report 'supervisor-error' $_.Exception.GetType().Name
+   Start-Sleep -Seconds 10
+  }
+ }
+}catch{
+ Report 'fatal' $_.Exception.Message
+ exit 1
+}

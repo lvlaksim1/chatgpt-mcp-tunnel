@@ -51,6 +51,10 @@ Type: files; Name: "{app}\OpenAI\LICENSE.node.txt"
 [Files]
 Source: "{#PublishDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "ServerStart.ps1"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\scripts\Recovery\Client-FreeXraySupervisor.ps1"; DestDir: "{app}\Recovery"; Flags: ignoreversion
+Source: "..\scripts\Recovery\Install-ClientFreeVpnTasks.ps1"; DestDir: "{app}\Recovery"; Flags: ignoreversion
+Source: "..\scripts\Vpn\free_reality_updater.py"; DestDir: "{app}\Recovery\scripts\Vpn"; Flags: ignoreversion
+Source: "..\scripts\Vpn\free_reality_sources.json"; DestDir: "{app}\Recovery\scripts\Vpn"; Flags: ignoreversion
 
 ; Preserve existing settings, DPAPI credentials, autostart and all shortcuts.
 ; The update creates no new shortcuts and leaves desktop icon positions intact.

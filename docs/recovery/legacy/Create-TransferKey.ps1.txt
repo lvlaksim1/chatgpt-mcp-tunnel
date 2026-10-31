@@ -1,0 +1,23 @@
+# ARCHIVE ONLY. DO NOT EXECUTE. One-time migration script from MKATUSHONOK, 2026-10-31.
+# Path placeholders were substituted; this is NOT a reusable installer.
+# Verified source SHA-256: see audit manifest
+# Recovery uses a fresh ChatGPT sign-in by default; exporting WebView2 cookies requires separate explicit authorization.
+$ErrorActionPreference='Stop'
+Add-Type -AssemblyName System.Security
+$dir='<CLIENT_USERPROFILE>\AppData\Local\ChatGPTMCPAgent\Transfers\WebViewAuth-20261031'
+New-Item -ItemType Directory -Force -Path $dir|Out-Null
+$pub=Join-Path $dir 'target-public.xml'
+$priv=Join-Path $dir 'target-private.dpapi'
+if((Test-Path $pub) -or (Test-Path $priv)){throw 'Existing transfer key: refuse replacement'}
+$rsa=New-Object System.Security.Cryptography.RSACryptoServiceProvider(3072)
+$rsa.PersistKeyInCsp=$false
+try {
+ $bytes=[Text.Encoding]::UTF8.GetBytes($rsa.ToXmlString($true))
+ try {
+  $protected=[Security.Cryptography.ProtectedData]::Protect($bytes,$null,[Security.Cryptography.DataProtectionScope]::CurrentUser)
+  [IO.File]::WriteAllBytes($priv,$protected)
+ } finally {[Array]::Clear($bytes,0,$bytes.Length)}
+ [IO.File]::WriteAllText($pub,$rsa.ToXmlString($false),[Text.UTF8Encoding]::new($false))
+ $publicFingerprint=(Get-FileHash $pub -Algorithm SHA256).Hash
+ [pscustomobject]@{keyGenerated=$true;publicKeyFile=$pub;privateKeyProtectedBy='Windows DPAPI CurrentUser';fingerprint=$publicFingerprint}|ConvertTo-Json -Compress
+}finally{$rsa.Dispose()}

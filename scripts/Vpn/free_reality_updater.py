@@ -306,13 +306,26 @@ def state_dir_default() -> Path:
     return Path(os.environ.get("LOCALAPPDATA", str(Path.home()))) / "ChatGPTMCPAgent" / "Vpn" / "profiles"
 
 
-def verified_engine() -> str:
-    manifest = read_json(ROOT / ".tools/vpn-pilot/binary-manifest.json", {})
-    exe = Path(manifest.get("xray_exe", ""))
+def verified_engine(binary: Path | None = None, hash_file: Path | None = None) -> str:
+    # Installed CLIENT path is explicit; developer pilot path remains supported.
+    # Never search for an unverified engine or fall back to a global xray.exe.
+    if (binary is None) != (hash_file is None):
+        raise RuntimeError("Both --xray-binary and --xray-sha256-file are required")
+    if binary is None:
+        manifest = read_json(ROOT / ".tools/vpn-pilot/binary-manifest.json", {})
+        exe = Path(manifest.get("xray_exe", ""))
+        expected = manifest.get("binary_sha256", "")
+    else:
+        exe = binary
+        if not hash_file.is_file():
+            raise RuntimeError("Installed Xray sha256 file is missing")
+        expected = hash_file.read_text(encoding="ascii").strip()
     if not exe.is_file():
         raise RuntimeError("Xray-core not installed or missing binary-manifest")
+    if not re.fullmatch(r"[0-9a-fA-F]{64}", expected):
+        raise RuntimeError("Invalid Xray SHA256 reference")
     got = hashlib.sha256(exe.read_bytes()).hexdigest()
-    if got.lower() != manifest.get("binary_sha256", "").lower():
+    if got.lower() != expected.lower():
         raise RuntimeError("Xray-core SHA256 differs from verified binary")
     return str(exe)
 
@@ -411,6 +424,10 @@ def main():
     p.add_argument("--max-probes", type=int, default=16)
     p.add_argument("--timeout", type=int, default=9)
     p.add_argument("--port", type=int, default=DEFAULT_PORT)
+    p.add_argument("--xray-binary", type=Path, default=None,
+                   help="installed client verified Xray binary")
+    p.add_argument("--xray-sha256-file", type=Path, default=None,
+                   help="SHA256 reference for the installed client Xray")
     args = p.parse_args()
     if not 1025 <= args.port <= 65535 or args.port in (10808, 10809):
         p.error("Invalid diagnostic port")
@@ -433,7 +450,7 @@ def main():
     try:
         with os.fdopen(fd, "w") as f:
             f.write(f"{os.getpid()}\n")
-        exe = verified_engine()
+        exe = verified_engine(args.xray_binary, args.xray_sha256_file)
         report = run_refresh(sources, state, exe, args.max_probes, args.timeout, args.port)
         print(json.dumps({k: report[k] for k in
               ("updatedAt", "availableCandidates", "probed", "healthy",

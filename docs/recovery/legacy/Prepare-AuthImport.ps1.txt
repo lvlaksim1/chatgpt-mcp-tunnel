@@ -1,0 +1,123 @@
+# ARCHIVE ONLY. DO NOT EXECUTE. One-time migration script from MKATUSHONOK, 2026-10-31.
+# Path placeholders were substituted; this is NOT a reusable installer.
+# Verified source SHA-256: see audit manifest
+# Recovery uses a fresh ChatGPT sign-in by default; exporting WebView2 cookies requires separate explicit authorization.
+$ErrorActionPreference='Stop'
+Add-Type -AssemblyName System.Security
+Add-Type -AssemblyName System.IO.Compression
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+$root='<CLIENT_USERPROFILE>\AppData\Local\ChatGPTMCPAgent\Transfers\WebViewAuth-20261031'
+$package=Join-Path $root 'encrypted-webview-and-free-vpn.bin'
+$private=Join-Path $root 'target-private.dpapi'
+$staging=Join-Path $root 'staged'
+$target=Join-Path $staging 'EBWebView'
+$vp=Join-Path $staging 'VpnProfiles'
+$state=Join-Path $root 'prepare-status.json'
+$secret=$null;$sessionKey=$null;$aesKey=$null;$macKey=$null;$plain=$null;$data=$null;$expectedTag=$null;$wrapped=$null
+try{
+ if(Test-Path $staging){throw 'Staging already exists; refusing overwrite'}
+ if((Get-FileHash $package).Hash -ine '33699C2ABBB43DC004BA1F19E2E642EFE3E411EDFC0CB037057D2161D8CB8840'){throw 'Transfer SHA256 mismatch'}
+ $data=[IO.File]::ReadAllBytes($package)
+ $mem=New-Object IO.MemoryStream(,$data)
+ try{
+  $reader=New-Object IO.BinaryReader($mem)
+  $magic=[Text.Encoding]::ASCII.GetString($reader.ReadBytes(7))
+  if($magic -ne 'WVAUTH1'){throw 'Invalid encrypted export header'}
+  $wrapLen=$reader.ReadInt32()
+  if($wrapLen -ne 384){throw 'Invalid RSA envelope length'}
+  $wrapped=$reader.ReadBytes($wrapLen)
+  $iv=$reader.ReadBytes(16)
+  $cipherOffset=[int]$mem.Position
+  $cipherLen=$data.Length-$cipherOffset-32
+  if($cipherLen -le 0 -or $cipherLen%16 -ne 0){throw 'Invalid encrypted data length'}
+ }finally{$mem.Dispose()}
+ $privBytes=[Security.Cryptography.ProtectedData]::Unprotect([IO.File]::ReadAllBytes($private),$null,[Security.Cryptography.DataProtectionScope]::CurrentUser)
+ $rsa=New-Object Security.Cryptography.RSACryptoServiceProvider(3072)
+ try{
+  $rsa.FromXmlString([Text.Encoding]::UTF8.GetString($privBytes))
+  $secret=$rsa.Decrypt($wrapped,$true)
+ }finally{$rsa.Dispose();[Array]::Clear($privBytes,0,$privBytes.Length)}
+ if($secret.Length -ne 96){throw 'Unexpected secret envelope length'}
+ $aesKey=New-Object byte[] 32
+ $macKey=New-Object byte[] 32
+ $sessionKey=New-Object byte[] 32
+ [Array]::Copy($secret,0,$aesKey,0,32)
+ [Array]::Copy($secret,32,$macKey,0,32)
+ [Array]::Copy($secret,64,$sessionKey,0,32)
+ $hmac=New-Object Security.Cryptography.HMACSHA256(,$macKey)
+ try{$expectedTag=$hmac.ComputeHash($data,0,$data.Length-32)}finally{$hmac.Dispose()}
+ $match=0
+ for($i=0;$i -lt 32;$i++){$match=$match -bor ($expectedTag[$i] -bxor $data[$data.Length-32+$i])}
+ if($match -ne 0){throw 'Encrypted payload authentication failed'}
+ $aes=[Security.Cryptography.Aes]::Create()
+ $aes.KeySize=256;$aes.Mode=[Security.Cryptography.CipherMode]::CBC
+ $aes.Padding=[Security.Cryptography.PaddingMode]::PKCS7
+ $aes.Key=$aesKey;$aes.IV=$iv
+ try{
+  $dec=$aes.CreateDecryptor()
+  try{$plain=$dec.TransformFinalBlock($data,$cipherOffset,$cipherLen)}finally{$dec.Dispose()}
+ }finally{$aes.Dispose()}
+ New-Item -ItemType Directory -Path $target,$vp -Force | Out-Null
+ $archiveStream=New-Object IO.MemoryStream(,$plain)
+ try{
+  $archive=New-Object System.IO.Compression.ZipArchive($archiveStream,[System.IO.Compression.ZipArchiveMode]::Read)
+  try{
+   $count=0;$vpnCount=0
+   foreach($entry in $archive.Entries){
+    $pathName=$entry.FullName.Replace('\','/')
+    if($pathName.Contains('../') -or $pathName.Contains(':') -or $pathName.StartsWith('/')){throw 'Unsafe ZIP entry'}
+    if($pathName.StartsWith('WebView/',[StringComparison]::Ordinal)){
+      $relative=$pathName.Substring('WebView/'.Length)
+      if(!$relative -or $relative.EndsWith('/')){continue}
+      $file=Join-Path $target ($relative.Replace('/','\'))
+      New-Item -ItemType Directory -Force -Path (Split-Path $file) |Out-Null
+      $ins=$entry.Open()
+      try{$out=[IO.File]::Open($file,[IO.FileMode]::CreateNew);try{$ins.CopyTo($out)}finally{$out.Dispose()}}finally{$ins.Dispose()}
+      $count++
+    }elseif($pathName -match '^Vpn/(Free-Reality-Auto|Free-Reality-Standby-[12])\.json$'){
+      $ins=$entry.Open();$memory=New-Object IO.MemoryStream
+      try{$ins.CopyTo($memory);$raw=$memory.ToArray()}finally{$ins.Dispose();$memory.Dispose()}
+      try{
+       $obj=[Text.Encoding]::UTF8.GetString($raw)|ConvertFrom-Json
+       if($obj.inbounds[0].port -ne 11821 -or $obj.inbounds[0].listen -ne '127.0.0.1' -or $obj.outbounds[0].protocol -ne 'vless'){throw 'Invalid protected Xray config'}
+       $cipher=[Security.Cryptography.ProtectedData]::Protect($raw,$null,[Security.Cryptography.DataProtectionScope]::CurrentUser)
+       $name=([IO.Path]::GetFileNameWithoutExtension($pathName)) +'.dpapi'
+       [IO.File]::WriteAllBytes((Join-Path $vp $name),$cipher)
+       $vpnCount++
+      }finally{[Array]::Clear($raw,0,$raw.Length)}
+    }elseif($pathName -eq 'Vpn/status.json'){
+      $ins=$entry.Open()
+      try{$targetFile=Join-Path $vp 'status.json';$out=[IO.File]::Create($targetFile);try{$ins.CopyTo($out)}finally{$out.Dispose()}}finally{$ins.Dispose()}
+    }else{throw 'Unexpected ZIP entry type'}
+   }
+  }finally{$archive.Dispose()}
+ }finally{$archiveStream.Dispose()}
+ if($count -lt 10 -or $vpnCount -lt 1){throw 'Incomplete browser/VPN package'}
+ $localState=Join-Path $target 'Local State'
+ $localStateObject=Get-Content $localState -Raw |ConvertFrom-Json
+ $protected=[Security.Cryptography.ProtectedData]::Protect($sessionKey,$null,[Security.Cryptography.DataProtectionScope]::CurrentUser)
+ $newKey=New-Object byte[] (5+$protected.Length)
+ [Array]::Copy([Text.Encoding]::ASCII.GetBytes('DPAPI'),0,$newKey,0,5)
+ [Array]::Copy($protected,0,$newKey,5,$protected.Length)
+ $localStateObject.os_crypt.encrypted_key=[Convert]::ToBase64String($newKey)
+ $localStateObject|ConvertTo-Json -Depth 90 -Compress | Set-Content -LiteralPath $localState -Encoding UTF8
+ # Verify local user can unwrap the REPLACED browser master key.
+ $test=(Get-Content $localState -Raw |ConvertFrom-Json).os_crypt.encrypted_key
+ $wrappedNew=[Convert]::FromBase64String($test)
+ $unwrapped=[Security.Cryptography.ProtectedData]::Unprotect($wrappedNew[5..($wrappedNew.Length-1)],$null,[Security.Cryptography.DataProtectionScope]::CurrentUser)
+ $check=0;for($i=0;$i -lt 32;$i++){$check=$check -bor ($unwrapped[$i] -bxor $sessionKey[$i])}
+ [Array]::Clear($unwrapped,0,$unwrapped.Length)
+ if($check -ne 0){throw 'Rewrapped destination browser key mismatch'}
+ $cookiePath=Join-Path $target 'Default\Network\Cookies'
+ if(!(Test-Path $cookiePath)){throw 'Browser cookies file not extracted'}
+ $result=@{phase='ready';browserFiles=$count;encryptedVpnConfigs=$vpnCount;browserKeyReprotected=$true;cookiesPresent=$true;packageSha256=(Get-FileHash $package).Hash}
+ $result|ConvertTo-Json -Compress |Set-Content -LiteralPath $state -Encoding UTF8
+ [pscustomobject]@{ready=$true;browserFiles=$count;vpnNodes=$vpnCount;browserKeyReprotected=$true}|ConvertTo-Json -Compress
+}catch{
+ @{phase='failed';errorType=$_.Exception.GetType().Name;details=$_.Exception.Message}|ConvertTo-Json -Compress|Set-Content $state
+ throw
+}finally{
+ foreach($b in @($secret,$sessionKey,$aesKey,$macKey,$plain,$data,$expectedTag,$wrapped)){
+  if($null -ne $b -and $b -is [byte[]]){[Array]::Clear($b,0,$b.Length)}
+ }
+}

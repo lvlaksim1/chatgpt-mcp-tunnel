@@ -1,0 +1,137 @@
+# ARCHIVE ONLY. DO NOT EXECUTE. One-time migration script from MKATUSHONOK, 2026-10-31.
+# Path placeholders were substituted; this is NOT a reusable installer.
+# Verified source SHA-256: see audit manifest
+# Recovery uses a fresh ChatGPT sign-in by default; exporting WebView2 cookies requires separate explicit authorization.
+$ErrorActionPreference='Stop'
+$root=Join-Path $env:LOCALAPPDATA 'ChatGPTMCPAgent'
+$transfer=Join-Path $root 'Transfers\WebViewAuth-20261031'
+$status=Join-Path $transfer 'apply-status.json'
+$stage=Join-Path $transfer 'staged\EBWebView'
+$udf=Join-Path $root 'WebView2\ChatGPT'
+$destination=Join-Path $udf 'EBWebView'
+$backup=Join-Path $udf 'EBWebView.before-DOMKAT-20261031'
+$failed=Join-Path $udf 'EBWebView.failed-auth-import-20261031'
+$mode=Join-Path $root 'Vpn\network-mode.json'
+$modeBackup=Join-Path $transfer 'original-network-mode.bak'
+$vpnHealth=Join-Path $root 'Vpn\client-vpn-health.json'
+$app='<CLIENT_USERPROFILE>\AppData\Local\Programs\ChatGPTMCPAgent'
+$gui=Join-Path $app 'ChatGptMcpAgent.exe'
+$agent=Join-Path $app 'Runtime\ChatGptMcpTunnel.exe'
+$recoveryName='ChatGPT MCP Tunnel Recovery'
+$recoveryDisabled=$false
+$profileApplied=$false
+$guiStopped=$false
+function Mark([string]$phase,[string]$detail=''){
+ $payload=@{phase=$phase;detail=$detail;at=(Get-Date).ToString('o');
+   profileApplied=$profileApplied;guiStopped=$guiStopped;
+   mode=if(Test-Path $mode){(Get-Content $mode -Raw|ConvertFrom-Json).mode}else{'default-happ'}}
+ $tmp=$status+'.tmp'
+ $payload|ConvertTo-Json -Compress|Set-Content $tmp -Encoding UTF8
+ Move-Item $tmp $status -Force
+}
+function Assert([bool]$test,[string]$text){if(-not $test){throw $text}}
+function CurrentGui {
+ return @(Get-CimInstance Win32_Process -Filter "Name='ChatGptMcpAgent.exe'" |
+   Where-Object {$_.ExecutablePath -ieq $gui})
+}
+function FreeHttps {
+ $raw=(& curl.exe --disable --proxy 'http://127.0.0.1:11821' --silent --connect-timeout 7 --max-time 16 --output NUL --write-out '%{http_code}' 'https://api.openai.com/v1/models' 2>$null|Out-String).Trim()
+ return $LASTEXITCODE -eq 0 -and $raw -in @('200','401','403')
+}
+function RestartGui {
+ $g=Start-Process -FilePath $gui -ArgumentList '--minimized' -WorkingDirectory $app -PassThru
+ Start-Sleep -Seconds 5
+ Assert (-not $g.HasExited) 'GUI failed to start'
+ return $g
+}
+function Restore {
+ try{
+  Mark 'rolling-back'
+  foreach($proc in @(CurrentGui)){& taskkill.exe /PID $proc.ProcessId /T /F |Out-Null}
+  Start-Sleep -Seconds 2
+  if($profileApplied -and (Test-Path $backup)){
+   if(Test-Path $destination){
+    if(Test-Path $failed){Remove-Item $failed -Recurse -Force}
+    Move-Item $destination $failed
+   }
+   Move-Item $backup $destination
+  }
+  if(Test-Path $modeBackup){[IO.File]::WriteAllBytes($mode,[IO.File]::ReadAllBytes($modeBackup))}
+  else {if(Test-Path $mode){Remove-Item $mode -Force}}
+  $g=RestartGui
+  Mark 'rolled-back' "Previous client profile restored; GUI PID $($g.Id)"
+ }catch{Mark 'rollback-failed' $_.Exception.GetType().Name}
+}
+try {
+ Mark 'preflight'
+ Assert ((Test-Path $stage) -and (Test-Path (Join-Path $stage 'Default\Network\Cookies'))) 'Prepared authorized WebView2 profile missing'
+ Assert ((Test-Path $destination) -and (-not (Test-Path $backup))) 'Original browser data missing or backup destination already exists'
+ Assert ((Get-Item $gui).VersionInfo.FileVersion -eq '0.2.65.0') 'Unexpected client GUI version'
+ Assert ((Get-ItemProperty HKCU:\Software\ChatGPTMCPAgent).Role -eq 'client') 'MKATUSHONOK must remain Router Lite client'
+ Assert ((Get-Content (Join-Path $transfer 'prepare-status.json') -Raw|ConvertFrom-Json).phase -eq 'ready') 'Import not staged'
+ Assert ((Get-Content $vpnHealth -Raw|ConvertFrom-Json).phase -eq 'ready') 'Local free Xray is not ready'
+ Assert (FreeHttps) 'Free Xray cannot reach ChatGPT API'
+ $old=@(CurrentGui)
+ Assert ($old.Count -eq 1) 'Exactly one existing GUI required'
+ $oldId=[int]$old[0].ProcessId
+ $runtime=@(Get-CimInstance Win32_Process -Filter "Name='ChatGptMcpTunnel.exe'" |
+   Where-Object {$_.ExecutablePath -ieq $agent -and $_.ParentProcessId -eq $oldId})
+ Assert ($runtime.Count -eq 1) 'Current Router Lite agent not healthy'
+ $recovery=Get-ScheduledTask -TaskName $recoveryName -ErrorAction SilentlyContinue
+ Assert ($null -ne $recovery) 'Recovery task missing'
+ if($recovery.State -ne 'Disabled'){
+  Disable-ScheduledTask -TaskName $recoveryName |Out-Null
+  $recoveryDisabled=$true
+ }
+ if(Test-Path $mode){Copy-Item $mode $modeBackup}
+ Mark 'closing-browser'
+ & taskkill.exe /PID $oldId /T /F | Out-Null
+ $guiStopped=$true
+ for($i=0;$i -lt 40;$i++){
+  if(@(CurrentGui).Count -eq 0){break}
+  Start-Sleep -Milliseconds 250
+ }
+ Assert (@(CurrentGui).Count -eq 0) 'GUI failed to exit'
+ Mark 'backup-existing-profile'
+ $success=$false
+ for($i=0;$i -lt 25;$i++){
+  try {
+   Move-Item -LiteralPath $destination -Destination $backup -ErrorAction Stop
+   $success=$true;break
+  }catch {Start-Sleep -Milliseconds 350}
+ }
+ Assert $success 'Browser data remained locked; cannot replace'
+ $profileApplied=$true
+ Move-Item -LiteralPath $stage -Destination $destination
+ Assert (Test-Path (Join-Path $destination 'Default\Network\Cookies')) 'Source cookies not installed'
+ $newKey=(Get-Content (Join-Path $destination 'Local State') -Raw|ConvertFrom-Json).os_crypt.encrypted_key
+ Add-Type -AssemblyName System.Security
+ $bytes=[Convert]::FromBase64String($newKey)
+ $raw=[Security.Cryptography.ProtectedData]::Unprotect($bytes[5..($bytes.Length-1)],$null,[Security.Cryptography.DataProtectionScope]::CurrentUser)
+ try{Assert ($raw.Length -eq 32) 'Destination DPAPI browser key unreadable'}finally{[Array]::Clear($raw,0,$raw.Length)}
+ # Explicitly no Happ and no direct fallback.
+ $tmp=$mode+'.tmp'
+ [IO.File]::WriteAllText($tmp,'{"mode":"free","source":"MKATUSHONOK-client-local-Xray","neverUseHapp":true}',[Text.UTF8Encoding]::new($false))
+ Move-Item $tmp $mode -Force
+ Assert (FreeHttps) 'Free Xray unavailable immediately before GUI start'
+ Mark 'starting-free-authenticated-browser'
+ $new=RestartGui
+ $ok=$false
+ for($n=0;$n -lt 35;$n++){
+  $g=@(CurrentGui)
+  $a=@(Get-CimInstance Win32_Process -Filter "Name='ChatGptMcpTunnel.exe'" |
+     Where-Object {$_.ExecutablePath -ieq $agent -and $g.Count -eq 1 -and $_.ParentProcessId -eq $g[0].ProcessId})
+  if($g.Count -eq 1 -and $a.Count -eq 1){$ok=$true;break}
+  Start-Sleep -Seconds 2
+ }
+ Assert $ok 'Router Lite agent not reconnected after browser migration'
+ if($recoveryDisabled){Enable-ScheduledTask -TaskName $recoveryName |Out-Null}
+ Assert ((Get-Content $mode -Raw|ConvertFrom-Json).mode -eq 'free') 'Free mode not retained'
+ Mark 'verified' "Original UDF has imported DOMKAT authentication rewrapped under local DPAPI; free Xray active; Router Lite agent PID $($a[0].ProcessId); GUI PID $($g[0].ProcessId)"
+}catch{
+ $err=$_.Exception.Message
+ Mark 'failed' $err
+ if($guiStopped){Restore}
+ else{if($recoveryDisabled){Enable-ScheduledTask -TaskName $recoveryName -ErrorAction SilentlyContinue|Out-Null}}
+ exit 1
+}
