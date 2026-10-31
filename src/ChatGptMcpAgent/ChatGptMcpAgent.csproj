@@ -9,7 +9,7 @@
     <Nullable>enable</Nullable>
     <AssemblyName>ChatGptMcpAgent</AssemblyName>
     <RootNamespace>ChatGptMcpAgent</RootNamespace>
-    <Version>0.2.52</Version>
+    <Version>0.2.53</Version>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../Shared/ControlState.cs" Link="ControlState.cs" />
@@ -29,5 +29,9 @@
   <ItemGroup>
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4258.31" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Themes\\ChatGPT-Warm-Dark.css" CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

@@ -15,7 +15,10 @@ assert "CallDevToolsProtocolMethodAsync" not in main
 assert "RichTextBox" not in main and "SnapshotScript" not in main
 assert "ChatGptWebViewAuthForm" not in main
 assert "https://chatgpt.com/" in main
-assert "<Version>0.2.52</Version>" in proj
+assert "<Version>0.2.53</Version>" in proj
 print("CHATGPT_WEBVIEW_ONLY_UI_OK")
 assert "mcp-graphite-palette" in main
-assert "#212121" in main and "#262626" in main
+assert "#252523" in main and "ReadWarmCss" in main
+css=(root/"src/ChatGptMcpAgent/Themes/ChatGPT-Warm-Dark.css").read_text(encoding="utf-8")
+assert "#252523" in css and "#E5D9BF" in css
+assert "FileSystemWatcher" in main and "ReadWarmCss" in main

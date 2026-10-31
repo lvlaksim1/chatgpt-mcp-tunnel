@@ -1,0 +1,140 @@
+/* 1. ЦВЕТОВЫЕ ПЕРЕМЕННЫЕ */
+:root {
+  --main-surface-primary: #252523 !important;
+  --main-surface-secondary: #30302D !important;
+  --main-surface-tertiary: #393934 !important;
+  --sidebar-surface-primary: #252523 !important;
+  --sidebar-surface-secondary: #30302D !important;
+  --sidebar-surface-tertiary: #393934 !important;
+  --bg-primary: #252523 !important;
+  --bg-secondary: #30302D !important;
+  --bg-tertiary: #393934 !important;
+  --surface: #252523 !important;
+  --text-primary: #E5D9BF !important;
+  --text-default: #E5D9BF !important;
+  --text-secondary: #BDB39E !important;
+  --text-tertiary: #A99F8B !important;
+  --token-text-primary: #E5D9BF !important;
+  --token-text-secondary: #BDB39E !important;
+  --token-text-tertiary: #A99F8B !important;
+  --token-bg-primary: #252523 !important;
+  --token-bg-secondary: #30302D !important;
+  --token-bg-tertiary: #393934 !important;
+  --user-message-bg: #393934 !important;
+  --user-message-text: #E5D9BF !important;
+}
+/* 2. ОСНОВНОЙ ФОН */
+html, body, #__next, #root, main, #main, #thread, [role="main"] {
+  background-color: #252523 !important;
+  color: #E5D9BF !important;
+}
+.bg-surface, .bg-token-bg-primary { background-color: #252523 !important; }
+.bg-token-bg-secondary { background-color: #30302D !important; }
+.bg-token-bg-tertiary { background-color: #393934 !important; }
+/* 3. БОКОВАЯ ПАНЕЛЬ */
+#stage-slideover-sidebar, #stage-sidebar-tiny-bar, aside, nav[aria-label] {
+  background-color: #252523 !important;
+}
+#stage-slideover-sidebar header, #stage-slideover-sidebar header *,
+#stage-sidebar-tiny-bar header, #stage-sidebar-tiny-bar header *,
+#stage-slideover-sidebar [class*="bg-black"],
+#stage-sidebar-tiny-bar [class*="bg-black"] { background-color: #252523 !important; }
+#stage-slideover-sidebar .bg-surface,
+#stage-sidebar-tiny-bar .bg-surface { background-color: #252523 !important; }
+/* 4. НИЖНЯЯ ЧАСТЬ ЧАТА */
+#thread-bottom-container, #thread-bottom,
+#thread-bottom-container::before, #thread-bottom-container::after,
+#thread-bottom::before, #thread-bottom::after { background-color: #252523 !important; }
+div[aria-hidden="true"].bg-surface,
+#thread-bottom-container div[aria-hidden="true"].bg-surface {
+  background-color: #252523 !important;
+  background-image: none !important;
+}
+#thread-bottom-container [class*="bg-black"],
+#thread-bottom [class*="bg-black"] { background-color: #252523 !important; }
+/* 5. УДАЛЕНИЕ ЧЁРНОГО ГРАДИЕНТА */
+.thread-scroll-container > div.pointer-events-none.bg-gradient-to-t,
+.thread-scroll-container .pointer-events-none.bg-gradient-to-t,
+div.pointer-events-none.absolute.inset-x-0.-top-8.h-8 {
+  background-image: none !important;
+  background-color: #252523 !important;
+}
+#thread-bottom-container [class*="gradient"],
+#thread-bottom [class*="gradient"] { background-image: none !important; }
+/* 6. ОСНОВНЫЕ ЦВЕТА ТЕКСТА */
+.text-token-text-primary, .text-default, .prose, .markdown {
+  color: #E5D9BF !important;
+}
+.text-token-text-secondary { color: #BDB39E !important; }
+.text-token-text-tertiary { color: #A99F8B !important; }
+/* 7. ОТВЕТЫ CHATGPT — DIL */
+[class*="DilRenderer-"] [class*="TextBase-"],
+[class*="DilResponseRoot-"] p,
+[class*="DilResponseRoot-"] :is(h1, h2, h3, h4, h5, h6, strong, b) {
+  color: #E5D9BF !important;
+}
+[data-message-author-role="assistant"] {
+  --text-primary: #E5D9BF !important;
+  --text-default: #E5D9BF !important;
+  --token-text-primary: #E5D9BF !important;
+  color: #E5D9BF !important;
+}
+[data-message-author-role="assistant"] :is(
+  p, li, h1, h2, h3, h4, h5, h6, strong, em, b, i, blockquote, td, th
+) { color: #E5D9BF !important; }
+/* 8. ОТВЕТЫ CHATGPT — MARKDOWN. Исправление белого текста внутри span */
+[class*="MarkdownRoot-"], [class*="MarkdownRoot-"] :is(p, li, strong, em),
+[class*="MarkdownRoot-"] p span { color: #E5D9BF !important; }
+/* 9. ЗАГОЛОВКИ ДЕЙСТВИЙ */
+[class*="group/activity-header"] { color: #E5D9BF !important; }
+[class*="group/activity-header"] span { color: inherit !important; }
+[class*="group/activity-header"]:hover { color: #F2E6CB !important; }
+[class*="group/activity-header"] svg { color: #BDB39E !important; }
+/* 10. СООБЩЕНИЯ ПОЛЬЗОВАТЕЛЯ */
+[data-user-message-bubble="true"] {
+  background: #393934 !important;
+  color: #E5D9BF !important;
+}
+[data-user-message-bubble="true"] .whitespace-pre-wrap,
+[data-message-author-role="user"],
+[data-message-author-role="user"] .whitespace-pre-wrap { color: #E5D9BF !important; }
+/* 11. ПОЛЕ ВВОДА */
+[data-testid="composer"], form:has(#prompt-textarea) {
+  background-color: #30302D !important;
+}
+#prompt-textarea, #prompt-textarea[contenteditable="true"],
+#prompt-textarea p, #prompt-textarea span { color: #E5D9BF !important; }
+#prompt-textarea [data-placeholder]::before { color: #BDB39E !important; }
+[data-testid="composer-footer-actions"] { color: #BDB39E !important; }
+/* 12. КНОПКА ОТПРАВКИ */
+button.bg-composer-primary {
+  background: #555548 !important;
+  background-color: #555548 !important;
+  color: #E5D9BF !important;
+}
+button.bg-composer-primary svg.text-composer-primary {
+  color: #E5D9BF !important;
+  fill: none !important;
+}
+button.bg-composer-primary:not(:disabled):hover { background: #686856 !important; }
+button.bg-composer-primary:not(:disabled):active { background: #444439 !important; }
+button.bg-composer-primary:disabled {
+  background: #393934 !important;
+  color: #8F8A79 !important;
+  opacity: 0.55;
+}
+/* 13. СЛУЖЕБНЫЕ ПОДПИСИ */
+[data-markdown-copy="exclude"] .text-codex-description,
+[data-markdown-copy="exclude"].text-codex-description {
+  color: #BDB39E !important;
+}
+/* 14. ПОДСВЕТКА ПРИ НАВЕДЕНИИ */
+.hover\:bg-token-bg-secondary:hover { background-color: #393934 !important; }
+/* 15. ПОЛОСЫ ПРОКРУТКИ */
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background-color: #252523; }
+::-webkit-scrollbar-thumb {
+  background-color: #505049;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover { background-color: #66665C; }

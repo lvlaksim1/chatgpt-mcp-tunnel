@@ -16,7 +16,7 @@ internal sealed class ChatGptMainForm : Form
     private readonly WebView2 _browser = new()
     {
         Dock = DockStyle.Fill,
-        DefaultBackgroundColor = Color.FromArgb(33, 33, 33)
+        DefaultBackgroundColor = Color.FromArgb(37, 37, 35)
     };
     private readonly Label _error = new()
     {
@@ -31,6 +31,10 @@ internal sealed class ChatGptMainForm : Form
     private bool _lastNavigationSucceeded;
     private bool _exitRequested;
     private CoreWebView2Environment? _environment;
+    private FileSystemWatcher? _themeWatcher;
+    private readonly System.Windows.Forms.Timer _themeReload = new() { Interval = 320 };
+    private static string WarmCssFile => Path.Combine(AppContext.BaseDirectory,
+        "Themes", "ChatGPT-Warm-Dark.css");
 
     internal static string ProfileFolder => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -57,6 +61,11 @@ internal sealed class ChatGptMainForm : Form
         _browser.BringToFront();
         ApplyBrowserAppearance();
         AppTheme.Apply(this);
+        _themeReload.Tick += async (_, _) =>
+        {
+            _themeReload.Stop();
+            await ApplySitePaletteAsync();
+        };
         Shown += async (_, _) => await InitializeAsync();
         FormClosing += (_, e) =>
         {
@@ -70,6 +79,9 @@ internal sealed class ChatGptMainForm : Form
         {
             foreach (var popup in _popups.ToArray())
                 if (!popup.IsDisposed) popup.Close();
+            _themeReload.Stop();
+            _themeReload.Dispose();
+            _themeWatcher?.Dispose();
             _browser.Dispose();
         };
         KeyPreview = true;
@@ -109,10 +121,47 @@ internal sealed class ChatGptMainForm : Form
             var result = await _browser.CoreWebView2.ExecuteScriptAsync(
                 "getComputedStyle(document.body).backgroundColor");
             var color = JsonSerializer.Deserialize<string>(result);
-            return AppTheme.Dark ? color == "rgb(33, 33, 33)" : color == "rgb(255, 255, 255)";
+            return AppTheme.Dark ? color == "rgb(37, 37, 35)" : color == "rgb(255, 255, 255)";
         }
         catch (Exception e) when (e is InvalidOperationException or
             System.Runtime.InteropServices.COMException) { return false; }
+    }
+
+    private static string ReadWarmCss()
+    {
+        if (!File.Exists(WarmCssFile))
+            return ":root { --main-surface-primary: #252523 !important; }" +
+                "html,body {background-color:#252523!important;color:#E5D9BF!important;}";
+        return File.ReadAllText(WarmCssFile);
+    }
+
+    private void WatchWarmCss()
+    {
+        var folder = Path.GetDirectoryName(WarmCssFile)!;
+        if (!Directory.Exists(folder)) return;
+        _themeWatcher = new FileSystemWatcher(folder, Path.GetFileName(WarmCssFile))
+        {
+            NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.Size,
+            EnableRaisingEvents = true
+        };
+        _themeWatcher.Changed += (_, _) => QueueCssReload();
+        _themeWatcher.Created += (_, _) => QueueCssReload();
+        _themeWatcher.Renamed += (_, _) => QueueCssReload();
+    }
+
+    private void QueueCssReload()
+    {
+        if (IsDisposed || Disposing || !IsHandleCreated) return;
+        try
+        {
+            BeginInvoke((Action)(() =>
+            {
+                if (IsDisposed || Disposing) return;
+                _themeReload.Stop();
+                _themeReload.Start();
+            }));
+        }
+        catch (InvalidOperationException) { }
     }
 
     private async Task ApplySitePaletteAsync()
@@ -120,23 +169,10 @@ internal sealed class ChatGptMainForm : Form
         var core = _browser.CoreWebView2;
         if (core is null || !core.Source.StartsWith("https://chatgpt.com/", StringComparison.Ordinal))
             return;
+        // This user-supplied stylesheet is loaded from disk, not hardcoded in
+        // the executable, so changes can apply to the OPEN WebView2 immediately.
         var css = AppTheme.Dark
-            ? """
-              :root {
-                --main-surface-primary: #212121 !important;
-                --main-surface-secondary: #2f2f2f !important;
-                --main-surface-tertiary: #383838 !important;
-                --sidebar-surface-primary: #262626 !important;
-                --sidebar-surface-secondary: #303030 !important;
-                --text-primary: #ececec !important;
-                --text-secondary: #b4b4b4 !important;
-                color-scheme: dark !important;
-              }
-              html, body, #__next, #root,
-              .bg-token-main-surface-primary { background-color: #212121 !important; }
-              .bg-token-sidebar-surface-primary { background-color: #262626 !important; }
-              .bg-token-main-surface-secondary { background-color: #2f2f2f !important; }
-              """
+            ? ReadWarmCss()
             : """
               :root {
                 --main-surface-primary: #ffffff !important;
@@ -173,7 +209,7 @@ internal sealed class ChatGptMainForm : Form
     {
         var dark = AppTheme.Dark;
         BackColor = AppTheme.Background;
-        _browser.DefaultBackgroundColor = dark ? Color.FromArgb(33, 33, 33) : Color.White;
+        _browser.DefaultBackgroundColor = dark ? Color.FromArgb(37, 37, 35) : Color.White;
         if (_browser.CoreWebView2 is not null)
         {
             _browser.CoreWebView2.Profile.PreferredColorScheme = dark
@@ -225,6 +261,7 @@ internal sealed class ChatGptMainForm : Form
             core.Settings.AreDevToolsEnabled = false;
             core.Settings.AreDefaultContextMenusEnabled = true;
             _ready = true;
+            WatchWarmCss();
             ApplyBrowserAppearance();
             core.Navigate(Home);
             AgentStorage.Log("ChatGPT main WebView2 initialized; single browser UI");

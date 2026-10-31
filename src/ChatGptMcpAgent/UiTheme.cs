@@ -54,16 +54,16 @@ internal static class AppTheme
     private static extern int SetWindowTheme(IntPtr hWnd, string? subAppName, string? subIdList);
 
     internal static bool Dark => UiPreferences.Load().Theme != "light";
-    internal static Color Background => Dark ? Color.FromArgb(33, 33, 33) : Color.FromArgb(250, 250, 250);
-    internal static Color Sidebar => Dark ? Color.FromArgb(38, 38, 38) : Color.FromArgb(241, 241, 241);
-    internal static Color Surface => Dark ? Color.FromArgb(47, 47, 47) : Color.White;
-    internal static Color Hover => Dark ? Color.FromArgb(56, 56, 56) : Color.FromArgb(230, 230, 230);
-    internal static Color Selected => Dark ? Color.FromArgb(59, 59, 59) : Color.FromArgb(223, 229, 238);
-    internal static Color Text => Dark ? Color.FromArgb(235, 235, 235) : Color.FromArgb(31, 31, 31);
-    internal static Color Secondary => Dark ? Color.FromArgb(172, 172, 172) : Color.FromArgb(98, 98, 98);
+    internal static Color Background => Dark ? Color.FromArgb(37, 37, 35) : Color.FromArgb(250, 250, 250);
+    internal static Color Sidebar => Dark ? Color.FromArgb(37, 37, 35) : Color.FromArgb(241, 241, 241);
+    internal static Color Surface => Dark ? Color.FromArgb(48, 48, 45) : Color.White;
+    internal static Color Hover => Dark ? Color.FromArgb(57, 57, 52) : Color.FromArgb(230, 230, 230);
+    internal static Color Selected => Dark ? Color.FromArgb(57, 57, 52) : Color.FromArgb(223, 229, 238);
+    internal static Color Text => Dark ? Color.FromArgb(229, 217, 191) : Color.FromArgb(31, 31, 31);
+    internal static Color Secondary => Dark ? Color.FromArgb(189, 179, 158) : Color.FromArgb(98, 98, 98);
     internal static Color Accent => Dark ? Color.FromArgb(201, 213, 239) : Color.FromArgb(36, 95, 148);
     internal static Color Assistant => Dark ? Color.FromArgb(148, 206, 170) : Color.FromArgb(30, 125, 86);
-    internal static Color Border => Dark ? Color.FromArgb(68, 68, 68) : Color.FromArgb(216, 216, 216);
+    internal static Color Border => Dark ? Color.FromArgb(80, 80, 73) : Color.FromArgb(216, 216, 216);
 
     internal static void ApplyAll()
     {
