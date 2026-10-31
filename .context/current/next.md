@@ -1,3 +1,63 @@
+## Next after v0.2.65 — generation 72 (31.10.2026 20:18 MSK)
+1. Verify Git staging excludes keys/DPAPI/auth backups and binary outputs. 2. Publish accepted v0.2.65 source and stable release to GitHub without prerelease, only after local installation and SHA256 test. 3. Continue 3-hour automated node updates, optional scheduled monitoring; maintain Happ rollback. 4. Preserve one authorized WebView2 profile and one official DOMKAT tunnel-client.
+
+---
+
+## Next — generation 71 (31.10.2026 19:40 MSK)
+1. Preserve v0.2.64 Happ default, one shared signed-in ChatGPT UDF; do not create/copy any second browser profile. 2. Monitor upcoming scheduled free refresh for stability and collect bridge failback notice/health data. 3. Add user-facing status notification for automatic Happ fallback if useful; maintain single MCP server on DOMKAT and remote Router Lite clients. 4. Local-first release workflow, no prerelease/GitHub Actions; publish to GitHub only when directed/accepted.
+
+---
+
+## VPN next — gen 70 (31.10.2026 18:58 MSK)
+1. Implement coherent GUI and server route state machine so external failback reinitializes WebView2 and updates UI indication correctly. 2. Fail-closed/alert and automatic managed switch Happ upon repeated failed Free probe, no OS direct route. 3. Reload owned Xray process when selected DPAPI profile changes, with preflight and rollback, avoid killing foreign processes. 4. If owner signs in separately to Free browser profile, test authenticated chat without leaking tokens. 5. Preserve working v0.2.63 and user auth, no second MCP tunnel.
+
+---
+
+## Next — generation 69 (31.10.2026 18:10 MSK)
+1. Confirm GUI Happ/Free switching of both browser and official server MCP without PID replacement, owner-authenticated Free E2E only after explicit acceptance of public-exit trust. 2. Implement health monitored safe fallback to Happ with visible status and dynamically reload selected free node on scheduler refresh. 3. Preserve DOMKAT single tunnel and Router Lite clients; no per-client VPN or tunnel-client. 4. Archive local source to GitHub when acceptance complete; no GitHub Actions.
+
+---
+
+## Next — generation 68 (31.10.2026 17:08 MSK)
+1. Confirm visible top-bar VPN: Happ dropdown and tray menu in installed v0.2.62. 2. Manually opt in to Free, validate isolated login and real chat/TTS on the public exit, then switch back to Happ and verify original MCP PIDs stay alive. 3. Investigate and implement official tunnel-client's HTTP/QUIC transport routing without additional MCP tunnel. 4. Hot-swap active free Xray upon scheduler updates after full acceptance, with fail-closed and rollback. 5. Preserve previous local changes and installed v0.2.62; do not run --shutdown.
+
+---
+
+## Next — generation 67 (31.10.2026 16:36 MSK)
+1. Preserve current three-hour FreeReality refresh task and its last-good encrypted profile. 2. Add UI source listing and manual/automatic free-profile selection, with informed consent before routing private ChatGPT traffic to public unknown-provider nodes. 3. Validate Xray child restart/switchover and protection against transient failures, real WebView2 + official MCP transport E2E and secure rollback. 4. Keep Windows 10, single tunnel, Happ backup, and all existing local uncommitted changes.
+
+---
+
+## VPN next steps, generation 65 (31.10.2026 14:33 MSK)
+1. Offer user tested public free link as ephemeral trial, not trusted production default. 2. If user authorizes experimental use, add explicit selection and fail-closed proxy with secure profile storage; ensure no private ChatGPT data silently routes through public node. 3. Verify durable trusted VPS or approved provider option for full independence from Happ. 4. Continue verifying process isolation and MCP transport, preserve existing running GUI v0.2.61.
+
+---
+
+## LamaVPN next steps — generation 64 (31.10.2026 14:12 MSK)
+1. Obtain standard provider-issued vless:// TCP/REALITY Germany profile or compatible standard subscription, without posting tokens to chat/repository. 2. Import via scripts/Vpn/Import-VlessReality.ps1 from private local file. 3. Test secure connection using Start-ProtectedXrayProfile.ps1 with Happ still available and Xray bypass route verified by actual remote IP/routing diagnostics. 4. Validate logged-in WebView2 and separate MCP client, then add GUI profile management and safe rollback. 5. Keep existing v0.2.61 working, do not restart MCP or disable Happ.
+
+---
+
+## VPN next actions — поколение 63 (31.10.2026, 13:30 MSK)
+1. Find or prepare trusted remote server supporting VLESS/REALITY and secure configuration/DPAPI secrets. 2. Verify actual ChatGPT WebView2 logged-in session through independent endpoint with Happ still running but not on the path. 3. Trace real tunnel-client/control-plane traffic, including optional QUIC, via embedded engine. 4. Add GUI profile selection/health and safe rollback; only after E2E prepare official release. 5. Keep existing voice v0.2.61 accepted, microphone STT deferred.
+
+---
+
+## Следующие шаги: поколение 62, 31.10.2026, 12:32 MSK
+1. Не повторять диагностику наличия микрофона до его физического подключения. 2. При следующей регрессионной приёмке проверить 2/2 и 10/10 последовательных озвученных ответов, отсутствие дублей и поведение при смене вкладок. 3. После появления микрофона — испытать PTT, непрерывный режим и распознавание. 4. Текущая версия v0.2.61 уже принята по колонкам; не перезапускать работающий MCP-транспорт без задачи.
+
+---
+
+## АКТУАЛЬНО 31.10.2026 — поколение 61
+1) Have owner confirm the installed speaker actually emits the Russian TTS voice on an actual new reply. 2) Then demonstrate 2/2 and 10/10 consecutive replies, check duplicate suppression, tab switches, cancellation, reload. 3) Once microphone becomes available, test real capture/VAD/ASR separately; do not block TTS. 4) Keep DOM compatibility for legacy and DilResponseRoot and automated regression checks. 5) Preserve local v0.2.61 source and installers; publish to GitHub only after verified release policy, without Actions. 6) Do not use --shutdown, ever, when the GUI owns the active client; GUI PID-only replacement with backup/rollback.
+
+---
+
+## АКТУАЛЬНО 31.10.2026 — менеджер проекта, поколение 60
+**Непосредственно далее:** (1) сохранить текущую feature-ветку с незакоммиченными реализациями; не сбрасывать изменения. (2) Проверить состояние USB2.0 MIC, доступность микрофона в NAudio и права Windows; выполнить живое распознавание. (3) Проверить физический TTS и связь с активным WebView2: PTT/continuous, 700 мс VAD, отправка только при правильной настройке, два последовательных обмена, затем 10/10; переключение вкладок, прерывание, отсутствие эха/дубликатов, перезапуск. (4) Провести регрессионный аудит вкладок/вложений/тёмной темы и запись результатов PASS/FAIL. (5) Коммит проверенного кода, сохранение в GitHub (без GitHub Actions). (6) При будущих обновлениях закрывать только GUI по PID; никогда не отключать работающие MCP runtime/tunnel-client через --shutdown. Пользовательская голосовая E2E-приёмка пока **активна**.
+
+---
+
 ## Актуально 30.10.2026 — подтверждённый E2E и блокер повторного сообщения
 Next: read origin/experiment/thread-relay-host-20261030 docs/MCP-THREAD-RELAY-HOST-EXPERIMENTS-2026-10-30.md and local logs. Reproduce second ui/message ACK/no reply with a NEW isolated canary, not the historical uncertain message. Confirm which ChatGPT conversation actually gets a second user turn; test separate model-only route via ui/update-model-context, never visible user text. After 2/2 then 10/10 and session recovery. Baseline runtime remains v0.2.37; refresh plugin metadata for each new experimental schema. Do not create more tunnels.
 

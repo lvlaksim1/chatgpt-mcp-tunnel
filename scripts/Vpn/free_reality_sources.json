@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "description": "Public VLESS/TCP/REALITY feeds; reachability is always re-tested on DOMKAT before selection.",
+  "sources": [
+    {
+      "name": "AetrisVPN-lite",
+      "url": "https://raw.githubusercontent.com/flaafix/AetrisVPN-white-list-lite/main/AetrisVPN.txt"
+    },
+    {
+      "name": "Radikal-verified",
+      "url": "https://raw.githubusercontent.com/0xRadikal/Free-v2ray-Configs/main/verified/configs.txt"
+    },
+    {
+      "name": "Radikal-fast",
+      "url": "https://raw.githubusercontent.com/0xRadikal/Free-v2ray-Configs/main/fast/configs.txt"
+    }
+  ]
+}

@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MCP Tunnel — панель браузера</title>
+<style>
+:root {
+  color-scheme:dark;
+  --base:#252523;--surface:#30302D;--raised:#393934;
+  --text:#E5D9BF;--muted:#BDB39E;--subtle:#A99F8B;
+  --border:#4A4941;--hover:#43433B;--focus:#77705D;
+  --titlebar:#252523;--input:#30302D;
+}
+html[data-theme="light"]{
+  color-scheme:light;
+  --base:#F7F7F6;--surface:#EBEBE8;--raised:#FFFFFF;
+  --text:#292925;--muted:#60605B;--subtle:#76766F;
+  --border:#D1D1CB;--hover:#E0E0DC;--focus:#77776A;
+  --titlebar:#F7F7F6;--input:#FFFFFF;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;overflow:hidden;background:var(--base);color:var(--text);font:13px/1.35 "Segoe UI Variable","Segoe UI",Arial,sans-serif;user-select:none}
+button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus-visible,input:focus-visible{outline:1px solid var(--focus);outline-offset:-1px}
+svg{display:block;width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round;pointer-events:none}
+#shell{height:100%;display:grid;grid-template-rows:26px 36px 44px;background:var(--base)}
+/* Same visual surface as ChatGPT; the window title is no longer Windows black. */
+#titlebar{display:flex;align-items:center;background:var(--titlebar);color:var(--muted);padding-left:13px}
+#window-name{font-size:11.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.01em;max-width:calc(100% - 160px);min-width:0;flex:0 1 auto}
+#window-name strong{color:var(--text);font-weight:600}
+#drag{flex:1 1 0;min-width:0;height:100%;cursor:default}
+#vpn-switch{border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text);font-size:11px;margin-right:9px;padding:3px 9px;white-space:nowrap;min-width:88px;height:23px;align-self:center}
+#vpn-switch:hover{background:var(--raised)}
+#vpn-switch:focus-visible{outline:1px solid var(--focus)}
+#vpn-menu{position:fixed;z-index:1500;right:128px;top:26px;display:none;min-width:210px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:6px;box-shadow:0 10px 30px #0007}
+#vpn-menu.open{display:block}
+#vpn-menu button{display:block;text-align:left;width:100%;border:0;background:transparent;color:var(--text);padding:8px 10px;border-radius:7px}
+#vpn-menu button:hover{background:var(--raised)}
+#window-controls{display:flex;gap:2px;height:100%;align-items:stretch;padding-right:5px;flex:0 0 auto}
+.window-button{width:39px;border:0;background:transparent;border-radius:6px;color:var(--muted);display:flex;align-items:center;justify-content:center}
+.window-button:hover{background:var(--raised);color:var(--text)}
+.window-button.close:hover{background:#8E3935;color:#fff}
+.window-button svg{width:14px;height:14px}
+/* Real browser tabs: one continuous strip; '+' immediately after last tab. */
+#tabs-row{display:flex;align-items:flex-end;padding:0 10px;min-width:0;width:100%;height:36px;overflow:hidden}
+#tabs-scroll{display:flex;flex:0 1 auto;align-items:flex-end;min-width:0;max-width:calc(100% - 40px);width:max-content;gap:4px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;scroll-behavior:smooth;padding-bottom:3px}
+#tabs-scroll::-webkit-scrollbar{display:none}
+.tab{flex:0 0 var(--mcp-tab-width,193px);width:var(--mcp-tab-width,193px);height:30px;min-width:104px;max-width:193px;display:flex;align-items:center;gap:7px;padding:0 7px 0 10px;border:1px solid transparent;border-radius:11px;background:transparent;color:var(--muted);text-align:left;white-space:nowrap;overflow:hidden;transition:background .12s;cursor:pointer;outline-offset:-2px}
+.tab:hover{background:var(--surface);color:var(--text)}
+.tab.selected{background:var(--surface);border-color:var(--border);color:var(--text);font-weight:500}
+.tab-dot{width:13px;height:13px;flex:0 0 13px;border-radius:4px;background:var(--raised);color:var(--text);display:grid;place-items:center;font-size:10px;font-weight:700}
+.tab-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1}
+.tab-close{display:grid;place-items:center;width:20px;height:20px;flex:0 0 20px;border:0;border-radius:7px;background:transparent;color:var(--muted);padding:0;opacity:0}
+.tab.selected .tab-close,.tab:hover .tab-close,.tab-close:focus-visible{opacity:1}
+.tab-close:hover{background:var(--raised);color:var(--text)}
+.tab-close svg{height:14px;width:14px}
+#add-tab{height:28px;width:30px;flex:0 0 30px;display:grid;place-items:center;margin:0 5px 4px 5px;padding:0;border:0;border-radius:10px;background:transparent;color:var(--muted)}
+#add-tab:hover{background:var(--raised);color:var(--text)}
+#add-tab svg{width:17px;height:17px}
+/* ChatGPT-composer-inspired address pill, without stock Windows borders. */
+#navigation{height:44px;width:100%;display:grid;grid-template-columns:30px 30px 32px minmax(0,1fr) 31px 31px 31px;grid-template-rows:34px;align-items:center;gap:5px;padding:4px 12px 6px;min-width:0;max-width:100%;overflow:hidden}
+.nav-btn{height:30px;width:30px;min-width:0;display:grid;place-items:center;background:transparent;color:var(--muted);border:0;border-radius:10px;padding:0}
+.nav-btn:hover:not(:disabled){background:var(--raised);color:var(--text)}
+.nav-btn:disabled{opacity:.3;cursor:default}
+.nav-btn svg{width:18px;height:18px}
+.address-pill{display:flex;grid-column:4;grid-row:1;min-width:0;width:100%;height:32px;max-height:32px;align-items:center;overflow:hidden;border-radius:14px;background:var(--input);border:1px solid var(--border);padding:0 8px 0 11px;transition:border-color .12s}
+.address-pill:focus-within{border-color:var(--focus)}
+#address-icon{flex:0 0 15px;width:15px;min-width:15px;margin-right:9px;color:var(--subtle)}
+#address-icon svg{height:15px;width:15px}
+#address{flex:1 1 0;min-width:0;width:0;max-width:100%;margin:0;padding:0;background:transparent;color:var(--text);border:0;outline:none;font:12.5px/1.35 "Segoe UI",Arial,sans-serif;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;user-select:text}
+#address::selection{background:#686856;color:var(--text)}
+#address::placeholder{color:var(--subtle)}
+#go{flex:0 0 25px;min-width:25px;border:0;background:transparent;color:var(--muted);width:25px;height:25px;padding:4px;border-radius:7px}
+#go:hover{background:var(--raised);color:var(--text)}
+#go svg{width:16px;height:16px}
+.voice-control{grid-row:1;display:grid;place-items:center;width:30px;height:30px;padding:0;border:0;border-radius:10px;background:transparent;color:var(--muted);cursor:pointer}
+.voice-control:hover{background:var(--raised);color:var(--text)}
+.voice-control[aria-pressed="true"]{background:var(--raised);color:var(--text)}
+.voice-control.busy{color:#EABF92;animation:voice-glow 1.1s infinite alternate}
+@keyframes voice-glow{to{box-shadow:0 0 0 3px #cba66a35}}
+.voice-control svg{height:17px;width:17px}
+#voice-mic{grid-column:5}#voice-speaker{grid-column:6}#voice-settings{grid-column:7}
+#tab-menu{position:fixed;z-index:1000;display:none;min-width:185px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:5px;box-shadow:0 10px 35px #0005}
+#tab-menu.open{display:block}
+.menu-item{width:100%;display:block;text-align:left;background:transparent;color:var(--text);padding:9px 11px;border:0;border-radius:8px;font-size:12.5px}
+.menu-item:hover{background:var(--raised)}
+#tab-menu hr{border:0;border-top:1px solid var(--border);margin:4px 7px}
+.tab-rename-input{flex:1 1 auto;width:0;min-width:0;height:22px;padding:0 4px;background:var(--raised);color:var(--text);font:inherit;outline:none;border:1px solid var(--focus);border-radius:5px;user-select:text}
+</style>
+</head>
+<body>
+<div id="shell">
+  <div id="titlebar">
+    <div id="window-name"><strong>ChatGPT MCP Tunnel</strong> <span id="version"></span></div>
+    <div id="drag" title="Перетащить окно"></div>
+    <button id="vpn-switch" title="Выбрать подключение для ChatGPT" aria-label="Выбор VPN" aria-haspopup="menu" aria-expanded="false">VPN: Happ ▾</button>
+    <div id="window-controls">
+      <button class="window-button" id="minimize" title="Свернуть" aria-label="Свернуть"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+      <button class="window-button" id="maximize" title="Развернуть" aria-label="Развернуть"><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="1"/></svg></button>
+      <button class="window-button close" id="close" title="Закрыть" aria-label="Закрыть"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+  </div>
+  <div id="tabs-row"><div id="tabs-scroll"></div></div>
+  <div id="vpn-menu" role="menu" aria-label="Режим подключения">
+    <button id="vpn-use-happ" role="menuitem">Happ — текущий VPN</button>
+    <button id="vpn-use-free" role="menuitem">Бесплатные серверы — Xray</button>
+  </div>
+  <div id="navigation">
+    <button class="nav-btn" id="back" title="Назад (Alt+←)" aria-label="Назад"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <button class="nav-btn" id="forward" title="Вперёд (Alt+→)" aria-label="Вперёд"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+    <button class="nav-btn" id="reload" title="Обновить без кэша (Ctrl+F5)" aria-label="Обновить без кэша"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2 6M20 5v6h-6"/></svg></button>
+    <div class="address-pill">
+      <div id="address-icon" title="Адрес страницы"><svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
+      <input id="address" spellcheck="false" autocomplete="off" type="text" inputmode="url" aria-label="Адрес страницы" placeholder="Введите адрес страницы">
+      <button id="go" title="Перейти (Enter)" aria-label="Перейти"><svg viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
+    </div>
+    <button class="voice-control" id="voice-mic" aria-label="Голосовой ввод" title="Микрофон: удерживать для речи / нажать для непрерывного режима" aria-pressed="false"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/></svg></button>
+    <button class="voice-control" id="voice-speaker" aria-label="Озвучивание ответов" title="Включить или отключить голосовой вывод" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M4 9h4l6-5v16l-6-5H4zM18 9a5 5 0 0 1 0 6"/></svg></button>
+    <button class="voice-control" id="voice-settings" aria-label="Настройки голоса" title="Настройки голоса"><svg viewBox="0 0 24 24"><path d="M12 3v2m0 14v2M3 12h2m14 0h2M5.6 5.6l1.4 1.4m10 10 1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4"/><circle cx="12" cy="12" r="4"/></svg></button>
+  </div>
+</div>
+<div id="tab-menu" role="menu" aria-label="Действия с вкладкой">
+  <button class="menu-item" data-action="rename">Переименовать вкладку</button>
+  <button class="menu-item" data-action="duplicate">Дублировать вкладку</button>
+  <button class="menu-item" data-action="close-other">Закрыть другие вкладки</button>
+  <hr><button class="menu-item" data-action="close">Закрыть вкладку</button>
+</div>
+<script>
+(() => {
+  'use strict';
+  const icons={
+    plus:'<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+    close:'<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>'
+  };
+  const $=id=>document.getElementById(id);
+  const send=(command,extra={})=>window.chrome?.webview?.postMessage({command,...extra});
+  let state={tabs:[],activeId:null,address:'',theme:'dark',version:'',canGoBack:false,canGoForward:false,maximized:false,networkMode:'happ'};
+  let voice={recording:false,playing:false,mode:'push',autoSpeak:false,ready:false};
+  window.applyVoiceState=next=>{
+    voice={...voice,...next};
+    const mic=$('voice-mic'),sp=$('voice-speaker');
+    mic.setAttribute('aria-pressed',String(!!voice.recording));
+    sp.setAttribute('aria-pressed',String(!!voice.autoSpeak));
+    mic.classList.toggle('busy',!!voice.recording);
+    sp.classList.toggle('busy',!!voice.playing);
+    mic.title=voice.status||'Голосовой ввод';
+  };
+  const voiceMic=$('voice-mic');
+  let pressActive=false;
+  voiceMic.addEventListener('pointerdown',e=>{
+    if(voice.mode==='continuous')return;
+    if(e.button!==0)return;
+    pressActive=true;
+    voiceMic.setPointerCapture(e.pointerId);
+    send('voice-start');
+    e.preventDefault();
+  });
+  voiceMic.addEventListener('pointerup',e=>{
+    if(voice.mode==='continuous')return;
+    if(!pressActive)return;
+    pressActive=false;send('voice-stop');
+    e.preventDefault();
+  });
+  voiceMic.addEventListener('pointercancel',()=>{if(pressActive){pressActive=false;send('voice-stop')}});
+  voiceMic.addEventListener('click',()=>{
+    if(voice.mode==='continuous')send(voice.recording?'voice-stop':'voice-start');
+  });
+  $('voice-speaker').onclick=()=>send('voice-toggle-speech');
+  $('voice-settings').onclick=()=>send('voice-settings');
+  let menuTab=null;
+  // User tab names are purely local labels. ChatGPT's cloud chat titles are
+  // untouched. Re-rendering from WebView2 navigation updates retains aliases.
+  const labels=new Map();
+  let editing=null;
+  const renameTab=id=>{
+    const tab=state.tabs.find(t=>t.id===id);
+    if(!tab)return;
+    const original=labels.get(id)||tab.title||'Новая вкладка';
+    editing={id,value:original,original};
+    draw();
+    requestAnimationFrame(()=>{
+      const input=tabs.querySelector('.tab-rename-input');
+      if(input){input.focus();input.select();}
+    });
+  };
+  const finishRename=(commit=true)=>{
+    if(!editing)return;
+    const {id,value,original}=editing;
+    const cleaned=String(value).replace(/[\r\n\t]+/g,' ').trim().slice(0,80);
+    if(commit&&cleaned){labels.set(id,cleaned);}
+    else if(commit&&!cleaned){labels.delete(id);}
+    editing=null;
+    draw();
+  };
+
+  const tabs=$('tabs-scroll'),tabRow=$('tabs-row'),menu=$('tab-menu'),address=$('address');
+  const button=(title,clazz,html)=>{
+    const b=document.createElement('button');
+    b.type='button';b.className=clazz;b.title=title;b.setAttribute('aria-label',title);
+    if(html) b.innerHTML=html;
+    return b;
+  };
+  const hideMenu=()=>{menu.classList.remove('open');menuTab=null;};
+  const draw=()=>{
+    document.documentElement.dataset.theme=state.theme==='light'?'light':'dark';
+    $('version').textContent=state.version||'';
+    const vpn=$('vpn-switch');
+    vpn.textContent=state.networkMode==='free'?'VPN: Бесплатные ▾':'VPN: Happ ▾';
+    vpn.title=state.networkMode==='free'?'Режим: бесплатные серверы (Xray)':'Режим: Happ';
+    $('maximize').title=state.maximized?'Восстановить':'Развернуть';
+    $('back').disabled=!state.canGoBack;
+    $('forward').disabled=!state.canGoForward;
+    $('reload').disabled=!state.activeId;
+    if(document.activeElement!==address) address.value=state.address||'';
+    // Allocate tab width from the actual viewport and reserve dedicated
+    // space for the '+' control. The tab strip may scroll; the '+' may not.
+    const available=Math.max(150,(tabRow.clientWidth||window.innerWidth)-60);
+    const count=Math.max(1,state.tabs.length);
+    const width=Math.min(193,Math.max(104,Math.floor((available-4*(count-1))/count)));
+    tabs.style.setProperty('--mcp-tab-width',width+'px');
+    tabs.replaceChildren();
+    // Remove stale labels when a tab is closed.
+    const currentIds=new Set(state.tabs.map(t=>t.id));
+    for(const id of labels.keys()) if(!currentIds.has(id))labels.delete(id);
+    for(const tab of state.tabs) {
+      const item=document.createElement('div');
+      item.className='tab'+(tab.id===state.activeId?' selected':'');
+      item.setAttribute('role','tab');
+      item.setAttribute('tabindex',tab.id===state.activeId?'0':'-1');
+      item.setAttribute('aria-selected',tab.id===state.activeId?'true':'false');
+      const displayName=labels.get(tab.id)||tab.title||'Новая вкладка';
+      item.setAttribute('aria-label',displayName);
+      item.title=displayName;
+      item.dataset.id=tab.id;
+      const dot=document.createElement('span');dot.className='tab-dot';dot.textContent='✳';
+      const name=document.createElement('span');name.className='tab-title';name.textContent=displayName;
+      name.title='Двойной щелчок — переименовать вкладку';
+      let activateTimer=0;
+      name.ondblclick=e=>{
+        e.preventDefault();e.stopPropagation();
+        if(activateTimer){clearTimeout(activateTimer);activateTimer=0;}
+        renameTab(tab.id);
+      };
+      const close=button('Закрыть вкладку','tab-close',icons.close);
+      close.onclick=e=>{e.stopPropagation();send('tab-close',{id:tab.id})};
+      item.onclick=()=>{
+        if(editing)return;
+        if(activateTimer)clearTimeout(activateTimer);
+        // Delay single-click activation so a double-click on an inactive
+        // tab is not interrupted by a host state redraw.
+        activateTimer=setTimeout(()=>{
+          activateTimer=0;
+          send('tab-activate',{id:tab.id});
+        },220);
+      };
+      item.onkeydown=e=>{
+        if(e.key==='Enter'||e.key===' '){e.preventDefault();send('tab-activate',{id:tab.id})}
+      };
+      item.onauxclick=e=>{if(e.button===1)send('tab-close',{id:tab.id})};
+      item.oncontextmenu=e=>{e.preventDefault();e.stopPropagation();menuTab=tab.id;menu.classList.add('open');
+        const x=Math.min(e.clientX,window.innerWidth-menu.offsetWidth-8),y=Math.min(e.clientY,window.innerHeight-menu.offsetHeight-8);
+        menu.style.left=Math.max(4,x)+'px';menu.style.top=Math.max(4,y)+'px';};
+      if(editing?.id===tab.id){
+        const edit=document.createElement('input');
+        edit.type='text';edit.className='tab-rename-input';
+        edit.value=editing.value;
+        edit.maxLength=80;
+        edit.setAttribute('aria-label','Новое название вкладки');
+        edit.spellcheck=false;
+        edit.oninput=()=>{if(editing?.id===tab.id)editing.value=edit.value};
+        edit.onclick=e=>e.stopPropagation();
+        edit.ondblclick=e=>e.stopPropagation();
+        edit.onkeydown=e=>{
+          e.stopPropagation();
+          if(e.key==='Enter'){e.preventDefault();finishRename(true)}
+          else if(e.key==='Escape'){e.preventDefault();finishRename(false)}
+        };
+        edit.onblur=()=>finishRename(true);
+        item.append(dot,edit,close);
+        setTimeout(()=>{if(edit.isConnected&&document.activeElement!==edit){edit.focus();edit.select()}},0);
+      }else{
+        item.append(dot,name,close);
+      }
+      tabs.append(item);
+    }
+    let plus=$('add-tab');
+    if(!plus){
+      plus=button('Новая вкладка (Ctrl+T)','',icons.plus);
+      plus.id='add-tab';
+      plus.onclick=()=>send('tab-new');
+    }
+    // Separate flex sibling: '+' stays immediately after the tab strip, and
+    // never gets pushed out by its horizontal scrolling content.
+    tabRow.append(plus);
+    requestAnimationFrame(()=>{
+      const selected=tabs.querySelector('.tab.selected');
+      if(selected && state.tabs.length*width+4*(state.tabs.length-1) > tabs.clientWidth)
+        selected.scrollIntoView({block:'nearest',inline:'nearest'});
+    });
+  };
+  window.applyChromeState=(next)=>{
+    state={...state,...next};
+    // Avoid destroying the edit input while typing as async title updates
+    // arrive from the browser process.
+    if(!editing)draw();
+  };
+  for(const [id,command] of [
+    ['minimize','minimize'],['maximize','maximize'],['close','window-close'],
+    ['back','back'],['forward','forward'],['reload','hard-reload']])
+    $(id).onclick=()=>send(command);
+  const vpnMenu=$('vpn-menu'),vpnSwitch=$('vpn-switch');
+  vpnSwitch.onclick=e=>{e.stopPropagation();const opened=vpnMenu.classList.toggle('open');vpnSwitch.setAttribute('aria-expanded',String(opened));};
+  const selectVpn=mode=>{vpnMenu.classList.remove('open');vpnSwitch.setAttribute('aria-expanded','false');send('vpn-switch',{mode});};
+  $('vpn-use-happ').onclick=()=>selectVpn('happ');
+  $('vpn-use-free').onclick=()=>selectVpn('free');
+  document.addEventListener('click',e=>{if(!vpnMenu.contains(e.target)){vpnMenu.classList.remove('open');vpnSwitch.setAttribute('aria-expanded','false');}});
+  $('go').onclick=()=>send('navigate',{address:address.value.trim()});
+  address.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();send('navigate',{address:address.value.trim()})}
+    else if(e.key==='Escape'){address.value=state.address||'';address.blur()}};
+  address.onfocus=()=>address.select();
+  for(const el of [$('drag'),$('window-name')]){
+    el.addEventListener('mousedown',e=>{if(e.button===0){e.preventDefault();send('drag')}});
+    el.addEventListener('dblclick',()=>send('maximize'));
+  }
+  for(const b of menu.querySelectorAll('[data-action]'))
+    b.onclick=()=>{
+      const id=menuTab,action=b.dataset.action;
+      hideMenu();
+      if(!id)return;
+      if(action==='rename')renameTab(id);
+      else send('tab-'+action,{id});
+    };
+  document.addEventListener('click',e=>{if(!menu.contains(e.target))hideMenu()});
+  document.addEventListener('keydown',e=>{
+    const ctrl=e.ctrlKey||e.metaKey;
+    if(ctrl&&e.key.toLowerCase()==='t'){e.preventDefault();send('tab-new')}
+    else if(ctrl&&e.key.toLowerCase()==='w'){e.preventDefault();send('tab-close',{id:state.activeId})}
+    else if(ctrl&&e.key.toLowerCase()==='l'){e.preventDefault();address.focus();address.select()}
+    else if(ctrl&&e.key==='F5'){e.preventDefault();send('hard-reload')}
+    else if(ctrl&&e.key==='Tab'){e.preventDefault();send(e.shiftKey?'tab-previous':'tab-next')}
+    else if(e.key==='Escape')hideMenu();
+  },true);
+  window.chrome?.webview?.addEventListener('message',e=>{
+    if(e.data?.kind==='browser_state')window.applyChromeState(e.data);
+  });
+  const resize=new ResizeObserver(()=>draw());
+  resize.observe(tabRow);
+  draw();
+  send('ready');
+})();
+</script>
+</body>
+</html>

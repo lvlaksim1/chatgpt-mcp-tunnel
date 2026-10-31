@@ -1,15 +1,31 @@
+## АКТУАЛЬНО 31.10.2026 — менеджер проекта, поколение 60
+**31.10.2026 — безопасное обновление GUI:** НЕ использовать ChatGptMcpAgent.exe --shutdown, если GUI усыновил tunnel-client: вызов привёл к потере доступа MCP. Нужен backup, закрытие только GUI по конкретному PID, проверка сохранения PID tunnel-client и MCP runtime, замена GUI+голосовых ресурсов, повторная проверка SHA/bridge_ping и возможность rollback. Runtime может независимо оставаться на v0.2.58 при GUI v0.2.60. Для CSS/JS сначала live-edit в работающем WebView2 без многократной переустановки. Не путать mock и настоящую голосовую приёмку.
+
+---
+
+- source: legacy-v2-state
+- authority: legacy-unverified
+## 31.10.2026 — VOICE-FIRST FOLLOW-UP v0.2.60
+Источник: .context/decisions/owner-offline-voice-chat-2026-10-31.md. После установленной v0.2.59 — автономное русскоязычное голосовое общение Sherpa-ONNX + Silero VAD, локальное TTS, в текущем WebView2-чате. Обязательно сохранить авторизацию/подключение и провести тесты до установки. Статус: начата реализация, Е2Е не подтверждён.
+
 # Procedural memory
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## 31.10.2026 — обязательный цикл разработки WebView2 UI
 - Перед изменениями оформления и поведения ChatGPT сперва применять CSS/JS/DOM к **текущему открытому WebView2** (в том числе через отслеживаемые файлы `Themes\ChatGPT-Warm-Dark.css`, `Themes\ChatGPT-Toolbar.js`), не пересобирать/не переустанавливать приложение ради каждой правки.
 - Проверять результат в настоящем открытом окне (внешний вид и клики, например меню `…` → «Поделиться»). После приёмки сохранять исходники/Git; только для изменений C#/WinForms/хоста рассматривать минимальный выпуск.
 - Источник: прямое решение владельца 31.10.2026; `.context/decisions/owner-live-webview-ui-2026-10-31.md`.
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## 2026-10-30 — ordinary ChatGPT acceptance protocol
 - For new local chat threads, never call `chat.hub.open` or use `/mcp-app/...` Global as a message dispatcher. Open `chat.bootstrap.open` in an existing visually verified ordinary `/c/...` chat. If no deep link is exposed but `openai/message` is advertised, the user must manually confirm the normal chat once in the component; later sends auto-dispatch until context changes.
 - Pending local messages must be ACKed only after host acceptance; uncertain mode, missing extension, explicit Work/Global route and context changes stop the transport without draining the queue. Before live E2E, inspect queued messages' count (4 on 30.10.2026) and avoid blindly replaying old messages.
 - After the candidate is manually installed, one controlled local message + actual resulting ChatGPT UI mode + chat.reply roundtrip are required to close acceptance. Never call it solved on local VM tests alone. Local build only D:\Dev; GitHub pre-release v0.2.29 storage; no Actions.
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## 30.10.2026 — эксплуатация менеджера и фиксация новой версии
 1. При входе в обычный диалог восстановить `manager_id=project-manager` по `.context/ENTRYPOINT.md` и `state-integrity.json`, не отождествлять случайное имя в сообщении с новой ролью supervisor. Диалоги — временный runtime; identity — постоянная капсула.
 2. Сверять версию установленного EXE напрямую на DOMKAT перед статусом; 30.10.2026 проверено `0.2.28+ad28e28`. Выпуск `v0.2.28` уже размещён и пользователь установил его сам; не повторять выпуск/обновление без отдельного поручения.
@@ -17,10 +33,14 @@
 4. Перед новым независимым планом перечитать текущее состояние поверх архивных ранних блоков; старые «v0.2.28 не готова» завершены. Локальная разработка `D:\Dev`, пакетные сценарии, GUI ~1 с, CLI без искусственных задержек, GitHub Actions запрещены; STOP — локально.
 5. При обновлении капсулы сохранять тот же идентификатор и Core, проверять связанную восьмёрку хешей, увеличивать поколение seal строго после согласованной записи и сохранять Git history. Пользовательские/локальные неотслеживаемые файлы не чистить.
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## 30.10.2026 — персонализированные чаты и локальный индикатор
 - При использовании Windows MCP tools в этом project-manager-контексте передавать \`executor="project-manager"\` на каждом tool call (когда схема обновлена). Supervisor использует \`executor="supervisor"\`; обычный ChatGPT аргумент опускает.
 - UI источник — ControlActivity.Executor; нормализация в ControlExecutor, не печатать произвольные аргументы или секреты. Для каждого вызова отдельная подпись, в desktop.batch вложенные шаги наследуют её и не могут переопределять; удалённый Router Lite также передаёт идентичность.
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## 30.10.2026 — новый способ разработки и выпусков
 1. На DOMKAT в `D:\Dev\ChatGPT-MCP-Tunnel` сначала собрать достаточный контекст, затем локальным PowerShell/Python сценарием в одном tool call провести серию правок, сборок, тестов и итог. Ошибка => fail-fast и возвращение модели. Не выполнять десятки микрокоманд.
 2. GUI: ~1 сек между управляющими действиями (включая `desktop.batch`); чтение и CLI без искусственной паузы. STOP локальный, но долгий самостоятельный скрипт обязан иметь отдельное прерывание.
@@ -29,6 +49,8 @@
 5. Для автоапдейта отдельно запускаем процесс, штатно освобождаем рабочие файлы, проверяем SHA256/версию/MCP после. В v0.2.27 установщик завершился, но внешний `Start-Process -Wait` висел из-за дочернего tray — ждать конкретный PID с таймаутом.
 6. Для Context Capsule Windows CRLF: прямой Git hash-object --stdin даёт ложное расхождение; проверять `git hash-object --path=...` либо Git-объекты. Все восемь прежних хешей поколения 45 были валидны. Источник: проверенные операции 30.10.2026.
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## Router Lite development test and serialization pitfall (28.10.2026)
 - Use a separate `dotnet build -o .tools/router-lite-build` to avoid overwriting DLLs loaded by the live tunnel.
 - Run `CHATGPT_MCP_TEST_DLL=...` with `tests/test_mcp_stdio.py` and `tests/test_router_lite.py`; the latter starts router + agent as independent local processes, checks discovery, call, unknown address and disconnect.

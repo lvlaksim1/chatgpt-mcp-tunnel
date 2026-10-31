@@ -1,3 +1,63 @@
+## Remaining scope after v0.2.65 — generation 72 (31.10.2026 20:18 MSK)
+Core VPN features accepted locally; real provider long-term reliability remains outside our control. Release only reviewed nonsecret sources/binaries; no private DPAPI, WebView2 backup or test artifacts to GitHub. GPU/TTS and Router Lite unchanged. Production public-node forced outage intentionally not induced; simulated controlled failover PASS.
+
+---
+
+## v0.2.64 remaining boundaries — generation 71 (31.10.2026 19:40 MSK)
+Actual catastrophic outage of remote public free server was not induced against running production ChatGPT; isolated forced-failure automatic Happ fallback and production GUI external-mode simulation both PASSED. Hot node swap tested isolated end-to-end with real HTTPS; expected brief connection reestablishment, not lossless handoff. Public node operator unknown; avoid publishing profile backup.
+
+---
+
+## VPN remaining development — gen 70 (31.10.2026 18:58 MSK)
+Accepted live GUI free-guest page, genuine bridged official MCP Free traffic and Happ rollback with same PIDs; missing features: automatic failback from dead public node, in-use Xray hot reload, UI sync on external mode change. Free browser authenticated login not tested. Never claim those completed.
+
+---
+
+## Remaining VPN blockers — generation 69 (31.10.2026 18:10 MSK)
+Server live MCP over Happ relay accepted, plus independent free HTTPS through proxy accepted. Authenticated production MCP after switching to public Free Reality exit NOT TESTED (unknown operator, consent). Live free-node hot reload and automatic user-visible fallback to Happ on server failure still pending. Do not claim these are complete.
+
+---
+
+## VPN blockers — generation 68 (31.10.2026 17:08 MSK)
+True authenticated ChatGPT E2E switching and returning to Happ not accepted yet; isolated live page test returned exit 103. Official MCP client still uses preexisting transport, not free Xray. Automatic live failover of an in-use free proxy not yet implemented. Public node operator unknown; consent required.
+
+---
+
+## Remaining VPN blockers — generation 67 (31.10.2026 16:36 MSK)
+Automatic list refresh and stored profile validated, but real authenticated ChatGPT and MCP rerouting, hot failover of an in-use Xray process and provider trust remain UNVERIFIED. Do not claim the production app automatically switches VPN servers.
+
+---
+
+## VPN blockers, generation 65 (31.10.2026 14:33 MSK)
+Free VLESS/REALITY node reached external HTTPS and isolated WebView2 but remains an unknown-operator experimental exit with no stability/privacy guarantee. Authenticated ChatGPT and MCP routing over free node were NOT tested or accepted. Real paid LamaVPN standard link still missing.
+
+---
+
+## LamaVPN blocker — generation 64 (31.10.2026 14:12 MSK)
+Real paid Germany credentials unavailable in standard transferable format: historical provider URL returns App not supported and stored subscription is not plaintext. Await authorized standard VLESS/REALITY profile; do not claim independence from Happ or spoof/bypass hidden settings.
+
+---
+
+## VPN blockers — поколение 63 (31.10.2026, 13:30 MSK)
+Remote independently controlled VLESS/REALITY endpoint not yet available; do not claim Happ independence. MCP tunnel-client proxy coverage and QUIC/UDP are UNVERIFIED. Do not switch installed production app or restart existing MCP transport.
+
+---
+
+## Блокеры: поколение 62, 31.10.2026, 12:32 MSK
+**TTS и колонки — больше не блокер: подтверждены владельцем.** Остался отложенный физический тест микрофона после его получения; дополнительные тесты устойчивости TTS 2/2 и 10/10 — не завершены.
+
+---
+
+## АКТУАЛЬНО 31.10.2026 — поколение 61
+P0: real speaker hearing and reliable auto-TTS on successive true ChatGPT replies await human acceptance; the host's DIL response DOM changed from the old .markdown transcript to DilResponseRoot, now hot-fixed. Physical microphone STT is intentionally deferred until user obtains a microphone. P1: working feature branch and local capsule edits are uncommitted, preserve. Installed transport is healthy; no rollback needed.
+
+---
+
+## АКТУАЛЬНО 31.10.2026 — менеджер проекта, поколение 60
+P0 **открыт:** реальный голосовой E2E: микрофон USB2.0 MIC Unknown, динамики, непрерывный режим, автоматическая доставка в верный облачный чат, echo, restart, 10/10. Нельзя называть функцию полноценно принятой до тестов на живом аудио. P1: исходники WebView2+голоса v0.2.60 остаются незакоммиченными в feature-ветке; необходимы сохранение и финальный regression pass. Снято: установка v0.2.60 завершена и MCP-транспорт восстановлен. Исторические MCP Apps P0 ниже не блокируют принятую WebView2 архитектуру.
+
+---
+
 ## Актуально 30.10.2026 — подтверждённый E2E и блокер повторного сообщения
 P0: repeat ui/message from same live Thread iframe got accepted+ui-forwarded but no reply, while heartbeat/poll continued. Unknown outcome must not be retried; message 52382de5d39f4f6ea2178de0781b260f still pending+forwarded. User-visible ChatGPT thread exposed MCP routing instruction despite audience assistant annotation. Automatic host iframe resurrection after teardown and 10/10 unproven. New tool registration requires Plugin Manage Refresh when schema/UI URI changes; follow-up verification of snapshot after downgrade not completed.
 

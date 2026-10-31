@@ -14,11 +14,36 @@ internal sealed class ControlOverlay : Form
     private readonly Label _current = new();
     private readonly Label _history = new();
     private readonly Button _stop = new();
+    private readonly Panel _captionBar = new() { Dock = DockStyle.Top, Height = 31 };
+    private readonly Label _captionText = new() {
+        Text = "ChatGPT MCP Tunnel · Уведомления",
+        AutoEllipsis = true, TextAlign = ContentAlignment.MiddleLeft,
+        Dock = DockStyle.Fill, Padding = new Padding(10, 0, 0, 0)
+    };
+    private readonly Button _captionClose = new() {
+        Text = "×", Dock = DockStyle.Right, Width = 39,
+        TabStop = false, FlatStyle = FlatStyle.Flat
+    };
+    private bool _captionDark = AppTheme.Dark;
     private readonly System.Windows.Forms.Timer _refresh = new() { Interval = 350 };
     // The tray owns this window for its entire lifetime: X hides, not disposes.
     private bool _manualVisible;
     private bool _hiddenByUser;
     private HashSet<string> _activeWhenHidden = new(StringComparer.Ordinal);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool ReleaseCapture();
+
+    [DllImport("user32.dll", CharSet = CharSet.Auto)]
+    private static extern IntPtr SendMessage(IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam);
+
+    private void DragCaption(object? sender, MouseEventArgs e)
+    {
+        if (e.Button != MouseButtons.Left) return;
+        ReleaseCapture();
+        SendMessage(Handle, 0x00A1, new IntPtr(2), IntPtr.Zero); // WM_NCLBUTTONDOWN / HTCAPTION
+    }
 
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
@@ -29,6 +54,10 @@ internal sealed class ControlOverlay : Form
     private static extern bool ShowWindow(IntPtr hWnd, int command);
 
     internal bool NativeVisible => IsHandleCreated && IsWindowVisible(Handle);
+    internal bool HasCustomCaption => FormBorderStyle == FormBorderStyle.None &&
+        Controls.Contains(_captionBar) && _captionBar.Controls.Contains(_captionClose);
+    internal Color CaptionColor => _captionBar.BackColor;
+    internal bool CaptionMatchesTheme => _captionBar.BackColor == AppTheme.Surface;
     internal string ExecutorCaption => _executor.Text;
     internal string VersionCaption => _version.Text;
     internal static string InstalledVersion => Application.ProductVersion.Split('+')[0];
@@ -51,12 +80,15 @@ internal sealed class ControlOverlay : Form
     internal ControlOverlay()
     {
         Text = "ChatGPT MCP Tunnel v" + InstalledVersion + " - Управление";
-        FormBorderStyle = FormBorderStyle.FixedSingle;
+        // Windows 10 does not support a reliable arbitrary DWM caption color.
+        // The old fixed single border painted a black native title bar.
+        // Use a WinForms caption surface so it matches both themes exactly.
+        FormBorderStyle = FormBorderStyle.None;
         ShowInTaskbar = false;
         MaximizeBox = false;
         MinimizeBox = false;
         TopMost = true;
-        ClientSize = new Size(388, 300);
+        ClientSize = new Size(388, 331);
         BackColor = AppTheme.Background;
         ForeColor = AppTheme.Text;
         Font = new Font("Segoe UI", 9.5f);
@@ -84,10 +116,36 @@ internal sealed class ControlOverlay : Form
         _version.TextAlign = ContentAlignment.MiddleLeft;
         _version.Text = "Версия: v" + InstalledVersion;
         _stop.Click += (_, _) => ToggleStop();
-        Controls.AddRange(new Control[] { _header, _executor, _current, _history, _stop, _version });
+        foreach (var c in new Control[] { _header, _executor, _current, _history, _stop, _version })
+            c.Top += _captionBar.Height;
+        _captionBar.Controls.Add(_captionText);
+        _captionBar.Controls.Add(_captionClose);
+        _captionClose.BringToFront();
+        _captionBar.MouseDown += DragCaption;
+        _captionText.MouseDown += DragCaption;
+        _captionClose.Click += (_, _) => Close(); // X hides via OnFormClosing, not dispose.
+        _captionClose.FlatAppearance.BorderSize = 0;
+        Controls.AddRange(new Control[] {
+            _header, _executor, _current, _history, _stop, _version, _captionBar
+        });
         _refresh.Tick += (_, _) => RefreshFromControl();
         _refresh.Start();
         AppTheme.Apply(this);
+        RefreshCaptionTheme();
+    }
+
+    internal void RefreshCaptionTheme()
+    {
+        _captionDark = AppTheme.Dark;
+        _captionBar.BackColor = AppTheme.Surface;
+        _captionBar.ForeColor = AppTheme.Text;
+        _captionText.BackColor = AppTheme.Surface;
+        _captionText.ForeColor = AppTheme.Text;
+        _captionClose.BackColor = AppTheme.Surface;
+        _captionClose.ForeColor = AppTheme.Text;
+        _captionClose.FlatAppearance.MouseOverBackColor = AppTheme.Hover;
+        _captionClose.FlatAppearance.MouseDownBackColor = AppTheme.Selected;
+        _captionBar.Invalidate(true);
     }
 
     private static string Friendly(string tool, string? activity = null) =>
@@ -130,6 +188,7 @@ internal sealed class ControlOverlay : Form
     {
         try
         {
+            if (_captionDark != AppTheme.Dark || !CaptionMatchesTheme) RefreshCaptionTheme();
             var s = ControlState.Read();
             var active = s.Active.Count > 0;
             // Do not reopen instantly after X; a new operation may show the overlay.
@@ -164,10 +223,8 @@ internal sealed class ControlOverlay : Form
             _stop.Text = s.Stopped ? "ВОЗОБНОВИТЬ УПРАВЛЕНИЕ" : "СТОП — ПРЕКРАТИТЬ УПРАВЛЕНИЕ";
             _stop.BackColor = s.Stopped ? Color.FromArgb(48, 119, 89) :
                 Color.FromArgb(174, 48, 54);
-        if (_header.ForeColor == Color.White)
-            _header.ForeColor = AppTheme.Text;
-        _history.ForeColor = AppTheme.Secondary;
-        _version.ForeColor = AppTheme.Secondary;
+            _history.ForeColor = AppTheme.Secondary;
+            _version.ForeColor = AppTheme.Secondary;
             if (!NativeVisible)
             {
                 var area = (Screen.PrimaryScreen ?? Screen.FromPoint(Cursor.Position)).WorkingArea;

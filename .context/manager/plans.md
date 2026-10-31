@@ -1,4 +1,65 @@
+## v0.2.65 release plan (31.10.2026 20:18 MSK)
+Local v0.2.65 installed and live accepted; archive reviewed source to GitHub without credentials, then publish official stable tagged installer if remote/main ancestry allows. Monitor scheduled refresh 3h; do not use prereleases.
+
+---
+
+## Continued VPN roadmap (31.10.2026 19:40 MSK)
+v0.2.64 E2E accepted: authorized ChatGPT Plus remains signed-in Happ↔Free and external rollback, official MCP connectivity and Router Lite retained. Continue monitoring uptime and polish user-facing fallback notifications without touching global VPN.
+
+---
+
+## VPN plan after E2E — gen 70 (31.10.2026 18:58 MSK)
+Live v0.2.63 path accepted Happ↔Free on DOMKAT; next deliver robust automatic Free failure fallback with browser mode synchronization and in-use Xray hot reload; then full acceptance.
+
+---
+
+## DOMKAT bridge plan (31.10.2026 18:10 MSK)
+v0.2.63 installed and successful. Next test owner-authorized authenticated Free app mode, implement automatic Xray node hot swap and health-based Happ fallback/notification, then accept and GitHub archive. Keep local Setup/Update artifacts and backup.
+
+---
+
+## VPN switch plan (31.10.2026 17:08 MSK)
+Implemented v0.2.62 UI; next real owner acceptance of both browser modes, verify separate free profile and return without breaking the MCP tunnel; investigate MCP transport and live Xray failover. Local installers available; GitHub only for completed releases, no Actions.
+
+---
+
+## Free node updater next plan (31.10.2026 16:36 MSK)
+Scheduled free list refresh is operational every 3 hours on DOMKAT. Next, integrate profile selection with GUI, explicit opt-in, health-based failover of owned Xray child and tested replacement of both WebView2 and MCP client routes while keeping Happ backup. No GitHub Actions; release only after full regression.
+
+---
+
+## Free VPN plan, generation 65 (31.10.2026 14:33 MSK)
+Selected free Reality URI validated via Xray and isolated WebView2, source under .tools. Next: explicitly opt-in to trial if requested, health checks and auto-refresh, sandbox isolated traffic and use paid Happ as fallback until a trusted route is ready.
+
+---
+
+## LamaVPN plan (31.10.2026 14:12 MSK)
+DPAPI-protected importer+runner built/tested with synthetic profile; next acquire normal LamaVPN VLESS link, execute independent REALITY E2E, verify app transport and UI. Maintain local-first releases and preserve one tunnel.
+
+---
+
+## VPN implementation plan (31.10.2026, 13:30 MSK)
+Isolated Xray POC PASS only in documented scope. Next remote secure endpoint, genuine WebView2 & MCP acceptance, UX for profile import and fail-closed proxy selection, release packaging and user approval. GitHub Actions disabled; local development and release only.
+
+---
+
+## План: поколение 62, 31.10.2026, 12:32 MSK
+Голосовой выход v0.2.61 прошёл пользовательскую приёмку. Дальше — регрессия/устойчивость озвучивания 2/2 и 10/10 при необходимости, затем реальные тесты голосового ввода при наличии устройства. Не использовать отдельный API, Work или Codex и не менять транспорт без причины.
+
+---
+
+## NEXT PLAN 31.10.2026 — project-manager generation 61
+After owner verifies audible reply, run second and tenth sequential auto-TTS reply acceptance, check tab changes and dedup. On failure instrument WebView2 voice_reply -> worker speaking/speech_finished path without logging private contents. Do not touch MCP server/client, do not reinstall for CSS/JS tweaks. When mic physically appears, resume PTT/continuous STT trials.
+
+---
+
 # Manager plans
+
+## АКТУАЛЬНО 31.10.2026 — менеджер проекта, поколение 60
+**Текущий план v0.2.60:** 1. Сохранить незакоммиченные реализации в Git. 2. Проверить аудиоустройства/USB2.0 MIC. 3. Выполнить настоящий PTT и непрерывный STT, VAD, TTS динамиков. 4. Полный ChatGPT WebView2 E2E в реальном диалоге, 2/2 затем 10/10, restart, смена вкладки, отсутствие дублей и эха, правильный STOP. 5. Аудит цветовой темы и штатных функций ChatGPT. 6. Не применять --shutdown к усыновлённому транспорту. Общее планирование независимых равноправных узлов и других LLM остаётся backlog. Исследования MCP Apps-only ниже — исторические планы, явным образом superseded.
+
+---
+
 
 ## Актуально 30.10.2026 — подтверждённый E2E и блокер повторного сообщения
 Plan after real first E2E: (1) start on stable DOMKAT v0.2.37, check both computers and logs; (2) using isolated experimental branch, trace repeated ui/message request, Host ACK, visible user turn and actual chat.reply, determine why second fails; (3) test official ui/update-model-context or other host-compatible invisible routing, verify actual ChatGPT UI; (4) repeat 2/2 then 10/10 sequential, teardown/reconnect and multi-computer; (5) only then merge/release. For development changed MCP tools/UI URI, use ChatGPT Plugins Manage Refresh; tools/list_changed did not update host snapshot in observed case.

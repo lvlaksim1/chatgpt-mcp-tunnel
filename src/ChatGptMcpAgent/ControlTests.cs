@@ -60,7 +60,8 @@ internal static class ControlTests
             stopCheck.Tick += (_, _) =>
             {
                 stopCheck.Stop();
-                visible = overlay.NativeVisible &&
+                visible = overlay.NativeVisible && overlay.HasCustomCaption &&
+                    overlay.CaptionMatchesTheme &&
                     overlay.ExecutorCaption == "Исполнитель: Менеджер проекта" &&
                     overlay.VersionCaption.EndsWith(Application.ProductVersion.Split('+')[0], StringComparison.Ordinal);
                 // X must hide, never dispose the tray-owned window.

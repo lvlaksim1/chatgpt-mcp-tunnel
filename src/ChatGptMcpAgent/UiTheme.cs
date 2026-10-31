@@ -78,6 +78,7 @@ internal static class AppTheme
         if (form.IsHandleCreated) SetNative(form);
         else form.HandleCreated += (_, _) => { if (!form.IsDisposed) SetNative(form); };
         ApplyControls(form);
+        if (form is ControlOverlay overlay) overlay.RefreshCaptionTheme();
         // WinForms controls sometimes recreate HWNDs (font and theme changes).
         form.Invalidate(true);
     }

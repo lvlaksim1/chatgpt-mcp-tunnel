@@ -1,4 +1,4 @@
-param(
+﻿param(
   [ValidatePattern('^\d+\.\d+\.\d+$')]
   [string]$Version = '0.2.27',
   [string]$ClientSource = 'D:\ChatGPTMCPAgent\OpenAI',
@@ -26,6 +26,52 @@ try {
   Write-Output "LOCAL_PUBLISH_AGENT v$Version"
   & dotnet publish src/ChatGptMcpAgent/ChatGptMcpAgent.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:DebugSymbols=false "-p:Version=$Version" -o $publish --nologo
   if($LASTEXITCODE -ne 0){throw 'Agent publish failed'}
+  Write-Output 'LOCAL_PUBLISH_SERVER_PROXY_BRIDGE'
+  & dotnet publish src/ChatGptMcpProxyBridge/ChatGptMcpProxyBridge.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:DebugSymbols=false "-p:Version=$Version" -o $publish --nologo
+  if($LASTEXITCODE -ne 0){throw 'Server proxy bridge publish failed'}
+  $bridgeExe = Join-Path $publish 'ChatGptMcpProxyBridge.exe'
+  if(!(Test-Path $bridgeExe)){throw 'Server proxy bridge missing'}
+  $bridgeTest=Start-Process -FilePath $bridgeExe -ArgumentList '--selftest' -Wait -PassThru
+  if($bridgeTest.ExitCode -ne 0){throw 'Server proxy bridge selftest failed'}
+
+  # Bundled free VLESS/REALITY mode: offline verified Xray-core binary,
+  # vendor license and pinned SHA256. Never depend on a global Happ install.
+  $xrayManifest=Join-Path $repo '.tools\vpn-pilot\binary-manifest.json'
+  if(!(Test-Path $xrayManifest)){throw 'Verified Xray pilot required for VPN-enabled release'}
+  $xrayInfo=Get-Content $xrayManifest -Raw|ConvertFrom-Json
+  if(!(Test-Path $xrayInfo.xray_exe) -or
+     (Get-FileHash $xrayInfo.xray_exe -Algorithm SHA256).Hash -ine $xrayInfo.binary_sha256){
+     throw 'Bundled Xray SHA256 verification failed'
+  }
+  $xrayOut=Join-Path $publish 'Vpn'
+  New-Item -Path $xrayOut -ItemType Directory -Force|Out-Null
+  Copy-Item $xrayInfo.xray_exe (Join-Path $xrayOut 'xray.exe') -Force
+  Copy-Item (Join-Path (Split-Path $xrayInfo.xray_exe -Parent) 'LICENSE') (Join-Path $xrayOut 'LICENSE.Xray.txt') -Force
+  Set-Content -LiteralPath (Join-Path $xrayOut 'xray.sha256') -Value $xrayInfo.binary_sha256 -Encoding ascii
+  if((Get-FileHash (Join-Path $xrayOut 'xray.exe') -Algorithm SHA256).Hash -ine $xrayInfo.binary_sha256){throw 'Packaged Xray SHA256 mismatch'}
+
+  Write-Output 'LOCAL_PUBLISH_VOICE'
+  $voice = Join-Path $publish 'Voice'
+  & dotnet publish src/ChatGptMcpVoice/ChatGptMcpVoice.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:DebugSymbols=false "-p:Version=$Version" -o $voice --nologo
+  if($LASTEXITCODE -ne 0){throw 'Voice worker publish failed'}
+  $modelsRoot=Join-Path $repo '.tools\voice-models'
+  $models=Join-Path $voice 'Models'
+  $asr=Join-Path $models 'sherpa-onnx-zipformer-ru-2024-09-18'
+  $tts=Join-Path $models 'vits-piper-ru_RU-irina-medium'
+  New-Item -ItemType Directory -Path $asr,$tts -Force | Out-Null
+  foreach($file in @('encoder.int8.onnx','decoder.int8.onnx','joiner.int8.onnx','tokens.txt')){
+    Copy-Item (Join-Path $modelsRoot "sherpa-onnx-zipformer-ru-2024-09-18\$file") (Join-Path $asr $file) -Force
+  }
+  foreach($file in @('ru_RU-irina-medium.onnx','tokens.txt')){
+    Copy-Item (Join-Path $modelsRoot "vits-piper-ru_RU-irina-medium\$file") (Join-Path $tts $file) -Force
+  }
+  Copy-Item (Join-Path $modelsRoot 'vits-piper-ru_RU-irina-medium\espeak-ng-data') (Join-Path $tts 'espeak-ng-data') -Recurse -Force
+  Copy-Item (Join-Path $modelsRoot 'silero_vad.onnx') (Join-Path $models 'silero_vad.onnx') -Force
+  $voiceExe=Join-Path $voice 'ChatGptMcpVoice.exe'
+  $voiceSelf=Start-Process $voiceExe -ArgumentList '--selftest' -Wait -PassThru
+  if($voiceSelf.ExitCode -ne 0){throw 'Voice worker basic selftest failed'}
+  $voiceModels=Start-Process $voiceExe -ArgumentList '--check-models' -Wait -PassThru
+  if($voiceModels.ExitCode -ne 0){throw 'Voice worker packaged models missing'}
   Write-Output 'LOCAL_PUBLISH_RUNTIME'
   & dotnet publish src/ChatGptMcpTunnel/ChatGptMcpTunnel.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -p:DebugType=None -p:DebugSymbols=false "-p:Version=$Version" -o $runtime --nologo
   if($LASTEXITCODE -ne 0){throw 'Runtime publish failed'}
@@ -47,7 +93,7 @@ try {
     $brokerClientTest=Start-Process -FilePath $runtimeExe -ArgumentList '--test-admin-broker-client' -Wait -PassThru
     if($brokerClientTest.ExitCode -ne 0){throw "Broker client test failed code $($brokerClientTest.ExitCode)"}
     $app=Join-Path $publish 'ChatGptMcpAgent.exe'
-    foreach($flag in @('--selftest','--test-control','--test-overlay-auto','--test-overlay-tray','--test-transfer-window','--test-icons','--test-chat-thread-activator','--test-main-chat-ui','--test-main-chat-live','--test-admin-service','--test-admin-pipe-exec','--test-webview-network','--test-theme')){
+    foreach($flag in @('--selftest','--test-control','--test-overlay-auto','--test-overlay-tray','--test-transfer-window','--test-icons','--test-chat-thread-activator','--test-toolbar-dom','--test-voice-dom','--test-main-chat-ui','--test-main-chat-live','--test-admin-service','--test-admin-pipe-exec','--test-webview-network','--test-theme')){
       Write-Output "SELFTEST $flag"
       $process=Start-Process -FilePath $app -ArgumentList $flag -Wait -PassThru
       if($process.ExitCode -ne 0){throw "Packaged selftest $flag failed code $($process.ExitCode)"}

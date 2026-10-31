@@ -9,7 +9,7 @@
     <Nullable>enable</Nullable>
     <AssemblyName>ChatGptMcpAgent</AssemblyName>
     <RootNamespace>ChatGptMcpAgent</RootNamespace>
-    <Version>0.2.53</Version>
+    <Version>0.2.65</Version>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../Shared/ControlState.cs" Link="ControlState.cs" />
@@ -32,6 +32,14 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Themes\\ChatGPT-Warm-Dark.css" CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="Themes\\ChatGPT-Toolbar.js" CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="Themes\\ChatGPT-Context.js" CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="Themes\\ChatGPT-Voice.js" CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="Themes\\BrowserChrome.html" CopyToOutputDirectory="PreserveNewest"
              CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

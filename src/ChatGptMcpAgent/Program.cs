@@ -58,6 +58,19 @@ internal static class Program
             Environment.ExitCode = LanFirewall.ConfigureElevated(args[1]);
             return;
         }
+        if (args.Length == 1 && args[0] == "--test-voice-dom")
+        {
+            ApplicationConfiguration.Initialize();
+            Environment.ExitCode = VoiceDomTests.Run();
+            return;
+        }
+        if (args.Length == 1 && args[0] == "--test-server-adoption")
+        {
+            // Pure path classification and live read-only discovery.
+            // Never starts, terminates, or reconnects a tunnel.
+            Environment.ExitCode = ServerProcessOwnership.SelfTest() ? 0 : 46;
+            return;
+        }
         if (args.Length == 1 && args[0] == "--test-client-errors")
         {
             Environment.ExitCode =
@@ -118,11 +131,18 @@ internal static class Program
             Environment.ExitCode = dialog.Controls.OfType<TabControl>().Any(t => t.TabPages.Count >= 6) ? 0 : 92;
             return;
         }
+        if (args.Length == 1 && args[0] == "--test-toolbar-dom")
+        {
+            ApplicationConfiguration.Initialize();
+            Environment.ExitCode = ToolbarUiTests.Run();
+            return;
+        }
         if (args.Length == 1 && args[0] == "--test-main-chat-ui")
         {
             ApplicationConfiguration.Initialize();
             using var main = new ChatGptMainForm();
-            Environment.ExitCode = main.Controls.OfType<Microsoft.Web.WebView2.WinForms.WebView2>().Count() == 1 &&
+            Environment.ExitCode = main.HasCustomCaption && main.HasBrowserChrome &&
+                main.TabCount == 0 &&
                 !main.Controls.OfType<RichTextBox>().Any() &&
                 main.Text.Contains("ChatGPT MCP Tunnel v", StringComparison.Ordinal) ? 0 : 102;
             return;
@@ -143,7 +163,12 @@ internal static class Program
                     timer.Stop();
                     var navigationOk = main.BrowserInitialized && main.LastNavigationSucceeded &&
                         main.CurrentPage?.StartsWith("https://chatgpt.com/", StringComparison.Ordinal) == true;
-                    Environment.ExitCode = navigationOk && await main.PaletteAppliedAsync() ? 0 : 103;
+                    var chromeOk = main.ChromeInitialized && await main.SmokeChromeAsync();
+                    var tabsOk = await main.SmokeTabsAsync();
+                    Environment.ExitCode = navigationOk && chromeOk && tabsOk &&
+                        main.HasCustomCaption && main.HasBrowserChrome &&
+                        await main.PaletteAppliedAsync() &&
+                        await main.ToolbarScriptLoadedAsync() ? 0 : 103;
                     if (Environment.GetEnvironmentVariable("CHATGPT_MCP_PALETTE_PROBE") == "1" &&
                         main.BrowserControl.CoreWebView2 is { } browser)
                     {
@@ -179,6 +204,12 @@ internal static class Program
                 try { if (Directory.Exists(isolated)) Directory.Delete(isolated, true); }
                 catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
             }
+            return;
+        }
+        if (args.Length == 1 && args[0] == "--test-vpn-webview")
+        {
+            ApplicationConfiguration.Initialize();
+            Environment.ExitCode = VpnWebViewPilotTests.Run();
             return;
         }
         if (args.Length == 1 && args[0] == "--test-webview-network")
@@ -372,6 +403,11 @@ internal sealed class TrayContext : ApplicationContext
     private readonly EventWaitHandle _shutdown;
     private readonly EventWaitHandle _showSettings;
     private Process? _child;
+    // A previous GUI may have exited while its official server was still
+    // running. Adopt that installed server instead of launching a duplicate.
+    private Process? _adoptedServerClient;
+    private bool ServerProcessAlive =>
+        _child is { HasExited: false } || _adoptedServerClient is { HasExited: false };
     private string _connection = "Не настроен";
     private DateTime _nextStart = DateTime.MinValue;
     private bool _stopping;
@@ -434,6 +470,32 @@ internal sealed class TrayContext : ApplicationContext
         if (_diagnosticMode) _controlOverlay.DisableOwnTimerForIntegrationTest();
         var menu = new ContextMenuStrip();
         menu.Items.Add("Настройки", null, (_, _) => ShowSettings());
+        var vpnMenu = new ToolStripMenuItem("Подключение ChatGPT");
+        vpnMenu.DropDownOpening += (_, _) =>
+        {
+            foreach (ToolStripItem item in vpnMenu.DropDownItems)
+                if (item is ToolStripMenuItem choice)
+                    choice.Checked = choice.Tag is VpnConnectionMode mode && mode == VpnModeController.Current;
+        };
+        foreach (var mode in new[] { VpnConnectionMode.Happ, VpnConnectionMode.FreeReality })
+        {
+            var item = new ToolStripMenuItem(mode == VpnConnectionMode.Happ ?
+                "Happ — как сейчас" : "Бесплатные серверы (Xray)") { Tag = mode };
+            item.Click += (_, _) =>
+            {
+                if (_chatWindow is ChatGptMainForm live && !live.IsDisposed)
+                    live.SelectVpnModeFromTray(mode);
+                else
+                {
+                    // Open ChatGPT UI to display an explicit consent prompt.
+                    ShowChat();
+                    if (_chatWindow is ChatGptMainForm opened)
+                        opened.SelectVpnModeFromTray(mode);
+                }
+            };
+            vpnMenu.DropDownItems.Add(item);
+        }
+        menu.Items.Add(vpnMenu);
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("Выход", null, (_, _) => { AgentWatchdog.PauseForManualExit(); ExitThread(); });
         _tray = new NotifyIcon
@@ -448,6 +510,11 @@ internal sealed class TrayContext : ApplicationContext
         {
             // The actual tray message loop drives overlay discovery.
             _controlOverlay.Poll();
+            ShowVpnRecoveryNotice();
+            if (!_recreatingBrowser && !VpnModeController.IsTransitioning &&
+                _chatWindow is ChatGptMainForm browser &&
+                !browser.IsDisposed && browser.BrowserNetworkMode != VpnModeController.Current)
+                _ = RecreateBrowserAfterVpnChangeAsync(browser);
             if (_shutdown.WaitOne(0))
             {
                 ExitThread();
@@ -455,6 +522,15 @@ internal sealed class TrayContext : ApplicationContext
             }
             if (_showSettings.WaitOne(0))
                 ShowSettings();
+            if (!_diagnosticMode && !_stopping && !_updating &&
+                _adoptedServerClient is { HasExited: true })
+            {
+                AgentStorage.Log("Adopted bundled tunnel-client exited.");
+                _adoptedServerClient.Dispose();
+                _adoptedServerClient = null;
+                _connection = "Переподключение…";
+                _nextStart = DateTime.UtcNow.AddSeconds(5);
+            }
             if (!_diagnosticMode && !_stopping && !_updating && _child is { HasExited: true })
             {
                 // Record only the numeric exit code; never log CLI stderr verbatim
@@ -465,10 +541,12 @@ internal sealed class TrayContext : ApplicationContext
                 _connection = "Переподключение…";
                 _nextStart = DateTime.UtcNow.AddSeconds(5);
             }
-            if (!_diagnosticMode && !_stopping && !_updating && _child is null && DateTime.UtcNow >= _nextStart &&
+            if (!_diagnosticMode && !_stopping && !_updating &&
+                _child is null && _adoptedServerClient is null &&
+                DateTime.UtcNow >= _nextStart &&
                 File.Exists(AgentStorage.SettingsPath))
                 StartAgent();
-            if (!_diagnosticMode && !_stopping && !_updating && _child is { HasExited: false } &&
+            if (!_diagnosticMode && !_stopping && !_updating && ServerProcessAlive &&
                 AgentStorage.SelectedRole == "server" &&
                 !_serverProbePending && DateTime.UtcNow >= _nextServerProbe)
                 _ = PollServerStatusAsync();
@@ -502,6 +580,73 @@ internal sealed class TrayContext : ApplicationContext
         }
     }
 
+    private DateTimeOffset _lastVpnNoticeUtc = DateTimeOffset.UtcNow.AddMinutes(-3);
+    private void ShowVpnRecoveryNotice()
+    {
+        if (_diagnosticMode) return;
+        string path = Path.Combine(VpnModeController.Folder, "network-notice.json");
+        if (!File.Exists(path)) return;
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(path));
+            var root = doc.RootElement;
+            string reason = root.GetProperty("reason").GetString() ?? "";
+            var when = root.GetProperty("time").GetDateTimeOffset();
+            if (when <= _lastVpnNoticeUtc ||
+                when > DateTimeOffset.UtcNow.AddMinutes(2)) return;
+            _lastVpnNoticeUtc = when;
+            if (DateTimeOffset.UtcNow - when > TimeSpan.FromMinutes(3)) return;
+            string message = reason switch
+            {
+                "free-node-rotated" =>
+                    "Бесплатный VPN: подключён резервный рабочий сервер.",
+                "free-route-health-failed" =>
+                    "Бесплатные серверы недоступны. Подключение восстановлено через Happ.",
+                _ => ""
+            };
+            if (message.Length == 0) return;
+            _tray.ShowBalloonTip(7500, "VPN — изменение подключения",
+                message, ToolTipIcon.Info);
+            AgentStorage.Log("VPN connection notice: " + reason);
+        }
+        catch (Exception ex) when (ex is IOException or System.Text.Json.JsonException or
+                                    FormatException or InvalidOperationException)
+        {
+            AgentStorage.Log("Invalid VPN status notice: " + ex.GetType().Name);
+        }
+    }
+
+    private bool _recreatingBrowser;
+    private async Task RecreateBrowserAfterVpnChangeAsync(ChatGptMainForm chat)
+    {
+        if (_recreatingBrowser || chat.IsDisposed) return;
+        _recreatingBrowser = true;
+        try
+        {
+            var browserExit = chat.BrowserProcessExitTask;
+            chat.ExitApplication();
+            // Microsoft WebView2 requires the old browser process to release
+            // its ONE user-data folder before recreating with different proxy flags.
+            // Waiting here is asynchronous; the UI message pump remains responsive.
+            await browserExit.WaitAsync(TimeSpan.FromSeconds(25));
+            if (!_stopping && !_updating) ShowChat();
+        }
+        catch (TimeoutException)
+        {
+            AgentStorage.Log("VPN browser switch: WebView2 browser process did not exit in 25 seconds");
+            MessageBox.Show("Невозможно переключить VPN: предыдущий процесс WebView2 не завершился. " +
+                "Откройте окно ChatGPT после закрытия процесса браузера.",
+                "ChatGPT MCP Tunnel", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+        catch (Exception ex)
+        {
+            AgentStorage.Log("VPN browser switch: " + ex.GetType().Name);
+            MessageBox.Show("Переключение браузера: " + ex.Message,
+                "ChatGPT MCP Tunnel", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+        finally { _recreatingBrowser = false; }
+    }
+
     private Form? _chatWindow;
     private void ShowChat()
     {
@@ -511,6 +656,9 @@ internal sealed class TrayContext : ApplicationContext
             return;
         }
         var chat = new ChatGptMainForm();
+        // Recreate ONLY this WebView2 GUI on an app-scoped VPN mode change.
+        // The existing official MCP transport stays alive.
+        chat.VpnModeChanged += mode => { _ = RecreateBrowserAfterVpnChangeAsync(chat); };
         _chatWindow = chat;
         AppTheme.Apply(chat);
         chat.FormClosed += (_, _) =>
@@ -565,19 +713,34 @@ internal sealed class TrayContext : ApplicationContext
 
     private void StartAgent()
     {
-        if (_stopping || _updating || _child is not null) return;
+        if (_stopping || _updating || _child is not null ||
+            _adoptedServerClient is not null) return;
         try
         {
             var settings = AgentStorage.Load();
             ProcessStartInfo info;
             if (settings.Role == "server")
             {
-                // Existing OpenAI tunnel must never be duplicated during migration.
-                if (Process.GetProcessesByName("tunnel-client").Any())
+                // Match the exact installed executable, not just its name.
+                // A GUI restart must reuse its own existing tunnel-client,
+                // while a foreign or uninspectable process blocks duplicates.
+                var existing = ServerProcessOwnership.Inspect(
+                    Path.Combine(AppContext.BaseDirectory, "OpenAI", "tunnel-client.exe"));
+                if (existing.Kind == ExistingTunnelKind.Own)
+                {
+                    _adoptedServerClient = existing.Process;
+                    _connection = "Проверка сервера…";
+                    _nextServerProbe = DateTime.MinValue;
+                    _nextStart = DateTime.UtcNow.AddSeconds(5);
+                    AgentStorage.Log("Bundled tunnel-client adopted after GUI restart.");
+                    _ = PollServerStatusAsync();
+                    return;
+                }
+                if (existing.Kind == ExistingTunnelKind.Other)
                 {
                     _connection = "Другой туннель уже запущен";
                     _nextStart = DateTime.UtcNow.AddMinutes(1);
-                    AgentStorage.Log("Existing tunnel-client detected; server startup skipped.");
+                    AgentStorage.Log("Foreign or ambiguous tunnel-client detected; startup skipped.");
                     return;
                 }
                 var launcher = Path.Combine(AppContext.BaseDirectory, "ServerStart.ps1");
@@ -692,7 +855,7 @@ internal sealed class TrayContext : ApplicationContext
             using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(3));
             var result = await ServerStatusProbe.CheckAsync(address, timeout.Token);
             if (generation == _serverGeneration && !_stopping && !_updating &&
-                _child is { HasExited: false })
+                ServerProcessAlive)
                 _connection = ServerStatusProbe.Describe(result);
         }
         catch (Exception error)
@@ -716,18 +879,25 @@ internal sealed class TrayContext : ApplicationContext
         _serverGeneration++;
         _nextServerProbe = DateTime.MinValue;
         var child = _child;
+        var adopted = _adoptedServerClient;
         _child = null;
-        if (child is null) return;
-        try
+        _adoptedServerClient = null;
+        // Explicit Exit/Reconnect stops our own verified tunnel process.
+        // Closing the GUI after a crash does not change an unrelated process.
+        foreach (var process in new[] { child, adopted })
         {
-            if (!child.HasExited)
+            if (process is null) continue;
+            try
             {
-                child.Kill(entireProcessTree: true);
-                child.WaitForExit(3000);
+                if (!process.HasExited)
+                {
+                    process.Kill(entireProcessTree: true);
+                    process.WaitForExit(3000);
+                }
             }
+            catch (InvalidOperationException) { }
+            finally { process.Dispose(); }
         }
-        catch (InvalidOperationException) { }
-        finally { child.Dispose(); }
     }
 
     private void RestartAgent()

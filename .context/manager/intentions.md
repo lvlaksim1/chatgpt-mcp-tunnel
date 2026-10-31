@@ -1,3 +1,63 @@
+## v0.2.65 operator intent (31.10.2026 20:18 MSK)
+Use standby free nodes first after forced main-node failure; only fallback Happ if no verified backup. Notify via Windows Tray; keep one authorized profile, no global VPN changes, no extra MCP client, preserve connected Router Lite clients.
+
+---
+
+## Single-profile VPN owner requirement (31.10.2026 19:40 MSK)
+Use exactly the original ChatGPT signed-in WebView2 UDF for Happ and Free Xray; browser processes must fully exit between proxy-option changes. Keep Happ safe fallback and free node automatically revalidated on change; never recreate a separate empty browser login.
+
+---
+
+## VPN acceptance priorities — gen 70 (31.10.2026 18:58 MSK)
+Maintain coherent UI/server mode and safe app-specific networking. Trust of public free nodes remains unknown; default and fallback Happ. Current MCP and Router Lite stable.
+
+---
+
+## DOMKAT MCP VPN mode goals (31.10.2026 18:10 MSK)
+Keep server-only full-app routing via a stable local HTTP proxy; allow native official tunnel-client to reconnect persistent transport when mode changed, without restarting MCP runtime or Router Lite clients. Happ stays initial mode. Preserve sensitive traffic until owner elects untrusted public Free mode.
+
+---
+
+## VPN mode intentions (31.10.2026 17:08 MSK)
+Keep Happ as default/backup; allow explicit free Xray mode for isolated browser only. Continue work towards mode covering the full app including official MCP transport after verification, without extra tunnel or automatically exposing authenticated browser data to free public nodes.
+
+---
+
+## Free node updater intention (31.10.2026 16:36 MSK)
+Treat automatic fresh server discovery, validation, dedup, ranking and DPAPI persistence as functional. Do not silently switch signed-in ChatGPT to public proxies; auto-rerouting an active session remains a separate option requiring owner choice and validation.
+
+---
+
+## Free VPN intention, generation 65 (31.10.2026 14:33 MSK)
+Test public free VLESS/REALITY as non-production route; preserve privacy of existing ChatGPT and do not auto-switch sensitive sessions or permanent tunnel transport without owner decision. Seek trusted long-lived independent endpoint for stable production replacement.
+
+---
+
+## LamaVPN intent (31.10.2026 14:12 MSK)
+Continue legitimate reuse of paid subscription via authorized standard profile; preserve Happ as fallback until independent proxy genuinely passes WebView2+MCP E2E. No credential decrypt/redistribution or production switch without working provider data.
+
+---
+
+## VPN intention (31.10.2026, 13:30 MSK)
+Achieve dependence-free app-scoped VPN using Xray-core as replaceable engine, with separate per-process proxy routing, no OS-wide changes, one MCP tunnel and safe fallback to current Happ until verified.
+
+---
+
+## Намерение: поколение 62, 31.10.2026, 12:32 MSK
+Считать функционал физического TTS на колонках принятым пользователем. Сохранять независимость озвучивания ответов от микрофона; сфокусировать дальнейшие испытания ввода на времени появления микрофона.
+
+---
+
+## ACTIVE 31.10.2026 — project-manager generation 61
+Continue independently deliverable TTS even with no microphone. v0.2.61 installed, modern DIL response DOM support added. Physical speaker and sustained real-chat auto-voice acceptance still active; microphone-dependent STT deferred, not failed. Preserve seven strategic goals and one tunnel.
+
+---
+
+## АКТУАЛЬНО 31.10.2026 — менеджер проекта, поколение 60
+Owner-accepted 31.10: полноценное автономное локальное голосовое общение Sherpa-ONNX поверх действующего ChatGPT WebView2. Подзадачи сборки, установки, офлайн ASR/TTS и mock DOM завершены/проверены. Оставшееся обязательство — реальные тесты физического микрофона, голосовой отправки, озвучивания ответа и устойчивости — **active, not completed**. Прежняя MCP Apps-only стратегия была **superseded** прямым указанием владельца; не возвращаться к ней. Хранить 7 стратегических целей и условия Windows 10, Happ включён, один туннель, без отдельных платных API.
+
+---
+
 ## Актуально 30.10.2026 — подтверждённый E2E и блокер повторного сообщения
 Investigate why a second ui/message target=active got an ACK without generation or chat.reply while the iframe kept running. Independently replace user-visible routing text with tested model-only MCP Apps context (candidate ui/update-model-context). Do not use DOM, Work, Codex, or a separate API. Do not resend ambiguous pending+forwarded messages. Refresh dev plugin metadata whenever tool definitions or resource URI changes, before starting a new diagnostic conversation.
 
