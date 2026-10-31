@@ -109,6 +109,21 @@
         "--check"
       ],
       "timeout_sec": 40
+    },
+    {
+      "id": "roslyn_syntax_architecture",
+      "kind": "static",
+      "command": [
+        "dotnet",
+        "run",
+        "--project",
+        "quality/roslyn/ArchitectureRoslyn.csproj",
+        "-c",
+        "Release",
+        "--",
+        "."
+      ],
+      "timeout_sec": 220
     }
   ]
 }
