@@ -1,3 +1,8 @@
+## GEN 74 — план поддержки клиента (31.10.2026 21:27 МСК)
+Текущее требование выполнено: на MKATUSHONOK v0.2.65, signed-in ChatGPT Plus через локальный Free Xray; Router Lite подключён. Следующий приоритет — воспроизводимый клиентский инсталлятор/автозапуск Free VPN, проверка перезагрузки и трёхчасовых обновлений без перехода на Happ; только после безопасной локальной приёмки публиковать не содержащие секретов исходники. Не повторять приватный перенос без нового запроса.
+
+---
+
 ## Post-release operational plan (31.10.2026 20:24 MSK)
 v0.2.65 source, installers and SHA256 published stable, installed locally. Monitor 3h scheduled free feed refresh; no pending feature build required. Rollback backup retained, Happ selected.
 

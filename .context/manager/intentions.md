@@ -1,3 +1,8 @@
+## GEN 74 — обязательства при дальнейшей разработке (31.10.2026 21:27 МСК)
+Не перепутать режимы компьютеров: DOMKAT — сервер и Happ по умолчанию; MKATUSHONOK — Router Lite client с WebView2 через только Free Xray. Не создавать второй профиль ChatGPT, второй официальный MCP tunnel-client на MKATUSHONOK, не выключать системный Happ на DOMKAT. Не размещать браузерные данные, приватные VLESS параметры или DPAPI-профили в публичном GitHub.
+
+---
+
 ## VPN operation stable v0.2.65 (31.10.2026 20:24 MSK)
 Preserve one authenticated ChatGPT WebView2 profile on DOMKAT and one MCP tunnel-client. Rotate validated backups first, return to Happ only if none work, notify operator. GitHub is version storage; never upload DPAPI or browser backups.
 

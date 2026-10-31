@@ -1,3 +1,8 @@
+## GEN 74 — следующие задачи (31.10.2026 21:27 МСК)
+1. Интегрировать клиентский Free Xray supervisor и трёхчасовой refresh в официальный установщик ChatGPT MCP Tunnel с учётом роли client, сохранить правило MKATUSHONOK: только Free для ChatGPT WebView2, без Happ; не менять серверный MCP tunnel-client DOMKAT. 2. Документировать восстановление клиентского VPN после чистой установки и безопасную повторную авторизацию без переноса приватных файлов в GitHub. 3. Проверить перезапуск MKATUSHONOK/автовосстановление и обновления публичных VLESS-профилей на длительном интервале, включая отсутствие прямого fallback. 4. Сохранить локальную резервную копию прежнего браузерного профиля; удаление только по отдельному указанию владельца. 5. Публиковать лишь не содержащие секретов исходники и документацию; GitHub — хранилище версий, сборка локальная, без prerelease.
+
+---
+
 ## Operational next after stable v0.2.65 (31.10.2026 20:24 MSK)
 1. Keep schedule refreshing free profiles every 3 hours and watch first 22:28 MSK cycle. 2. Maintain original authorized WebView2 and local rollback backup. 3. Future releases use local build + tests + DOMKAT install first, safe non-force merge into main, stable GitHub release with full/update installer; never prereleases.
 

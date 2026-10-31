@@ -1,3 +1,8 @@
+## GEN 74 — актуальные ограничения (31.10.2026 21:27 МСК)
+Непреодолимых препятствий текущей работе нет. На клиенте MKATUSHONOK локальные скрипты Free Xray supervisor/refresh и безопасного переноса авторизации ещё не интегрированы в официальный клиентский инсталлятор/репозиторий: при восстановлении системы нужна отдельная процедура повторной установки локальных сервисов и безопасного входа. Обновлятор пересохраняет DPAPI-профили, но активный клиентский Xray переключает узел по ухудшению здоровья, а не обязательно сразу после каждого обновления. Долговременная валидность сессии ChatGPT и устойчивость публичных выходных узлов не гарантированы. Бесплатный VPN на MKATUSHONOK относится к WebView2, не ко всему трафику Windows. Браузерный откатный профиль содержит приватные данные: хранить только локально.
+
+---
+
 ## Remaining scope after stable v0.2.65 (31.10.2026 20:24 MSK)
 No known blocker to requested VPN features. Free public nodes remain untrusted/unreliable third-party intermediaries; provider-side real outage of indefinite duration is not reproducible. Happ fallback plus encrypted standby rotation validated in isolation, not a guarantee of zero interruption.
 
