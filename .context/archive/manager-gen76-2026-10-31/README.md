@@ -1,6 +1,6 @@
 # Lossless archived project-manager state generation 76
 
-Full source text preserved without modifying bytes. Historic assertions are not current authority. Prior source revision recorded in manifest.json.
+Exact source bytes preserved in docs/context-archive/manager-gen76-lossless.zip (SHA256 manifest). Markdown files are human-readable views and may be newline-normalized by Git. Historic assertions are not current authority. Prior source revision recorded in manifest.json.
 
 | File | Original SHA256 | Bytes |
 |---|---|---:|
