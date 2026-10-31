@@ -1,7 +1,7 @@
 {
   "schema": "context-capsule-manager-state-integrity",
   "schema_version": 1,
-  "generation": 75,
+  "generation": 76,
   "algorithm": "git-blob-sha1",
   "coupled_paths": [
     ".context/manager/beliefs.md",
@@ -20,7 +20,7 @@
     ".context/manager/plans.md": "git-blob-sha1:3106a911a147fdba25e5ae528f404f8d0ff89c38",
     ".context/current/state.md": "git-blob-sha1:145a42d3da7d171b77ccdc5fb026418b14833dc9",
     ".context/current/blockers.md": "git-blob-sha1:cf785dbc28b6bb9602003c2861def8cf61969703",
-    ".context/current/next.md": "git-blob-sha1:3d800f976cf0fc7d3a4d6c94afe7bf5d0b1ddbec",
-    ".context/handoffs/latest.md": "git-blob-sha1:8c1570edb5dc214de102ae04e398f68e99b5abe2"
+    ".context/current/next.md": "git-blob-sha1:f9ee894a8b70b66949a6095944efec9f20086788",
+    ".context/handoffs/latest.md": "git-blob-sha1:5065150edbb76959dc33f73496bc75b43c06330d"
   }
 }
