@@ -112,6 +112,17 @@ class SidecarTests(unittest.TestCase):
         self.assertEqual(result.returncode,0,(result.stdout+"\\n"+result.stderr)[-2000:])
         self.assertIn("PASS",result.stdout)
 
+    def test_previous_kit_schema_without_sidecar_version(self):
+        legacy=self.root/"legacy-kit"; legacy.mkdir()
+        with zipfile.ZipFile(legacy/"source-snapshot.zip","w") as archive:
+            for name in builder.BASE_REQUIRED_SOURCE:
+                archive.writestr(name,"old source")
+        for name in builder.DEFAULT_DIST_NAMES:
+            (legacy/name.format(version="0.2.65")).write_bytes(b"MZ-legacy")
+        files=[{"path":f.name,"bytes":f.stat().st_size,"sha256":builder.sha256(f)} for f in legacy.iterdir()]
+        (legacy/"recovery-manifest.json").write_text(json.dumps({"schema":builder.SCHEMA,"version":"0.2.65","sourceCommit":"f"*40,"containsSecrets":False,"artifacts":files}),encoding="utf-8")
+        self.assertEqual(builder.verify(legacy)["version"],"0.2.65")
+
     def test_source_scripts_do_not_reference_an_installed_version(self):
         s=(ROOT/"scripts/Build-LocalRelease.ps1").read_text(encoding="utf-8")
         self.assertIn("RECOVERY_KIT_BUILD",s)

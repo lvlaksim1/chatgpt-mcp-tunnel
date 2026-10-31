@@ -38,6 +38,11 @@ REQUIRED_SOURCE = [
     "installer/agent-full.iss",
     "installer/agent-update.iss",
 ]
+# v0.2.66 predates the versioned sidecar. Keep read-only compatibility.
+BASE_REQUIRED_SOURCE = [name for name in REQUIRED_SOURCE if name not in {
+    "scripts/Recovery/publish_recovery_sidecar.py",
+    "scripts/Recovery/Verify-RecoveryKit.ps1",
+}]
 FORBIDDEN_SUFFIXES = (".dpapi", ".pfx", ".p12", ".key", ".pem", ".sqlite")
 FORBIDDEN_NAMES = {"cookies", "local state", "login data", "web data", "history"}
 DEFAULT_DIST_NAMES = ("ChatGPT_MCP_Tunnel_Setup_v{version}.exe",
@@ -86,7 +91,8 @@ def verify(kit: Path) -> dict:
         names = source.namelist()
         for n in names:
             check_relative(n)
-        missing = set(REQUIRED_SOURCE) - set(names)
+        needed = REQUIRED_SOURCE if manifest.get("sidecarVersion") == 1 else BASE_REQUIRED_SOURCE
+        missing = set(needed) - set(names)
         if missing:
             raise ValueError("Source snapshot incomplete: " + repr(sorted(missing)))
     if len([n for n in found if n.endswith(".exe")]) < 2:
@@ -138,6 +144,7 @@ def build(repo: Path, dist: Path, out: Path, version: str) -> dict:
         manifest = {
             "schema": SCHEMA,
             "version": version,
+            "sidecarVersion": 1,
             "sourceCommit": head,
             "sourceRemote": "https://github.com/lvlaksim1/chatgpt-mcp-tunnel",
             "createdUtc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
